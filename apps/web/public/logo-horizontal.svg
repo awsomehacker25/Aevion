@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 160" role="img" aria-label="Aevion">
-  <title>Aevion</title>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="160" viewBox="0 0 740 160">
   <defs>
     <radialGradient id="bg" cx="22%" cy="45%" r="90%">
       <stop offset="0" stop-color="#0f3262"/>
