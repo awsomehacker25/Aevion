@@ -1,4 +1,4 @@
-import type { Story } from '../types'
+import type { Story, ViewMode } from '../types'
 import { ms } from './data'
 
 /**
@@ -26,7 +26,7 @@ export function changeProgress(story: Story, cursor: number, secondaryIso?: stri
 }
 
 /** Opacity of the map overlay for a build-up progress. The overlay is drawn once at full strength and only faded. */
-export const overlayOpacity = (progress: number, mode: 'los' | 'fringes' | 'coherence') =>
+export const overlayOpacity = (progress: number, mode: ViewMode) =>
   progress <= 0 ? 0 : mode === 'coherence' ? 0.95 * Math.min(1, progress * 1.5) : 0.95 * Math.min(1, progress)
 
 /** Things that belong to the event (fault model, shaking, cities, mechanisms) exist only once it has happened. */

@@ -8,6 +8,17 @@ async function getJson<T>(url: string): Promise<T> {
   return r.json() as Promise<T>
 }
 
+/** Loads a grid file. Grids stored as scaled whole numbers are turned back into real values. */
+async function getGrid(url: string): Promise<Grid> {
+  const g = await getJson<Grid>(url)
+  const k = g.scale
+  if (k) {
+    g.values = g.values.map((v) => (v == null ? null : Math.round(v * 1e6 * k) / 1e6))
+    delete g.scale
+  }
+  return g
+}
+
 /** The list of available stories, for the story picker. */
 export async function loadIndex(): Promise<StoryIndexEntry[]> {
   return (await getJson<{ stories: StoryIndexEntry[] }>(`${BASE}index.json`)).stories
@@ -25,11 +36,16 @@ export async function loadStory(id?: string): Promise<LoadedStory> {
 
   // Everything below is independent, so fetch it all at once. The context file is optional.
   const grids: Record<string, Grid> = {}
+  const epochGrids: Record<string, { deformation: Grid; coherence: Grid }> = {}
   const [acq, quakes, context] = await Promise.all([
     getJson<{ pairs: AcquisitionPair[] }>(dir + story.acquisitions),
     getJson<QuakeCollection>(dir + story.events),
     story.context ? getJson<UsgsContext>(dir + story.context).catch(() => undefined) : undefined,
-    ...story.layers.map(async (l) => { grids[l.id] = await getJson<Grid>(dir + l.grid) }),
+    ...story.layers.map(async (l) => { grids[l.id] = await getGrid(dir + l.grid) }),
+    ...(story.epochs ?? []).map(async (e) => {
+      const [deformation, coherence] = await Promise.all([getGrid(dir + e.deformation), getGrid(dir + e.coherence)])
+      epochGrids[e.id] = { deformation, coherence }
+    }),
   ])
 
   const f = story.flagshipPair
@@ -37,7 +53,7 @@ export async function loadStory(id?: string): Promise<LoadedStory> {
     (p) => p.track === f.track && p.orbitDirection === f.orbitDirection &&
       p.reference.startsWith(f.reference) && p.secondary.startsWith(f.secondary),
   )
-  return { story, grids, pairs: acq.pairs, flagship, quakes, context }
+  return { story, grids, pairs: acq.pairs, flagship, quakes, context, epochGrids }
 }
 
 /** Nearest-cell lookup. Returns null outside the grid or on nodata. */

@@ -69,6 +69,8 @@ interface SideProps {
   displacement: LayerDef
   coherence: LayerDef
   flagship?: AcquisitionPair
+  /** Radar brightness (backscatter) change layers, when the story has them. */
+  radar?: { hh?: LayerDef; hv?: LayerDef }
   /** Content blocks the app supplies; the panel decides which tab each one lives in. */
   slots: {
     /** Story: tour and replay buttons. */
@@ -84,13 +86,20 @@ interface SideProps {
 export function SidePanel(p: SideProps) {
   const sci = p.ui === 'scientist'
   const tech = p.story.technical
-  const active = p.mode === 'coherence' ? p.coherence : p.displacement
+  const radarLayer = p.mode === 'hh' ? p.radar?.hh : p.mode === 'hv' ? p.radar?.hv : undefined
+  const active = radarLayer ?? (p.mode === 'coherence' ? p.coherence : p.displacement)
   const [lo, hi] = active.range
   const half = LAMBDA / 2
 
   // Story: friendly units and plain sentences. Scientist: raw units, numbers and the physics.
-  const legend =
-    p.mode === 'fringes'
+  const legend = radarLayer
+    ? {
+        left: `${fmtNum(lo)} dB`,
+        right: `${fmtNum(hi)} dB`,
+        title: sci ? (radarLayer.titleScientist ?? radarLayer.name) : (radarLayer.titleStory ?? radarLayer.name),
+        hint: sci ? (radarLayer.hintScientist ?? '') : (radarLayer.hintStory ?? ''),
+      }
+    : p.mode === 'fringes'
       ? {
           left: '0',
           right: sci ? `1 fringe = ${half.toFixed(3)} m` : '1 color cycle',
@@ -207,6 +216,14 @@ export function SidePanel(p: SideProps) {
           <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
             title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />
         </div>
+        {(p.radar?.hh || p.radar?.hv) && (
+          <div className="views radar">
+            {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
+              title="Radar HH" sub={sci ? 'GCOV HHHH change, dB' : 'Ground-sensitive brightness change'} />}
+            {p.radar.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
+              title="Radar HV" sub={sci ? 'GCOV HVHV change, dB' : 'Plant-sensitive brightness change'} />}
+          </div>
+        )}
 
         <div className="legend">
           <div className="legend-title">{legend.title} <Badge kind={active.badge} synthetic={active.synthetic} /></div>
@@ -292,10 +309,11 @@ interface InspectProps {
   threshold: number
   showChange: boolean
   sensor?: string
+  radar?: { hh?: { layer: LayerDef; grid: Grid }; hv?: { layer: LayerDef; grid: Grid } }
   onClose: () => void
 }
 
-export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', onClose }: InspectProps) {
+export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', radar, onClose }: InspectProps) {
   const sci = ui === 'scientist'
   const g = displacement.grid
   const d = sampleGrid(g, point[0], point[1])
@@ -325,6 +343,11 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
             <tbody>
               <tr><th>LOS (display)</th><td>{cm! > 0 ? '+' : ''}{cm!.toFixed(2)} {displacement.layer.displayUnits}</td></tr>
               <tr><th>{coherence.layer.label ?? 'Coherence'}</th><td>{c!.toFixed(3)} ({conf}{c! < threshold ? ', masked' : ''})</td></tr>
+              {(['hh', 'hv'] as const).map((k) => {
+                const r = radar?.[k]
+                const v = r ? sampleGrid(r.grid, point[0], point[1]) : null
+                return r ? <tr key={k}><th>{k.toUpperCase()} brightness</th><td>{v == null ? 'no data' : `${v > 0 ? '+' : ''}${v.toFixed(1)} dB`}</td></tr> : null
+              })}
               <tr><th>Grid cell</th><td>col {col}, row {row} of {g.width} &times; {g.height}</td></tr>
               {sign && <tr><th>Sign</th><td>{sign}</td></tr>}
             </tbody>

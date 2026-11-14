@@ -69,3 +69,15 @@ Do not mix data maturity levels (BETA, PROVISIONAL, VALIDATED) in one pair.
 
 A `context` file (fault model, PAGER, shaking contours, cities) turns on the Impact tab and the
 physics check. Only the Venezuela story has one. Other story types simply skip those panels.
+
+## More than one period, and radar brightness (Kilauea has both)
+
+- **Periods (a real time series).** Collect several pairs with `prep_story_data.py` (use `--start` and `--end` to pick them),
+  then run `python processing/stack_to_story.py <story-dir> --all`. It writes a tilt-corrected grid for every pair into
+  `<story>/epochs/`. List them under `epochs` in `story.json` (pair dates, an optional `event`, and the two grid files). The
+  app then shows a bar chart of motion near the vent (the annotation with `kind: "vent"`), and clicking a bar switches the map,
+  timeline and event to that period.
+- **Polarizations (HH and HV).** The interferogram files only contain HH, so brightness comes from NISAR's backscatter product
+  (GCOV). Run `prep_story_backscatter.py <story-dir>` (it reads the flagship pair's two dates), then
+  `backscatter_to_story.py <story-dir>`. Add two layers with roles `backscatterHH` and `backscatterHV` to `story.json`
+  (see the Kilauea story). The app adds "Radar HH" and "Radar HV" view buttons and shows both values in the point inspector.

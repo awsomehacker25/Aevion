@@ -52,7 +52,8 @@ def main(folder: str):
         if len(b) != 4 or not (b[0] < b[2] and b[1] < b[3]):
             err(f"{gp.name}: bbox must be [west, south, east, north]")
         shapes[l["id"]] = (g.get("width"), g.get("height"), tuple(b))
-        vals = [v for v in g.get("values", []) if v is not None]
+        k = g.get("scale") or 1  # grids may store whole numbers in steps of `scale`
+        vals = [v * k for v in g.get("values", []) if v is not None]
         if vals and l.get("role") == "coherence" and (min(vals) < 0 or max(vals) > 1):
             err(f"{gp.name}: coherence values must be within 0..1")
         if l.get("range") and vals and l.get("role") == "displacement":

@@ -1,6 +1,6 @@
 export type Badge = 'OBSERVED' | 'DERIVED' | 'CONTEXT' | 'WHAT-IF'
 export type DataStatus = 'placeholder' | 'beta' | 'provisional' | 'validated'
-export type ViewMode = 'los' | 'fringes' | 'coherence'
+export type ViewMode = 'los' | 'fringes' | 'coherence' | 'hh' | 'hv'
 
 /** What kind of event a story is about. Used for the story picker and for data-source hints. */
 export type StoryType = 'earthquake' | 'volcano' | 'landslide' | 'subsidence'
@@ -16,7 +16,7 @@ export interface StoryIndexEntry {
 }
 
 /** What a layer means to the app. A story needs one 'displacement' and one 'coherence' layer. */
-export type LayerRole = 'displacement' | 'coherence'
+export type LayerRole = 'displacement' | 'coherence' | 'backscatterHH' | 'backscatterHV'
 
 export interface LayerDef {
   id: string
@@ -50,6 +50,18 @@ export interface Resource {
   title: string
   url: string
   description: string
+}
+
+/** One measured 12-day period of a story (a pair of NISAR passes), with its own displacement grids. */
+export interface Epoch {
+  id: string
+  /** Short label for the chart, for example "Aug 18 to Aug 30". */
+  label: string
+  pair: { reference: string; secondary: string }
+  /** An eruption or other event inside the period, if any. */
+  event?: { name: string; shortLabel: string; datetime: string; source: string }
+  deformation: string
+  coherence: string
 }
 
 export interface Story {
@@ -89,6 +101,8 @@ export interface Story {
   acquisitions: string
   events: string
   layers: LayerDef[]
+  /** Other measured periods the viewer can switch to. The top-level pair is the featured one. */
+  epochs?: Epoch[]
 }
 
 /** "aevion-grid-v1": see docs/data-contract.md */
@@ -103,6 +117,8 @@ export interface Grid {
   nodata: number | null
   /** null (or the nodata value) marks cells with no valid measurement. */
   values: (number | null)[]
+  /** If present, `values` are whole numbers in steps of this size (value = stored number times scale). Keeps files small. */
+  scale?: number
 }
 
 export interface AcquisitionPair {
@@ -209,4 +225,5 @@ export interface LoadedStory {
   flagship?: AcquisitionPair
   quakes: QuakeCollection
   context?: UsgsContext
+  epochGrids?: Record<string, { deformation: Grid; coherence: Grid }>
 }

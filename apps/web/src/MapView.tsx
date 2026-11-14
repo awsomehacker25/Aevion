@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
-import type { ImageSource, MapMouseEvent, StyleSpecification } from 'maplibre-gl'
+import type { GeoJSONSource, ImageSource, MapMouseEvent, StyleSpecification } from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { BASEMAP } from './config'
@@ -17,6 +17,8 @@ interface Props {
   context?: UsgsContext
   displacement: { layer: LayerDef; grid: Grid }
   coherence: { layer: LayerDef; grid: Grid }
+  radarHH?: { layer: LayerDef; grid: Grid }
+  radarHV?: { layer: LayerDef; grid: Grid }
   mode: ViewMode
   fadeLow: boolean
   threshold: number
@@ -24,6 +26,8 @@ interface Props {
   progress: number
   /** Exact time of the second pass, for the per-frame fade while playing. */
   secondaryIso?: string
+  /** Before/after swipe: west of the line shows the plain imagery, east of it the measured change. */
+  swipe: boolean
   cursor: number
   overlays: Overlays
   camera: CameraReq | null
@@ -71,6 +75,37 @@ export default function MapView(p: Props) {
   const markerRef = useRef<maplibregl.Marker | null>(null)
   const beachRef = useRef<maplibregl.Marker[]>([])
   const annotRef = useRef<maplibregl.Marker[]>([])
+  const fullRef = useRef<HTMLCanvasElement | null>(null) // the overlay, drawn once at full strength
+  const viewRef = useRef<HTMLCanvasElement | null>(null) // the overlay cut at the swipe line, encoded and sent to the map
+  const swipeFrac = useRef(0.5) // swipe line position across the map box: 0 = west edge, 1 = east edge
+  const swipeOn = useRef(false)
+
+  const paintSeq = useRef(0) // numbers each update so an older, slower one can never overwrite a newer one
+  const lastUrl = useRef<string | null>(null)
+  const bbox = p.story.aoi.bbox
+
+  // Send the overlay to the map as an image, cutting off the "before" side when swiping. Encoding happens off the main
+  // thread (toBlob), and only the newest request is applied.
+  const paintOverlay = useCallback(() => {
+    const map = mapRef.current
+    const full = fullRef.current
+    if (!map || !full) return
+    const view = viewRef.current ?? (viewRef.current = document.createElement('canvas'))
+    if (view.width !== full.width || view.height !== full.height) { view.width = full.width; view.height = full.height }
+    const ctx = view.getContext('2d')!
+    ctx.clearRect(0, 0, view.width, view.height)
+    const sx = swipeOn.current ? Math.round(Math.min(1, Math.max(0, swipeFrac.current)) * full.width) : 0
+    if (sx < full.width) ctx.drawImage(full, sx, 0, full.width - sx, full.height, sx, 0, full.width - sx, full.height)
+    const seq = ++paintSeq.current
+    view.toBlob((blob) => {
+      if (!blob || seq !== paintSeq.current || mapRef.current !== map) return
+      const url = URL.createObjectURL(blob)
+      const old = lastUrl.current
+      lastUrl.current = url
+      ;(map.getSource('overlay') as ImageSource | undefined)?.updateImage({ url, coordinates: corners(bbox) })
+      if (old) setTimeout(() => URL.revokeObjectURL(old), 3000) // the map has long since loaded the previous image
+    }, 'image/png')
+  }, [bbox])
   // the latest callbacks and mode, read by the one-time click handler
   const live = useRef({ onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode })
   const [ready, setReady] = useState(false)
@@ -123,6 +158,10 @@ export default function MapView(p: Props) {
         // we fade this layer ourselves, every frame; the map's own 300 ms opacity animation would fight with that and can leave a stale frame
         'raster-opacity-transition': { duration: 0, delay: 0 },
       } })
+
+      // the before/after swipe line (empty until swipe is switched on)
+      map.addSource('swipe', { type: 'geojson', data: EMPTY })
+      map.addLayer({ id: 'swipe-line', type: 'line', source: 'swipe', paint: { 'line-color': '#ffffff', 'line-width': 2.5, 'line-opacity': 0.95 } })
 
       // AOI outline
       map.addSource('aoi', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[...corners(aoi.bbox), corners(aoi.bbox)[0]]] } } })
@@ -198,14 +237,53 @@ export default function MapView(p: Props) {
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    const url = renderOverlay(p.displacement.grid, p.coherence.grid, {
-      mode: p.mode,
-      range: p.mode === 'coherence' ? p.coherence.layer.range : p.displacement.layer.range,
-      fadeLow: p.fadeLow, threshold: p.threshold,
-      scale: p.replayScale ?? 1, low: p.replayScale != null, quiet: p.displacement.layer.quietBelow,
+    // radar brightness views draw their own layer with the same diverging colors; the interferometric coherence mask does not apply to them
+    const radar = p.mode === 'hh' ? p.radarHH : p.mode === 'hv' ? p.radarHV : undefined
+    fullRef.current = renderOverlay(radar?.grid ?? p.displacement.grid, p.coherence.grid, {
+      mode: radar ? 'los' : p.mode,
+      range: radar ? radar.layer.range : p.mode === 'coherence' ? p.coherence.layer.range : p.displacement.layer.range,
+      fadeLow: radar ? false : p.fadeLow, threshold: p.threshold,
+      scale: p.replayScale ?? 1, low: p.replayScale != null, quiet: (radar ?? p.displacement).layer.quietBelow,
     })
-    ;(map.getSource('overlay') as ImageSource).updateImage({ url, coordinates: corners(p.story.aoi.bbox) })
-  }, [ready, p.displacement, p.coherence, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
+    paintOverlay()
+  }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
+
+  // before/after swipe: a draggable handle on a line; the overlay is shown only east of the line
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    const [w, s, e, n] = p.story.aoi.bbox
+    const lat0 = (s + n) / 2
+    const lineAt = (lng: number): FeatureCollection => ({
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[lng, s], [lng, lat0], [lng, n]] } }],
+    })
+    const src = map.getSource('swipe') as GeoJSONSource
+    swipeOn.current = p.swipe
+    if (!p.swipe) { src.setData(EMPTY); paintOverlay(); return }
+    const lng0 = w + (e - w) * swipeFrac.current
+    src.setData(lineAt(lng0))
+    const el = document.createElement('div')
+    el.className = 'swipe-handle'
+    el.title = 'Drag to compare before and after'
+    el.innerHTML = '<span>Before</span><b>&lsaquo; &rsaquo;</b><span>After</span>'
+    const marker = new maplibregl.Marker({ element: el, draggable: true }).setLngLat([lng0, lat0]).addTo(map)
+    marker.on('drag', () => {
+      const lng = Math.min(e, Math.max(w, marker.getLngLat().lng))
+      swipeFrac.current = (lng - w) / (e - w)
+      marker.setLngLat([lng, lat0]) // stay on the line, only slide east and west
+      src.setData(lineAt(lng))
+      paintOverlay()
+    })
+    paintOverlay()
+    return () => {
+      marker.remove()
+      if (mapRef.current !== map) return // the map itself was already removed
+      swipeOn.current = false
+      src.setData(EMPTY)
+      paintOverlay()
+    }
+  }, [ready, p.swipe, p.story.aoi.bbox, paintOverlay])
 
   useEffect(() => {
     const map = mapRef.current

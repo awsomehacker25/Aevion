@@ -81,6 +81,14 @@
     {
       "title": "What does this help with?",
       "body": "Scientists at the USGS Hawaiian Volcano Observatory combine ground measurements like these with gas, seismic and GPS data to judge when magma is on the move. Satellite radar fills the gaps between instruments."
+    },
+    {
+      "title": "Which radar polarizations show this?",
+      "body": "NISAR transmits horizontally polarized radar and records two kinds of echo: HH (horizontal back, which mostly responds to the ground) and HV (cross-polarized, which responds more to leaves, branches and rough, scattering surfaces). Between the two passes, both showed the area near the crater darkening by about 4 dB. HH also brightened by about 3 dB southwest of the crater, where the ground moved most, which fits fresh rough rock or ash. HV brightened there only about 1 dB but darkened across the forest to the southwest. Comparing the two helps separate changes in the ground from changes in plants and moisture. These are observations; the causes are interpretations that fieldwork would need to confirm."
+    },
+    {
+      "title": "What could NISAR do next?",
+      "body": "NISAR images most of Earth’s land every 12 days, day or night, through cloud. At Kīlauea that means every eruption episode in a row, not just one: this story already holds seven 12-day periods from June to October. The same method could watch other volcanoes swell before they erupt, find new lava flows by how their radar brightness changes, and track landslides, sinking ground, floods and forest loss anywhere in the world. Scientists at the USGS Hawaiian Volcano Observatory combine radar with GPS, tilt and gas measurements for this."
     }
   ],
   "tour": [
@@ -136,6 +144,25 @@
         "pitch": 50,
         "bearing": 10
       }
+    },
+    {
+      "title": "Rough ground or forest? (HH)",
+      "text": "This view shows how bright the radar echo got. HH mostly responds to the ground. It brightened by about 3 dB southwest of the crater (orange) and darkened near it (blue).",
+      "view": "hh",
+      "camera": {
+        "center": [
+          -155.29,
+          19.4
+        ],
+        "zoom": 11.7,
+        "pitch": 50,
+        "bearing": 8
+      }
+    },
+    {
+      "title": "The cross-polarized echo (HV)",
+      "text": "HV listens more to leaves and branches. It shows the same dark spot near the crater, only a weak brightening, and a broad darkening across the forest. Comparing HH and HV helps separate ground change from plant and moisture change.",
+      "view": "hv"
     },
     {
       "title": "Counting the waves",
@@ -314,6 +341,80 @@
         "measurement": "Coherence, 0 (no signal) to 1 (perfect)",
         "method": "Same box, resampling and invalid mask as the displacement layer."
       }
+    },
+    {
+      "id": "backscatter-hh",
+      "role": "backscatterHH",
+      "name": "Radar brightness change, HH",
+      "badge": "DERIVED",
+      "grid": "backscatter-hh.grid.json",
+      "units": "dB",
+      "displayUnits": "dB",
+      "displayScale": 1,
+      "range": [
+        -4,
+        4
+      ],
+      "quietBelow": 0.8,
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "positiveMeans": "brighter (a rougher or wetter surface)",
+      "negativeMeans": "darker (a smoother or drier surface)",
+      "titleStory": "How the radar brightness changed (HH)",
+      "titleScientist": "Change in HH backscatter (dB)",
+      "hintStory": "Orange means the radar echo got brighter between the two passes, blue means darker. HH responds most to the ground itself, such as fresh lava and ash. Southwest of the crater it brightens by about 3 dB, and near the crater it darkens by about 4 dB.",
+      "hintScientist": "Second pass minus reference pass of GCOV HHHH power, in dB (positive = brighter). Left unsmoothed and without background correction, so the scene-wide shift (median -0.33 dB) stays in. Cells with no valid data on either date are empty.",
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GCOV (geocoded polarimetric covariance), HHHH term, provisional",
+        "granuleId": "NISAR_L2_PR_GCOV_028_072_D_079_4005_DHDH_A_20260818T045813_20260818T045833_P05023_N_P_J_001 (reference) and NISAR_L2_PR_GCOV_029_072_D_079_4005_DHDH_A_20260830T045813_20260830T045832_P05023_N_P_J_001 (second pass)",
+        "maturity": "PROVISIONAL",
+        "referenceDate": "2026-08-18",
+        "secondaryDate": "2026-08-30",
+        "polarization": "HH (L-band, about 24 cm)",
+        "measurement": "Change in radar backscatter power (second pass minus reference pass), in dB",
+        "method": "Aevion read the HHHH power layer inside the map box, averaged the linear power in blocks down to a 220 by 200 grid, converted to dB and subtracted the reference date from the second date. No smoothing and no background correction.",
+        "extra": "Largest smoothed change: +2.9 dB near 19.385, -155.300; -4.1 dB near 19.412, -155.271.",
+        "license": "NASA data, free to use. Research-grade, not for operational use."
+      }
+    },
+    {
+      "id": "backscatter-hv",
+      "role": "backscatterHV",
+      "name": "Radar brightness change, HV",
+      "badge": "DERIVED",
+      "grid": "backscatter-hv.grid.json",
+      "units": "dB",
+      "displayUnits": "dB",
+      "displayScale": 1,
+      "range": [
+        -4,
+        4
+      ],
+      "quietBelow": 0.8,
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "positiveMeans": "brighter (a rougher or wetter surface)",
+      "negativeMeans": "darker (a smoother or drier surface)",
+      "titleStory": "How the radar brightness changed (HV)",
+      "titleScientist": "Change in HV backscatter (dB)",
+      "hintStory": "Orange means the radar echo got brighter, blue means darker. HV responds more to leaves, branches and rough surfaces. It shows the same dark spot near the crater (about 4 dB), but only a weak brightening (about 1 dB) southwest of it, and a broad darkening across the forest.",
+      "hintScientist": "Second pass minus reference pass of GCOV HVHV power, in dB (positive = brighter). Left unsmoothed and without background correction, so the scene-wide shift (median -0.80 dB) stays in. Cells with no valid data on either date are empty.",
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GCOV (geocoded polarimetric covariance), HVHV term, provisional",
+        "granuleId": "NISAR_L2_PR_GCOV_028_072_D_079_4005_DHDH_A_20260818T045813_20260818T045833_P05023_N_P_J_001 (reference) and NISAR_L2_PR_GCOV_029_072_D_079_4005_DHDH_A_20260830T045813_20260830T045832_P05023_N_P_J_001 (second pass)",
+        "maturity": "PROVISIONAL",
+        "referenceDate": "2026-08-18",
+        "secondaryDate": "2026-08-30",
+        "polarization": "HV (L-band, about 24 cm)",
+        "measurement": "Change in radar backscatter power (second pass minus reference pass), in dB",
+        "method": "Aevion read the HVHV power layer inside the map box, averaged the linear power in blocks down to a 220 by 200 grid, converted to dB and subtracted the reference date from the second date. No smoothing and no background correction.",
+        "extra": "Largest smoothed change: +1.2 dB near 19.386, -155.309; -4.5 dB near 19.411, -155.271.",
+        "license": "NASA data, free to use. Research-grade, not for operational use."
+      }
     }
   ],
   "defaultThreshold": 0.3,
@@ -331,6 +432,102 @@
       "label": "Ground moved toward the satellite, about 4 cm",
       "kind": "note",
       "appears": "change"
+    }
+  ],
+  "epochs": [
+    {
+      "id": "ep-2026-06-19",
+      "label": "Jun 19 to Jul 1",
+      "pair": {
+        "reference": "2026-06-19",
+        "secondary": "2026-07-01"
+      },
+      "deformation": "epochs/ep-2026-06-19.deformation.grid.json",
+      "coherence": "epochs/ep-2026-06-19.coherence.grid.json",
+      "event": {
+        "name": "Episode 50",
+        "shortLabel": "Ep. 50",
+        "datetime": "2026-06-27T20:10:00Z",
+        "source": "USGS HVO eruption timeline (to be verified)"
+      }
+    },
+    {
+      "id": "ep-2026-07-01",
+      "label": "Jul 1 to Jul 13",
+      "pair": {
+        "reference": "2026-07-01",
+        "secondary": "2026-07-13"
+      },
+      "deformation": "epochs/ep-2026-07-01.deformation.grid.json",
+      "coherence": "epochs/ep-2026-07-01.coherence.grid.json"
+    },
+    {
+      "id": "ep-2026-08-18",
+      "label": "Aug 18 to Aug 30",
+      "pair": {
+        "reference": "2026-08-18",
+        "secondary": "2026-08-30"
+      },
+      "deformation": "deformation.grid.json",
+      "coherence": "coherence.grid.json",
+      "event": {
+        "name": "Episode 54",
+        "shortLabel": "Episode 54",
+        "datetime": "2026-08-25T20:30:00Z",
+        "source": "USGS HVO eruption timeline (to be verified)"
+      }
+    },
+    {
+      "id": "ep-2026-08-30",
+      "label": "Aug 30 to Sep 11",
+      "pair": {
+        "reference": "2026-08-30",
+        "secondary": "2026-09-11"
+      },
+      "deformation": "epochs/ep-2026-08-30.deformation.grid.json",
+      "coherence": "epochs/ep-2026-08-30.coherence.grid.json"
+    },
+    {
+      "id": "ep-2026-09-11",
+      "label": "Sep 11 to Sep 23",
+      "pair": {
+        "reference": "2026-09-11",
+        "secondary": "2026-09-23"
+      },
+      "deformation": "epochs/ep-2026-09-11.deformation.grid.json",
+      "coherence": "epochs/ep-2026-09-11.coherence.grid.json",
+      "event": {
+        "name": "the unnumbered new-vents event",
+        "shortLabel": "New vents",
+        "datetime": "2026-09-15T06:36:00Z",
+        "source": "USGS HVO eruption timeline (to be verified)"
+      }
+    },
+    {
+      "id": "ep-2026-09-23",
+      "label": "Sep 23 to Oct 5",
+      "pair": {
+        "reference": "2026-09-23",
+        "secondary": "2026-10-05"
+      },
+      "deformation": "epochs/ep-2026-09-23.deformation.grid.json",
+      "coherence": "epochs/ep-2026-09-23.coherence.grid.json",
+      "event": {
+        "name": "the unnumbered caldera intrusion",
+        "shortLabel": "Intrusion",
+        "datetime": "2026-10-01T00:00:00Z",
+        "source": "USGS HVO eruption timeline (to be verified)"
+      }
+    },
+    {
+      "id": "ep-2026-10-05",
+      "label": "Oct 5 to Oct 17",
+      "pair": {
+        "reference": "2026-10-05",
+        "secondary": "2026-10-17"
+      },
+      "deformation": "epochs/ep-2026-10-05.deformation.grid.json",
+      "coherence": "epochs/ep-2026-10-05.coherence.grid.json"
     }
   ]
 }

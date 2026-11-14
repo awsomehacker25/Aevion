@@ -276,3 +276,21 @@
 .annot.off i, .annot.off span { opacity: 0; }
 .replay-chip.fade { opacity: 0; pointer-events: none; transition: opacity .6s ease; }
 .replay-chip.fade.on { opacity: 1; }
+
+/* before/after swipe */
+.swipe-handle {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; cursor: ew-resize; user-select: none; touch-action: none;
+  background: rgba(10,16,30,.92); border: 2px solid #fff; color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 3px 14px rgba(0,0,0,.6);
+}
+.swipe-handle b { font-size: 15px; letter-spacing: .1em; }
+.swipe-handle span:first-child { color: #a9b8d6; }
+.swipe-handle span:last-child { color: #ffb066; }
+.views.radar { grid-template-columns: repeat(2, 1fr); margin-top: 6px; }
+
+/* period chart */
+.epochs { margin: 12px 0 0; padding: 10px 12px 4px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.04); font-size: 13px; }
+.epochs svg { width: 100%; height: auto; margin-top: 6px; }
+.epochs .hint { margin: 2px 0 6px; }
+.ep-bar { cursor: pointer; outline: none; }
+.ep-bar:hover rect:nth-of-type(2), .ep-bar:focus rect:nth-of-type(2) { filter: brightness(1.25); }
+.ep-bar:focus-visible rect:first-of-type { stroke: var(--accent); stroke-width: 2; }

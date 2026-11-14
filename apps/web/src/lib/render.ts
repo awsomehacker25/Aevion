@@ -25,6 +25,8 @@ export const LEGEND_GRADIENTS: Record<ViewMode, string> = {
   los: `linear-gradient(90deg, ${DIVERGING.join(',')})`,
   fringes: 'linear-gradient(90deg, hsl(0 85% 55%), hsl(60 85% 55%), hsl(120 85% 45%), hsl(180 85% 45%), hsl(240 85% 60%), hsl(300 85% 55%), hsl(360 85% 55%))',
   coherence: `linear-gradient(90deg, ${CONFIDENCE.join(',')})`,
+  hh: `linear-gradient(90deg, ${DIVERGING.join(',')})`,
+  hv: `linear-gradient(90deg, ${DIVERGING.join(',')})`,
 }
 
 export interface RenderOpts {
@@ -84,8 +86,8 @@ function bilinear(g: Grid, fx: number, fy: number): number {
   return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty
 }
 
-/** Draws the selected view to a PNG data URL, upsampled 2x with bilinear interpolation. */
-export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
+/** Draws the selected view onto a canvas, upsampled 2x with bilinear interpolation. */
+export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasElement {
   const S = o.low ? 0.5 : defo.width >= 400 ? 1 : 2 // big grids are already detailed; keep redraws fast
   const W = Math.round(defo.width * S)
   const H = Math.round(defo.height * S)
@@ -155,5 +157,5 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
     }
   }
   ctx.putImageData(img, 0, 0)
-  return cv.toDataURL('image/png')
+  return cv
 }

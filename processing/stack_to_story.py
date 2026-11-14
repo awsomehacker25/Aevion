@@ -9,6 +9,7 @@ Usage:
   python processing/stack_to_story.py apps/web/public/stories/kilauea-hawaii            # the story's flagship pair
   python processing/stack_to_story.py apps/web/public/stories/kilauea-hawaii --pair 2026-08-30
   python processing/stack_to_story.py apps/web/public/stories/kilauea-hawaii --preview out.png   # picture, no files written
+  python processing/stack_to_story.py apps/web/public/stories/kilauea-hawaii --all               # every saved pair, into epochs/
   python processing/stack_to_story.py apps/web/public/stories/kilauea-hawaii --exclude-km 12      # keep more area out of the fit
 
 Writes deformation.grid.json and coherence.grid.json next to story.json. Then edit story.json
@@ -48,11 +49,38 @@ def deramp(disp, coh, x, y, exclude_km, min_coh):
     return disp - B @ coef, coef, int(keep.sum()), float(mad)
 
 
-def grid_json(a, units, name, bbox, nd=4):
+def grid_json(a, units, name, bbox, scale):
+    """Values are stored as whole numbers in steps of `scale` (value = number * scale) to keep the files small."""
     h, w = a.shape
-    vals = [None if not np.isfinite(v) else round(float(v), nd) for v in a.ravel()]
+    vals = [None if not np.isfinite(v) else int(round(float(v) / scale)) for v in a.ravel()]
     return {"format": "aevion-grid-v1", "name": name, "units": units, "width": w, "height": h,
-            "bbox": list(bbox), "rowOrder": "north-up", "nodata": None, "values": vals}
+            "bbox": list(bbox), "rowOrder": "north-up", "nodata": None, "scale": scale, "values": vals}
+
+
+def write_grid(path, g):
+    path.write_text(json.dumps(g, separators=(",", ":")), encoding="utf-8")
+
+
+DISP_STEP = 0.001  # 1 mm, far below the 6 to 14 mm scatter left after tilt removal
+COH_STEP = 0.01
+
+
+def convert_all(sd, story, stacks, exclude_km, min_coh):
+    out_dir = sd / "epochs"
+    out_dir.mkdir(exist_ok=True)
+    center = story["aoi"]["center"]
+    for f in sorted((stacks / story["id"]).glob("t*_*_*.npz")):
+        z = np.load(f, allow_pickle=True)
+        disp, coh, bbox = z["disp"].astype("float64"), z["coh"].astype("float64"), [float(v) for v in z["bbox"]]
+        x, y = km_grid(bbox, disp.shape, center)
+        out, _coef, n, mad = deramp(disp, coh, x, y, exclude_km, min_coh)
+        ref = str(z["reference"])[:10]
+        if ref == story["flagshipPair"]["reference"]:
+            continue  # the featured pair is the story's main grids (written without --all), so it is not stored twice
+        write_grid(out_dir / f"ep-{ref}.deformation.grid.json", grid_json(out, "m", "los_displacement", bbox, DISP_STEP))
+        write_grid(out_dir / f"ep-{ref}.coherence.grid.json", grid_json(coh, "1", "coherence", bbox, COH_STEP))
+        print(f"{ref} -> {str(z['secondary'])[:10]}: tilt removed ({n} cells, scatter {mad * 1000:.1f} mm), std {np.nanstd(disp) * 1000:.0f} -> {np.nanstd(out) * 1000:.0f} mm")
+    print("wrote", out_dir)
 
 
 def main():
@@ -63,10 +91,14 @@ def main():
     ap.add_argument("--exclude-km", type=float, default=9.0, help="keep cells this close to the event center out of the tilt fit")
     ap.add_argument("--min-coh", type=float, default=0.3, help="only fit cells with at least this coherence")
     ap.add_argument("--preview", help="write a before/after picture here and do not write grids")
+    ap.add_argument("--all", action="store_true", help="convert every saved pair into <story>/epochs/ep-<reference date>.*.grid.json")
     a = ap.parse_args()
 
     sd = Path(a.story_dir)
     story = json.loads((sd / "story.json").read_text(encoding="utf-8"))
+    if a.all:
+        convert_all(sd, story, Path(a.stacks), a.exclude_km, a.min_coh)
+        return
     ref = a.pair or story["flagshipPair"]["reference"]
     files = sorted((Path(a.stacks) / story["id"]).glob(f"*_{ref}_*.npz"))
     if not files:
@@ -98,8 +130,8 @@ def main():
         print("preview written to", a.preview)
         return
 
-    (sd / "deformation.grid.json").write_text(json.dumps(grid_json(out, "m", "los_displacement", bbox)), encoding="utf-8")
-    (sd / "coherence.grid.json").write_text(json.dumps(grid_json(coh, "1", "coherence", bbox, 3)), encoding="utf-8")
+    write_grid(sd / "deformation.grid.json", grid_json(out, "m", "los_displacement", bbox, DISP_STEP))
+    write_grid(sd / "coherence.grid.json", grid_json(coh, "1", "coherence", bbox, COH_STEP))
     print("wrote deformation.grid.json and coherence.grid.json")
     print("fit coefficients (normalized km):", [round(float(c), 5) for c in coef])
 
