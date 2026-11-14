@@ -5,3 +5,7 @@
 data/
 *.h5
 __pycache__/
+# Vercel local link
+.vercel/
+
+.vercel
