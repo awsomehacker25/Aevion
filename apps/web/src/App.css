@@ -58,6 +58,24 @@
 .mono { font-family: Consolas, 'SF Mono', Menlo, monospace; font-size: 10.5px; }
 .foot { margin: 16px 0 0; font-size: 10.5px; color: var(--muted); line-height: 1.4; }
 
+/* Story vs Scientist: scientist is denser, monospaced for numbers, with a cooler accent */
+.howto ul { margin: 0; padding-left: 18px; color: #cdd8ef; font-size: 13px; }
+.howto li { margin: 3px 0; }
+.pair { margin: 6px 0 0; color: var(--muted); }
+.lead.tech { font-size: 12.5px; line-height: 1.5; color: #c2cde6; }
+.caveats { margin: 0; padding-left: 18px; font-size: 12px; color: #b8c4df; }
+.caveats li { margin: 4px 0; }
+.side.sci { font-size: 13px; border-color: rgba(106, 165, 255, .38); }
+.side.sci h1 { font-size: 18px; }
+.side.sci .views { gap: 4px; }
+.side.sci .view { padding: 6px; border-radius: 6px; }
+.side.sci .hint, .side.sci .check { font-size: 12px; }
+.inspector.sci { width: 290px; border-color: rgba(106, 165, 255, .38); }
+.inspector.sci .big { font-size: 24px; margin-bottom: 6px; }
+.inspector.sci .prov { margin: 4px 0 10px; }
+.inspector.sci .prov th { width: 38%; }
+.inspector.sci .big, .side.sci .mono, .inspector.sci .coords { font-family: Consolas, 'SF Mono', Menlo, monospace; }
+
 /* badges */
 .badges { display: inline-flex; gap: 5px; flex-wrap: wrap; }
 .badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; color: #fff; white-space: nowrap; }

@@ -27,6 +27,8 @@ export interface Story {
   dataStatus: DataStatus
   dataStatusNote: string
   storyText: string
+  /** Optional text shown in Scientist mode instead of the plain-language story. */
+  technical?: { title: string; subtitle?: string; summary: string; caveats?: string[] }
   aoi: { bbox: [number, number, number, number]; center: [number, number]; zoom: number; pitch: number; bearing: number }
   timeline: { start: string; end: string; initial: string }
   event: { name: string; shortLabel: string; datetime: string; source: string }

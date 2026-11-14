@@ -2,6 +2,18 @@
   "id": "venezuela-2026",
   "title": "The ground moved here",
   "subtitle": "Venezuela earthquakes, June 2026",
+  "technical": {
+    "title": "Coseismic LOS displacement, northern Venezuela",
+    "subtitle": "NISAR L-band repeat-pass InSAR, 2026-06-24 M7.2 and M7.5",
+    "summary": "Coseismic LOS displacement from a NISAR L-band (λ ≈ 23.8 cm) interferogram, 12-day baseline (2026-06-13 to 06-25) spanning the M7.2 and M7.5 events (USGS). Unwrapped phase is converted to meters (d = φλ/4π) and masked by coherence. LOS is a projection of 3D motion, so one geometry cannot separate vertical from horizontal.",
+    "caveats": [
+      "Layers are synthetic placeholders (four-lobe pattern at the USGS epicenters), not measured deformation.",
+      "Phase is relative to an arbitrary reference point until a stable area is chosen.",
+      "Near-rupture gradients can cause unwrapping errors and decorrelation. Mask, do not interpret.",
+      "Ionospheric and tropospheric phase are not removed.",
+      "Polarization (HH) and sign convention need confirming on the real granule."
+    ]
+  },
   "dataStatus": "placeholder",
   "dataStatusNote": "Deformation and coherence layers are synthetic placeholders in the final data format. Earthquake locations and NISAR acquisition dates are real. Replace the grid files and set dataStatus to \"provisional\" or \"validated\" when real NISAR products are processed.",
   "storyText": "On June 24, 2026, a magnitude 7.2 and a magnitude 7.5 earthquake struck northern Venezuela within a minute of each other. NISAR flew over this area on June 13 and again on June 25. Comparing those two radar passes shows how far the ground moved along the satellite's line of sight.",

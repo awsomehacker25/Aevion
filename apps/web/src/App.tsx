@@ -53,7 +53,7 @@ export default function App() {
         threshold={threshold} setThreshold={setThreshold}
         displacement={layers.displacement.layer} coherence={layers.coherence.layer} flagship={data.flagship} />
       {picked && (
-        <Inspector point={picked} displacement={layers.displacement} coherence={layers.coherence}
+        <Inspector point={picked} ui={ui} displacement={layers.displacement} coherence={layers.coherence}
           threshold={threshold} showChange={showChange} onClose={() => setPicked(null)} />
       )}
       <Timeline data={data} cursor={cursor} setCursor={setCursor} />
