@@ -72,7 +72,7 @@
 <p class="sub">A NISAR-powered Earth change twin for NASA Space Apps 2026, challenge: Dancing with the SARs.</p>
 
 <div class="meta">
-  <span><b>Version</b> 1.5</span>
+  <span><b>Version</b> 1.6</span>
   <span><b>Last updated</b> 2026-11-10</span>
   <span><b>Event</b> Nov 14&ndash;15, 2026 (confirm on the official site)</span>
   <span><b>Repo</b> github.com/awsomehacker25/Aevion (private)</span>
@@ -381,6 +381,7 @@ processing_timestamp, method, units, sign_convention</pre>
 <h2 id="changelog">14. Changelog</h2>
 <table>
   <tr><th>Version</th><th>Date</th><th>Change</th></tr>
+  <tr><td>1.6</td><td>2026-11-13</td><td>Added stand-out features. Story mode: 8-step guided tour, five "why did this happen" cards, a line-of-sight diagram, an illustrative quake replay, and a "Who was affected" panel (USGS PAGER, ShakeMap, cities). Scientist mode: cross-section tool with automatic step estimate, a physics check against the USGS finite-fault model (pattern r = 0.53, sign agrees, amplitude does not match), fault mechanisms (beach balls) and slip overlay. New data script <code>fetch_usgs_context.py</code>. Fringes view now hides near-zero motion.</td></tr>
   <tr><td>1.5</td><td>2026-11-13</td><td>Downloaded and inspected the raw GUNW granule (frame 006). Confirmed geometry (ascending, left-looking, HH, 80 m) and corrected the wavelength to 24.2 cm from the file. Corrected the sign convention to positive = away from the satellite (inferred from NASA's description and the geometry). Found that frame 006 lies south of the ruptures, so it could not validate the ARIA map; frame 007 would be needed.</td></tr>
   <tr><td>1.4</td><td>2026-11-13</td><td>Switched the app's ground motion from placeholder to real data: NASA JPL's public ARIA displacement map for the NISAR 2026-06-13 to 06-25 pair (no login, under 1 MB for our area instead of the 2.2 GB granule). Added <code>fetch_aria_displacement.py</code>. Coherence is replaced by an Aevion-derived measurement coverage layer because the public map has no coherence. Badges and provenance updated; data status is provisional.</td></tr>
   <tr><td>1.3</td><td>2026-11-13</td><td>Added the official challenge resource list to the app (Learn more in Story mode, Data and documentation plus other SAR missions in Scientist mode), a data sources doc, and an untested granule download script. Confirmed all NISAR files require Earthdata Login.</td></tr>

@@ -15,6 +15,28 @@ need to access it. Last checked 2026-11-13.
 | Measurement coverage | Derived by Aevion from the displacement map's valid cells (7 by 7 window) | Real, derived, in `coverage.grid.json`. **Not** interferometric coherence | Same script |
 | Raw interferometric coherence and unwrapped phase | NISAR L2 GUNW granule | Not used yet | Earthdata Login required, 2.2 GB |
 
+## USGS context (public, no login)
+
+`processing/fetch_usgs_context.py` writes `usgs-context.json` (about 90 KB) from the USGS event API and
+product files for the M7.5 (`us6000t7zp`) and M7.2 (`us6000t7zc`):
+
+| Content | Used for |
+|---------|----------|
+| Moment tensors (both right-lateral strike-slip on roughly east-west planes) | Beach balls, mechanism text, the sign check |
+| PAGER alert (red), exposure by shaking intensity, felt reports (972) | "Who was affected" panel |
+| PAGER nearby cities with population and shaking intensity | City table and map markers |
+| ShakeMap intensity contours | Shaking overlay |
+| Finite-fault slip patches (130, up to 1.8 m) | Fault overlay |
+| Finite-fault predicted surface displacement (about 20 km grid, east/north/up) | Physics check against the NISAR-derived map |
+
+Physics check result: projecting the M7.5 model onto the radar line of sight (incidence 40 degrees, look
+azimuth 260 degrees) gives a pattern correlation of r = 0.53 over 106 cells and the correct sign, but the
+amplitude does not match (model peaks near 135 cm, the radar map near 21 cm). Likely causes: the ARIA map
+is deramped, near-fault cells have no data, and the model is coarse and not fit to this data. Treat it as a
+consistency check, not a validation. Geometry values are approximate (from NASA's description) and live in
+`story.json` under `geometry`. NASA's Sentinel-1 displacement product (OPERA DISP-S1) had no scenes over
+the area in June to July 2026, so there is no second-radar cross-check.
+
 ## The ground motion source (what the app shows now)
 
 NASA JPL / Caltech's ARIA team publishes line-of-sight displacement maps made from NISAR

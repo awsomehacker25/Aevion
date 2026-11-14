@@ -13,6 +13,13 @@ interface Pass { t: number; track: number; dir: string; flagship: boolean }
 
 /** While playing, React state (date text, map filter) refreshes this often. The cursor line itself moves every frame. */
 const COMMIT_MS = 120
+const DAY_MS = 86400000
+const HOUR_MS = 3600000
+/** Spacing of the date labels on the axis. */
+const TICK_EVERY_DAYS = 4
+
+/** Quake marker diameter in px, scaled by magnitude. */
+const quakeSize = (mag: number) => 4 + (mag - 3.5) * 2.6
 
 export default function Timeline({ data, cursor, setCursor }: Props) {
   const { story, pairs, quakes } = data
@@ -78,8 +85,7 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
 
   const ticks = useMemo(() => {
     const out: number[] = []
-    const day = 86400000
-    for (let t = Math.ceil(start / day) * day; t <= end; t += 4 * day) out.push(t)
+    for (let t = Math.ceil(start / DAY_MS) * DAY_MS; t <= end; t += TICK_EVERY_DAYS * DAY_MS) out.push(t)
     return out
   }, [start, end])
 
@@ -97,7 +103,7 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
       <div className="tl-row tl-quakes">
         <span className="tl-label">Earthquakes (USGS)</span>
         {quakes.features.map((q) => (
-          <i key={q.id} className="qdot" style={{ left: pct(q.properties.time), width: 4 + (q.properties.mag - 3.5) * 2.6, height: 4 + (q.properties.mag - 3.5) * 2.6 }}
+          <i key={q.id} className="qdot" style={{ left: pct(q.properties.time), width: quakeSize(q.properties.mag), height: quakeSize(q.properties.mag) }}
             title={`M${q.properties.mag} · ${q.properties.place}`} />
         ))}
       </div>
@@ -135,7 +141,7 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
       <div className="tl-track">
         {marks}
         <div className="tl-cursor" ref={lineRef} />
-        <input className="tl-range" type="range" min={start} max={end} step={3600000} value={cursor}
+        <input className="tl-range" type="range" min={start} max={end} step={HOUR_MS} value={cursor}
           onChange={(e) => { setPlaying(false); setCursor(Number(e.target.value)) }} aria-label="Date" />
       </div>
     </div>

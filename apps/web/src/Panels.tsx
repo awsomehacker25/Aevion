@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
 import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, ViewMode } from './types'
@@ -54,6 +55,10 @@ interface SideProps {
   displacement: LayerDef
   coherence: LayerDef
   flagship?: AcquisitionPair
+  /** Rendered right after the intro text (tour and replay buttons). */
+  top?: ReactNode
+  /** Rendered after the main controls, before the resource links. */
+  children?: ReactNode
 }
 
 export function SidePanel(p: SideProps) {
@@ -108,6 +113,7 @@ export function SidePanel(p: SideProps) {
           {tech && <p className="lead tech">{tech.summary}</p>}
         </>
       ) : <p className="lead">{p.story.storyText}</p>}
+      {p.top}
 
       <h2>{sci ? 'Layer' : 'What do you want to see?'}</h2>
       <div className="views">
@@ -170,6 +176,8 @@ export function SidePanel(p: SideProps) {
           )}
         </>
       )}
+
+      {p.children}
 
       <Resources items={p.story.resources} ui={p.ui} />
 

@@ -32,6 +32,10 @@ export interface RenderOpts {
   range: [number, number]
   fadeLow: boolean
   threshold: number
+  /** 0..1 multiplier on the displacement. Used only by the illustrative replay. Default 1. */
+  scale?: number
+  /** Render at half resolution (fast), used while animating. */
+  low?: boolean
 }
 
 const smooth = (a: number, b: number, x: number) => {
@@ -61,9 +65,10 @@ function hsl(h: number, s: number, l: number): RGB {
 
 /** Draws the selected view to a PNG data URL, upsampled 2x with bilinear interpolation. */
 export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
-  const S = defo.width >= 400 ? 1 : 2 // big grids are already detailed; keep redraws fast
-  const W = defo.width * S
-  const H = defo.height * S
+  const S = o.low ? 0.5 : defo.width >= 400 ? 1 : 2 // big grids are already detailed; keep redraws fast
+  const W = Math.round(defo.width * S)
+  const H = Math.round(defo.height * S)
+  const k = o.scale ?? 1
   const cv = document.createElement('canvas')
   cv.width = W
   cv.height = H
@@ -77,7 +82,7 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
     for (let x = 0; x < W; x++) {
       const fx = (x + 0.5) / S - 0.5
       const fy = (y + 0.5) / S - 0.5
-      const d = bilinear(defo, fx, fy)
+      const d = bilinear(defo, fx, fy) * k
       let c = bilinear(coh, fx, fy)
       if (Number.isNaN(d) || (o.mode === 'coherence' && Number.isNaN(c))) continue // no data: stay transparent
       if (Number.isNaN(c)) c = 0
@@ -91,7 +96,8 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
       } else if (o.mode === 'fringes') {
         const phase = (((d / (LAMBDA / 2)) % 1) + 1) % 1
         rgb = hsl(phase * 360, 0.85, 0.52)
-        a = 0.78
+        // Almost no motion would all be one flat color, so fade it out like the ground-motion view.
+        a = 0.85 * smooth(0.008, 0.05, Math.abs(d))
       } else {
         rgb = ramp(CONFIDENCE, (c - lo) / (hi - lo))
         a = 0.85

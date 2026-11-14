@@ -52,6 +52,12 @@ export interface Story {
   timeline: { start: string; end: string; initial: string }
   event: { name: string; shortLabel: string; datetime: string; source: string }
   resources?: Resource[]
+  /** File with USGS context (mechanisms, PAGER, shaking, fault model). Optional. */
+  context?: string
+  /** Approximate satellite geometry, used to project the USGS model onto the line of sight. */
+  geometry?: { incidenceDeg: number; lookAzimuthDeg: number; source?: string }
+  why?: { title: string; body: string }[]
+  tour?: TourStep[]
   flagshipPair: { track: number; orbitDirection: string; reference: string; secondary: string }
   acquisitions: string
   events: string
@@ -90,10 +96,90 @@ export interface QuakeCollection {
   }[]
 }
 
+export interface Camera {
+  center: [number, number]
+  zoom: number
+  pitch: number
+  bearing: number
+}
+
+/** A request to fly the camera. A new nonce triggers a new flight. */
+export interface CameraReq {
+  nonce: number
+  camera: Camera
+}
+
+export interface Overlays {
+  fault: boolean
+  shaking: boolean
+  cities: boolean
+  mechanisms: boolean
+}
+
+export interface TourStep {
+  title: string
+  text: string
+  camera?: Camera
+  view?: ViewMode
+  /** ISO date the timeline jumps to. */
+  date?: string
+  overlays?: Partial<Overlays>
+}
+
+export interface Mechanism {
+  planes: { strike: number; dip: number; rake: number; kind: string }[]
+  depthKm: number
+}
+
+export interface UsgsEvent {
+  id: string
+  mag: number
+  title: string
+  time: number
+  lon: number
+  lat: number
+  url: string
+  mechanism: Mechanism | null
+}
+
+export interface City {
+  name: string
+  lon: number
+  lat: number
+  pop: number
+  mmi: number
+}
+
+export interface UsgsModel {
+  lons: number[]
+  lats: number[]
+  ue: (number | null)[][]
+  un: (number | null)[][]
+  uz: (number | null)[][]
+  note: string
+}
+
+export interface UsgsContext {
+  mainEventId: string
+  events: UsgsEvent[]
+  pager: {
+    fatalityLevel?: string
+    economicLevel?: string
+    exposureByMmi?: Record<string, number>
+    exposedMmi7plus?: number
+    felt?: number
+  }
+  cities: City[]
+  shakingContours: GeoJSON.FeatureCollection | null
+  fault: GeoJSON.FeatureCollection | null
+  model: UsgsModel | null
+}
+
 export interface LoadedStory {
   story: Story
   grids: Record<string, Grid>
   pairs: AcquisitionPair[]
   flagship?: AcquisitionPair
   quakes: QuakeCollection
+  context?: UsgsContext
 }

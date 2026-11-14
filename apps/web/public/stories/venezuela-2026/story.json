@@ -47,6 +47,88 @@
   },
   "acquisitions": "acquisitions.json",
   "events": "usgs-events.geojson",
+  "context": "usgs-context.json",
+  "geometry": {
+    "incidenceDeg": 40,
+    "lookAzimuthDeg": 260,
+    "source": "NASA description of the ARIA map: about 40 degrees from vertical, slightly south of due west (ascending, left-looking)"
+  },
+  "why": [
+    {
+      "title": "Why did the ground move?",
+      "body": "Northern Venezuela sits where the Caribbean and South American plates slide past each other, mostly sideways. Strain builds slowly and then releases. On June 24 two faults slipped within a minute. USGS finds both were right-lateral strike-slip on roughly east-west faults: one side slid to the right relative to the other, by up to about 1.8 m in USGS's model of the larger quake."
+    },
+    {
+      "title": "How does radar see the ground move?",
+      "body": "NISAR sends L-band radar pulses (about 24 cm wavelength) and records the echo. Comparing two passes 12 days apart, a tiny change in the distance to the ground shifts the echo's phase. One full color cycle in the Fringes view is about 12 cm of motion. Radar works at night and through clouds."
+    },
+    {
+      "title": "What do polarizations add?",
+      "body": "This map uses HH: the radar sends and receives horizontally polarized waves. Co-polarized channels like HH keep their phase well, which is why interferograms use them. Cross-polarized channels such as HV respond more to vegetation structure, so they suit forest and fire change more than ground motion."
+    },
+    {
+      "title": "What can the map not tell us?",
+      "body": "The radar only measures motion along its line of sight, toward or away from the satellite, so one pass cannot separate up, down, east and west. The map is relative to an unknown reference and NASA has not yet validated it. Near the fault, shaking scrambles the radar echo, so some areas have no data."
+    },
+    {
+      "title": "What could NISAR do next?",
+      "body": "NISAR images nearly all land every 12 days, so the same method can track landslides after storms, volcano swelling, sinking cities, moving glaciers, floods, and forest or crop change. NISAR also has urgent-response data products for disasters like this one."
+    }
+  ],
+  "tour": [
+    {
+      "title": "Northern Venezuela",
+      "text": "This is the coast of northern Venezuela, home to millions of people. Radar from space can measure how the ground moves here, even through clouds.",
+      "date": "2026-06-12T00:00:00Z",
+      "view": "los",
+      "camera": { "center": [-67.9, 10.45], "zoom": 8.3, "pitch": 62, "bearing": -18 },
+      "overlays": { "fault": false, "shaking": false, "cities": false, "mechanisms": false }
+    },
+    {
+      "title": "NISAR looks once",
+      "text": "On June 13, NISAR, a NASA-ISRO radar satellite, passed over and recorded the ground. This is the 'before' picture.",
+      "date": "2026-06-13T10:10:00Z"
+    },
+    {
+      "title": "Two big earthquakes",
+      "text": "On June 24, a magnitude 7.2 and a magnitude 7.5 earthquake struck within a minute of each other. The beach balls show how the rock slipped: sideways, along east-west faults.",
+      "date": "2026-06-24T22:30:00Z",
+      "camera": { "center": [-67.9, 10.5], "zoom": 8.2, "pitch": 50, "bearing": -10 },
+      "overlays": { "mechanisms": true }
+    },
+    {
+      "title": "NISAR looks again",
+      "text": "On June 25, NISAR flew over again. Comparing the two passes shows how the ground moved. Orange means away from the satellite, blue means toward it.",
+      "date": "2026-06-25T10:30:00Z",
+      "view": "los",
+      "camera": { "center": [-67.4, 10.35], "zoom": 9, "pitch": 55, "bearing": -12 }
+    },
+    {
+      "title": "The ground slid sideways",
+      "text": "South of the fault the ground moved one way, north of it the other. That is what sideways slip looks like. The purple patches are USGS's model of where the fault slipped.",
+      "camera": { "center": [-67.3, 10.62], "zoom": 9.1, "pitch": 45, "bearing": -5 },
+      "overlays": { "fault": true }
+    },
+    {
+      "title": "Counting the waves",
+      "text": "Each color band is about 12 cm of motion toward or away from the satellite. Many tight bands mean a lot of movement.",
+      "view": "fringes",
+      "overlays": { "fault": false, "mechanisms": false }
+    },
+    {
+      "title": "How sure are we?",
+      "text": "Dark areas have gaps in the data, often where shaking or vegetation scrambled the radar. We hide what we cannot trust.",
+      "view": "coherence",
+      "camera": { "center": [-67.9, 10.45], "zoom": 8.6, "pitch": 50, "bearing": -12 }
+    },
+    {
+      "title": "Who felt it",
+      "text": "Cities along the coast felt violent shaking. USGS estimates millions of people were exposed to very strong shaking.",
+      "view": "los",
+      "camera": { "center": [-67.3, 10.5], "zoom": 8.7, "pitch": 40, "bearing": -10 },
+      "overlays": { "cities": true, "shaking": true }
+    }
+  ],
   "resources": [
     { "group": "learn", "audience": "story", "title": "NISAR StoryMaps", "url": "https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/", "description": "Interactive stories on floods, wildfires, subsidence, oil slicks and glacier motion." },
     { "group": "learn", "audience": "story", "title": "Intro to Synthetic Aperture Radar", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar", "description": "How radar frequency, wavelength and polarization work." },

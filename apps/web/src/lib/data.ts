@@ -1,4 +1,4 @@
-import type { AcquisitionPair, Grid, LoadedStory, QuakeCollection, Story } from '../types'
+import type { AcquisitionPair, Grid, LoadedStory, QuakeCollection, Story, UsgsContext } from '../types'
 
 const BASE = `${import.meta.env.BASE_URL}stories/`
 
@@ -24,12 +24,17 @@ export async function loadStory(id?: string): Promise<LoadedStory> {
   const acq = await getJson<{ pairs: AcquisitionPair[] }>(dir + story.acquisitions)
   const quakes = await getJson<QuakeCollection>(dir + story.events)
 
+  let context: UsgsContext | undefined
+  if (story.context) {
+    try { context = await getJson<UsgsContext>(dir + story.context) } catch { context = undefined } // optional
+  }
+
   const f = story.flagshipPair
   const flagship = acq.pairs.find(
     (p) => p.track === f.track && p.orbitDirection === f.orbitDirection &&
       p.reference.startsWith(f.reference) && p.secondary.startsWith(f.secondary),
   )
-  return { story, grids, pairs: acq.pairs, flagship, quakes }
+  return { story, grids, pairs: acq.pairs, flagship, quakes, context }
 }
 
 /** Nearest-cell lookup. Returns null outside the grid or on nodata. */
