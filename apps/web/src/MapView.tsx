@@ -84,6 +84,19 @@ export default function MapView(p: Props) {
     mapRef.current = map
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
 
+    // The compass button resets bearing and tilt, which on its own can't be undone.
+    // Make it a toggle: the first click goes to north-up and flat, the next restores the previous view.
+    let before: { bearing: number; pitch: number } | null = null
+    const compass = map.getContainer().querySelector<HTMLButtonElement>('.maplibregl-ctrl-compass')
+    const onCompass = (e: Event) => {
+      e.stopImmediatePropagation()
+      const flat = Math.abs(map.getBearing()) < 1 && map.getPitch() < 1
+      if (!flat) { before = { bearing: map.getBearing(), pitch: map.getPitch() }; map.easeTo({ bearing: 0, pitch: 0 }) }
+      else if (before) { map.easeTo(before); before = null }
+    }
+    compass?.addEventListener('click', onCompass, true)
+    if (compass) compass.title = 'Reset to north and flat. Click again to go back.'
+
     map.on('load', () => {
       // keep the focus area clear of the side panel and timeline
       if (window.innerWidth > 760) map.setPadding({ left: 360, bottom: 150, top: 0, right: 0 })

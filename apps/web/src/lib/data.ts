@@ -18,16 +18,14 @@ export async function loadStory(id?: string): Promise<LoadedStory> {
   const dir = `${BASE}${entry.manifest.split('/')[0]}/`
   const story = await getJson<Story>(`${BASE}${entry.manifest}`)
 
+  // Everything below is independent, so fetch it all at once. The context file is optional.
   const grids: Record<string, Grid> = {}
-  await Promise.all(story.layers.map(async (l) => { grids[l.id] = await getJson<Grid>(dir + l.grid) }))
-
-  const acq = await getJson<{ pairs: AcquisitionPair[] }>(dir + story.acquisitions)
-  const quakes = await getJson<QuakeCollection>(dir + story.events)
-
-  let context: UsgsContext | undefined
-  if (story.context) {
-    try { context = await getJson<UsgsContext>(dir + story.context) } catch { context = undefined } // optional
-  }
+  const [acq, quakes, context] = await Promise.all([
+    getJson<{ pairs: AcquisitionPair[] }>(dir + story.acquisitions),
+    getJson<QuakeCollection>(dir + story.events),
+    story.context ? getJson<UsgsContext>(dir + story.context).catch(() => undefined) : undefined,
+    ...story.layers.map(async (l) => { grids[l.id] = await getJson<Grid>(dir + l.grid) }),
+  ])
 
   const f = story.flagshipPair
   const flagship = acq.pairs.find(

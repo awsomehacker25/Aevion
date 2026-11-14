@@ -61,14 +61,15 @@ export default function App() {
   }, [])
 
   // Each tour step defines the whole scene: replay the steps up to this one so going back works too.
-  useEffect(() => {
+  const goTour = useCallback((index: number) => {
     const steps = data?.story.tour
-    if (tour == null || !steps?.[tour]) return
+    if (!steps?.[index]) return
+    setTour(index)
     let view: ViewMode | undefined
     let date: string | undefined
     let camera: Camera | undefined
     let ov: Overlays = NO_OVERLAYS
-    for (let i = 0; i <= tour; i++) {
+    for (let i = 0; i <= index; i++) {
       const st = steps[i]
       view = st.view ?? view
       date = st.date ?? date
@@ -79,10 +80,14 @@ export default function App() {
     if (date) setCursor(ms(date))
     if (camera) fly(camera)
     setOverlays(ov)
-  }, [tour, data, fly])
+  }, [data, fly])
 
-  // Cross-section: the second click finishes picking.
-  useEffect(() => { if (picking && profile.a && profile.b) setPicking(false) }, [picking, profile])
+  // Cross-section: the first click starts a line, the second finishes it (and ends picking).
+  const addProfilePoint = (lon: number, lat: number) => {
+    if (!profile.a || profile.b) { setProfile({ a: [lon, lat], b: null }); return }
+    setProfile({ a: profile.a, b: [lon, lat] })
+    setPicking(false)
+  }
   const profileData = useMemo(
     () => (ok && profile.a && profile.b ? sampleProfile(ok.displacement.grid, ok.coherence.grid, profile.a, profile.b) : null),
     [ok, profile],
@@ -147,7 +152,7 @@ export default function App() {
         mode={mode} fadeLow={fadeLow} threshold={threshold} showChange={showChange} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
-        onProfilePoint={(lon, lat) => setProfile((p) => (!p.a || (p.a && p.b) ? { a: [lon, lat], b: null } : { a: p.a, b: [lon, lat] }))}
+        onProfilePoint={addProfilePoint}
         replayScale={replay} />
       <TopBar story={story} ui={ui} setUi={switchUi} />
       <SidePanel story={story} ui={ui} mode={mode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
@@ -155,7 +160,7 @@ export default function App() {
         displacement={ok.displacement.layer} coherence={ok.coherence.layer} flagship={data.flagship}
         top={
           <div className="actions">
-            {!sci && <TourButton available={!!story.tour?.length} onStart={() => setTour(0)} />}
+            {!sci && <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />}
             {replayBtn}
           </div>
         }>
@@ -190,8 +195,8 @@ export default function App() {
       )}
       {!sci && tour != null && story.tour && (
         <TourCard steps={story.tour} index={tour}
-          onPrev={() => setTour((t) => Math.max(0, (t ?? 0) - 1))}
-          onNext={() => setTour((t) => Math.min(story.tour!.length - 1, (t ?? 0) + 1))}
+          onPrev={() => goTour(Math.max(0, tour - 1))}
+          onNext={() => goTour(Math.min(story.tour!.length - 1, tour + 1))}
           onExit={() => setTour(null)} />
       )}
       <Timeline data={data} cursor={cursor} setCursor={setCursor} />

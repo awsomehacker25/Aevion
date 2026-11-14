@@ -1,32 +1,31 @@
-# React + TypeScript + Vite
+# Aevion web app
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interactive 3D viewer for NISAR ground-motion data. React + TypeScript + Vite, with MapLibre GL for the map.
 
-Currently, two official plugins are available:
+## Run it
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # type-check and production build
+npm run lint     # oxlint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Modes
+
+- **Story**: a plain-language walkthrough with a guided tour, an impact panel and an illustrative replay.
+- **Scientist**: cross-sections, a physics check against a USGS fault model, raw fringes and a coherence threshold.
+
+## Where things live
+
+| Path | What it does |
+|---|---|
+| `src/App.tsx` | App state and layout |
+| `src/MapView.tsx` | MapLibre map, overlays, terrain |
+| `src/Panels.tsx`, `Story.tsx`, `Scientist.tsx`, `Impact.tsx` | Side panels for each mode |
+| `src/Timeline.tsx` | Date slider, NISAR passes, earthquakes |
+| `src/lib/` | Data loading, rendering, profile analysis, physics model |
+| `public/stories/<id>/` | All data for one story. Swap this folder to show a different event |
+
+The app reads everything about an event from `public/stories/<id>/story.json`. Open `?story=<id>` to pick a story.
+Data processing scripts are in `../../processing`. Sources are listed in `../../docs/data-sources.md`.
