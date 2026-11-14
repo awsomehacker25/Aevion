@@ -13,20 +13,6 @@
       "manifest": "kilauea-hawaii/story.json",
       "label": "Kīlauea volcano",
       "type": "volcano"
-    },
-    {
-      "id": "seattle-bellevue",
-      "title": "A city on soft ground (Seattle and Bellevue, Washington)",
-      "manifest": "seattle-bellevue/story.json",
-      "label": "Seattle and Bellevue",
-      "type": "subsidence"
-    },
-    {
-      "id": "oso-landslide",
-      "title": "The hill that fell (Oso landslide, Washington, March 2014)",
-      "manifest": "oso-landslide/story.json",
-      "label": "Oso landslide",
-      "type": "landslide"
     }
   ]
 }

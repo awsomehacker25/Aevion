@@ -36,6 +36,8 @@ export interface RenderOpts {
   scale?: number
   /** Render at half resolution (fast), used while animating. */
   low?: boolean
+  /** Displacement smaller than this (same units as range) is fully transparent in the ground-motion view. */
+  quiet?: number
 }
 
 const smooth = (a: number, b: number, x: number) => {
@@ -77,6 +79,11 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
   const [lo, hi] = o.range
   const half = Math.max(Math.abs(lo), Math.abs(hi))
   const feather = Math.max(4, Math.round(Math.min(W, H) * 0.05))
+  // where color starts, as a share of the range. A story's own 'quiet' level scales with the build-up, so the same pattern
+  // fades in smoothly instead of staying invisible until the change is already large.
+  const q0 = o.quiet ? Math.min(0.85, (o.quiet * Math.max(k, 0.001)) / half) : 0.03
+  const ramp0 = o.quiet ? 0.22 * Math.max(k, 0.001) : 0.22
+  const grow = o.quiet ? Math.min(1, k * 3) : 1
 
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
@@ -92,7 +99,7 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
         const t = d / half // -1..1
         rgb = ramp(DIVERGING, (t + 1) / 2)
         // Near-zero motion is fully transparent so the imagery shows through; only real motion gets color.
-        a = 0.92 * Math.pow(smooth(0.03, 0.25, Math.abs(t)), 0.7)
+        a = 0.92 * grow * Math.pow(smooth(q0, q0 + ramp0, Math.abs(t)), 0.7)
       } else if (o.mode === 'fringes') {
         const phase = (((d / (LAMBDA / 2)) % 1) + 1) % 1
         rgb = hsl(phase * 360, 0.85, 0.52)

@@ -5,6 +5,7 @@ import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { BASEMAP } from './config'
 import { beachball } from './lib/beachball'
+import { eventReached } from './lib/progress'
 import { renderOverlay } from './lib/render'
 import { fmtDate } from './lib/data'
 import type { CameraReq, Grid, LayerDef, Overlays, QuakeCollection, Story, UsgsContext, ViewMode } from './types'
@@ -18,8 +19,8 @@ interface Props {
   mode: ViewMode
   fadeLow: boolean
   threshold: number
-  /** Whether the NISAR change layer should be visible at the current date. */
-  showChange: boolean
+  /** How much of the change to show at the current date, 0 to 1 (see lib/progress.ts). */
+  progress: number
   cursor: number
   overlays: Overlays
   camera: CameraReq | null
@@ -66,9 +67,18 @@ export default function MapView(p: Props) {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markerRef = useRef<maplibregl.Marker | null>(null)
   const beachRef = useRef<maplibregl.Marker[]>([])
+  const annotRef = useRef<maplibregl.Marker[]>([])
   // the latest callbacks and mode, read by the one-time click handler
   const live = useRef({ onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode })
   const [ready, setReady] = useState(false)
+
+  // Everything on the map is a function of the timeline position, so scrubbing backward undoes it again.
+  const scale = p.replayScale ?? Math.round(p.progress * 40) / 40
+  const evReached = eventReached(p.story, p.cursor)
+  const annotations = p.story.annotations
+  const annotKey = (annotations ?? [])
+    .map((a) => ((a.appears === 'event' ? evReached : a.appears === 'change' ? scale >= 0.8 : true) ? '1' : '0'))
+    .join('')
 
   useEffect(() => { live.current = { onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode } })
 
@@ -82,6 +92,7 @@ export default function MapView(p: Props) {
       maxPitch: 82, attributionControl: { compact: true },
     })
     mapRef.current = map
+    let cancelled = false // this map was replaced or removed before it finished starting
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
 
     // The compass button resets bearing and tilt, which on its own can't be undone.
@@ -97,7 +108,10 @@ export default function MapView(p: Props) {
     compass?.addEventListener('click', onCompass, true)
     if (compass) compass.title = 'Reset to north and flat. Click again to go back.'
 
-    map.on('load', () => {
+    // Add our layers as soon as the style is ready. The map's own 'load' event also waits for every satellite and
+    // terrain tile, which can take a long time (or never finish) over rough terrain, and the overlay must not wait for that.
+    map.once('style.load', () => {
+      if (cancelled) return
       // keep the focus area clear of the side panel and timeline
       if (window.innerWidth > 760) map.setPadding({ left: 360, bottom: 150, top: 0, right: 0 })
       map.addSource('overlay', { type: 'image', url: TRANSPARENT, coordinates: corners(aoi.bbox) })
@@ -169,7 +183,7 @@ export default function MapView(p: Props) {
       })
       setReady(true)
     })
-    return () => { map.remove(); mapRef.current = null; markerRef.current = null; beachRef.current = []; setReady(false) }
+    return () => { cancelled = true; map.remove(); mapRef.current = null; markerRef.current = null; beachRef.current = []; setReady(false) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.story.id])
 
@@ -181,17 +195,17 @@ export default function MapView(p: Props) {
       mode: p.mode,
       range: p.mode === 'coherence' ? p.coherence.layer.range : p.displacement.layer.range,
       fadeLow: p.fadeLow, threshold: p.threshold,
-      scale: p.replayScale ?? 1, low: p.replayScale != null,
+      scale, low: scale > 0 && scale < 1, quiet: p.displacement.layer.quietBelow,
     })
     ;(map.getSource('overlay') as ImageSource).updateImage({ url, coordinates: corners(p.story.aoi.bbox) })
-  }, [ready, p.displacement, p.coherence, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
+  }, [ready, p.displacement, p.coherence, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, scale])
 
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    // the replay is illustrative and always visible, so it can play before the post-event date
-    map.setPaintProperty('overlay', 'raster-opacity', p.showChange || p.replayScale != null ? 0.95 : 0)
-  }, [ready, p.showChange, p.replayScale])
+    // nothing before the event; the confidence view fades in with the change
+    map.setPaintProperty('overlay', 'raster-opacity', scale <= 0 ? 0 : p.mode === 'coherence' ? 0.95 * Math.min(1, scale * 1.5) : 0.95)
+  }, [ready, scale, p.mode])
 
   // quakes appear as the date cursor passes them (these are real, so time-filtering is fine)
   // Only touch the map when the set of visible quakes actually changes, not on every
@@ -211,11 +225,11 @@ export default function MapView(p: Props) {
     const map = mapRef.current
     if (!ready || !map) return
     const vis = (on: boolean) => (on ? 'visible' : 'none')
-    map.setLayoutProperty('fault-fill', 'visibility', vis(p.overlays.fault))
-    map.setLayoutProperty('fault-line', 'visibility', vis(p.overlays.fault))
-    map.setLayoutProperty('shaking', 'visibility', vis(p.overlays.shaking))
-    map.setLayoutProperty('cities', 'visibility', vis(p.overlays.cities))
-  }, [ready, p.overlays.fault, p.overlays.shaking, p.overlays.cities])
+    map.setLayoutProperty('fault-fill', 'visibility', vis(p.overlays.fault && evReached))
+    map.setLayoutProperty('fault-line', 'visibility', vis(p.overlays.fault && evReached))
+    map.setLayoutProperty('shaking', 'visibility', vis(p.overlays.shaking && evReached))
+    map.setLayoutProperty('cities', 'visibility', vis(p.overlays.cities && evReached))
+  }, [ready, evReached, p.overlays.fault, p.overlays.shaking, p.overlays.cities])
 
   // focal mechanism beach balls at the epicenters
   useEffect(() => {
@@ -223,7 +237,7 @@ export default function MapView(p: Props) {
     if (!ready || !map) return
     beachRef.current.forEach((m) => m.remove())
     beachRef.current = []
-    if (!p.overlays.mechanisms || !p.context) return
+    if (!p.overlays.mechanisms || !evReached || !p.context) return
     for (const ev of p.context.events) {
       const pl = ev.mechanism?.planes[0]
       if (!pl) continue
@@ -234,7 +248,28 @@ export default function MapView(p: Props) {
       img.title = `M${ev.mag}: ${ev.mechanism!.planes[1]?.kind ?? ''}`
       beachRef.current.push(new maplibregl.Marker({ element: img }).setLngLat([ev.lon, ev.lat]).addTo(map))
     }
-  }, [ready, p.overlays.mechanisms, p.context])
+  }, [ready, evReached, p.overlays.mechanisms, p.context])
+
+  // labels pinned on the map (vent, strongest motion)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    annotRef.current.forEach((m) => m.remove())
+    annotRef.current = []
+    for (const a of annotations ?? []) {
+      const el = document.createElement('div')
+      el.className = `annot ${a.kind ?? 'note'}`
+      el.innerHTML = '<i></i><span></span>'
+      el.querySelector('span')!.textContent = a.label
+      annotRef.current.push(new maplibregl.Marker({ element: el, anchor: 'left', offset: [-6, 0] }).setLngLat([a.lon, a.lat]).addTo(map))
+    }
+    return () => { annotRef.current.forEach((m) => m.remove()); annotRef.current = [] }
+  }, [ready, annotations])
+
+  // show or hide each label as the timeline moves (classes on the label, because the map manages the marker's own opacity)
+  useEffect(() => {
+    annotRef.current.forEach((m, i) => m.getElement().classList.toggle('off', annotKey[i] === '0'))
+  }, [ready, annotations, annotKey])
 
   // cross-section line
   useEffect(() => {

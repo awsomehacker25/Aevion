@@ -3,13 +3,14 @@ import './App.css'
 import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms } from './lib/data'
+import { changeProgress } from './lib/progress'
 import { compareToModel } from './lib/physics'
 import { ImpactPanel } from './Impact'
 import MapView from './MapView'
 import { Inspector, SidePanel, TopBar } from './Panels'
 import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
-import { LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
+import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
 import type { Camera, CameraReq, City, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
 
@@ -49,7 +50,11 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
 
   useEffect(() => {
     loadStory(id)
-      .then((d) => { setData(d); setCursor(ms(d.story.timeline.initial)) })
+      .then((d) => {
+        setData(d)
+        setCursor(ms(d.story.timeline.initial))
+        if (d.story.defaultThreshold != null) setThreshold(d.story.defaultThreshold)
+      })
       .catch((e: Error) => setError(e.message))
   }, [id])
 
@@ -144,7 +149,8 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   if (!data || !ok) return <div className="splash"><b>Aevion</b><span>Loading story&hellip;</span></div>
 
   const { story, context } = data
-  const showChange = cursor >= ms(`${story.flagshipPair.secondary}T00:00:00Z`)
+  const progress = changeProgress(story, cursor, data.flagship?.secondary)
+  const showChange = progress >= 1
   const sci = ui === 'scientist'
   const replayBtn = <ReplayButton running={replay != null} onStart={startReplay} onStop={stopReplay} />
   const impact = context && (
@@ -155,7 +161,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   return (
     <div className="app">
       <MapView story={story} quakes={data.quakes} context={context} displacement={ok.displacement} coherence={ok.coherence}
-        mode={mode} fadeLow={fadeLow} threshold={threshold} showChange={showChange} cursor={cursor}
+        mode={mode} fadeLow={fadeLow} threshold={threshold} progress={progress} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
         onProfilePoint={addProfilePoint}
@@ -179,6 +185,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         } : {
           actions: (
             <div className="actions">
+              <ChangeStat layer={ok.displacement.layer} grid={ok.displacement.grid} coherence={ok.coherence.grid} threshold={threshold} />
               <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
               {replayBtn}
             </div>
@@ -189,6 +196,9 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         }} />
       {replay != null && (
         <div className="replay-chip">Illustrative replay: the satellite measured the final result, not the motion as it happened</div>
+      )}
+      {replay == null && progress > 0 && progress < 1 && (
+        <div className="replay-chip">Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between</div>
       )}
       {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
       {picked && !picking && (

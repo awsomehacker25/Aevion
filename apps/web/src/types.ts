@@ -33,6 +33,8 @@ export interface LayerDef {
   provenance: Record<string, string>
   /** Optional wording overrides, so a layer that is not interferometric coherence can say what it is. */
   label?: string
+  /** Changes smaller than this (in the layer's units) are drawn fully transparent, so noise does not compete with the real signal. */
+  quietBelow?: number
   /** What positive and negative values mean physically (used in the inspector sentence). */
   positiveMeans?: string
   negativeMeans?: string
@@ -61,6 +63,10 @@ export interface Story {
   eventsLabel?: string
   /** Footer line crediting data sources. */
   credits?: string
+  /** Starting coherence threshold for fading unreliable cells. Defaults to 0.5. */
+  defaultThreshold?: number
+  /** Labels pinned on the map, for example the vent or the strongest motion. */
+  annotations?: { lon: number; lat: number; label: string; kind?: 'vent' | 'note'; appears?: 'event' | 'change' }[]
   dataStatus: DataStatus
   dataStatusNote: string
   /** Short text next to the status pill, per mode. */

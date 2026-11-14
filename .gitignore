@@ -2,5 +2,6 @@
 .claude/launch.json
 
 # Raw NISAR downloads (large). Never commit data or credentials.
-data/raw/
+data/
 *.h5
+__pycache__/

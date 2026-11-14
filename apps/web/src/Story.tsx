@@ -1,4 +1,5 @@
-import type { Story, TourStep } from './types'
+import { useMemo } from 'react'
+import type { Grid, LayerDef, Story, TourStep } from './types'
 
 export function WhyCards({ items }: { items?: Story['why'] }) {
   if (!items?.length) return null
@@ -86,5 +87,29 @@ export function TourCard(p: { steps: TourStep[]; index: number; onPrev: () => vo
         <button className="btn primary" onClick={last ? p.onExit : p.onNext}>{last ? 'Finish' : 'Next'}</button>
       </div>
     </div>
+  )
+}
+
+/** A one-line summary of how big the change is, so it is obvious without reading colors. */
+export function ChangeStat({ layer, grid, coherence, threshold }: { layer: LayerDef; grid: Grid; coherence: Grid; threshold: number }) {
+  const ext = useMemo(() => {
+    const v: number[] = []
+    for (let i = 0; i < grid.values.length; i++) {
+      const d = grid.values[i]
+      const c = coherence.values[i]
+      if (d != null && Number.isFinite(d) && c != null && c >= threshold) v.push(d)
+    }
+    if (v.length < 100) return null
+    v.sort((a, b) => a - b)
+    return { lo: v[Math.floor(v.length * 0.005)], hi: v[Math.floor(v.length * 0.995)] }
+  }, [grid, coherence, threshold])
+  if (!ext) return null
+  const fmt = (x: number) => `${Math.abs(x * layer.displayScale).toFixed(1)} ${layer.displayUnits}`
+  return (
+    <p className="stat">
+      <b>How big is the change?</b><br />
+      Up to <span className="aw">{fmt(ext.hi)} {layer.positiveMeans ?? 'away'}</span> and{' '}
+      <span className="tw">{fmt(ext.lo)} {layer.negativeMeans ?? 'toward'}</span> (the most extreme 1% of cells are left out as possible errors).
+    </p>
   )
 }

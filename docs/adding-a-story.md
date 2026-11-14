@@ -14,9 +14,7 @@ Everything below lives in `apps/web/public/stories/<story-id>/`. The data format
 | Id | Type | Radar source | Data status |
 |---|---|---|---|
 | `venezuela-2026` | earthquake | NISAR (ARIA map) | provisional, real |
-| `kilauea-hawaii` | volcano | NISAR | placeholder |
-| `seattle-bellevue` | subsidence | NISAR time series, or Sentinel-1 / OPERA | placeholder |
-| `oso-landslide` | landslide | not NISAR (2014): an archive SAR, still to be chosen | placeholder |
+| `kilauea-hawaii` | volcano | NISAR | provisional, real (one pair) |
 
 ## Step 1: create the layout
 
@@ -42,8 +40,15 @@ For each story you need two grids, `deformation.grid.json` (line-of-sight motion
 | Story | What to get | How |
 |---|---|---|
 | Kīlauea | NISAR GUNW pairs around an eruption (12-day repeat) | `search_nisar.py` to find pairs, `download_granule.py` to fetch, `gunw_to_grid.py` (or `stream_gunw_to_grid.py`) to convert |
-| Seattle / Bellevue | A year or more of passes, fitted to a velocity (mm per year), not a single pair | Check NISAR coverage first. If it is thin, use Sentinel-1 or NASA OPERA displacement products and say so in `provenance` |
-| Oso | A SAR archive that covers the slope before March 2014 (for example ALOS-1 PALSAR, TerraSAR-X or UAVSAR), plus NISAR for monitoring similar slopes today | Search ASF for 2014 coverage first. NISAR cannot observe the 2014 event |
+
+To collect a story's whole time span in one go (small per-pair grids, resumable, never keeps the 2 GB files):
+
+```
+python processing/prep_story_data.py apps/web/public/stories/<story-id> --dry-run   # list only, no login
+python processing/prep_story_data.py apps/web/public/stories/<story-id>             # asks for your Earthdata login
+```
+
+Results go to `data/stacks/<story-id>/` (git-ignored). Then convert them to the story's grids.
 
 Then, in `story.json`:
 

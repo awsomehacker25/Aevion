@@ -1,4 +1,4 @@
-"""Generate PLACEHOLDER story folders: Kilauea, Seattle/Bellevue and Oso.
+"""Generate PLACEHOLDER story folders: Kilauea.
 
 These grids are SYNTHETIC. They exist so each story's layout, text and tour can be built and
 demoed before real radar data is processed. They are not measurements, and the patterns are
@@ -11,7 +11,7 @@ story.json is NOT touched, so you can run this again without losing text. To rep
 placeholder with real data, overwrite the two grid files (see docs/adding-a-story.md).
 
 Usage:
-  python processing/make_placeholder_stories.py            # all three
+  python processing/make_placeholder_stories.py            # all
   python processing/make_placeholder_stories.py kilauea    # one
 """
 import json
@@ -94,49 +94,8 @@ def kilauea():
     return f, defo, np.clip(coh, 0.03, 0.99)
 
 
-# ---------------------------------------------------------------- Seattle / Bellevue
-def seattle():
-    f = Frame((-122.55, 47.35, -122.0, 47.80), 220, 240, 202)
-    inc = 39
-    # Slow settling in soft, filled ground (placeholder): Duwamish/SODO, Kent valley, a little under Bellevue.
-    sink = (
-        -0.014 * f.gauss(-122.335, 47.575, 2.6, 3.4, 10)
-        - 0.011 * f.gauss(-122.235, 47.39, 4.5, 3.0)
-        - 0.005 * f.gauss(-122.19, 47.615, 1.8, 1.8)
-    )
-    sink += 0.0006 * f.noise(28) + 0.0004 * f.rng.standard_normal((f.h, f.w))
-    defo = los_away(0, 0, sink, inc, 100)
-
-    coh = 0.88 + 0.05 * f.noise(14) + 0.02 * f.noise(4)
-    sound = f.lon < (-122.385 - 0.04 * np.clip(f.lat - 47.6, 0, None))               # Puget Sound (rough)
-    lake_w = f.gauss(-122.255, 47.62, 1.9, 13.0)                                      # Lake Washington (rough)
-    lake_s = f.gauss(-122.09, 47.60, 1.0, 6.0)                                        # Lake Sammamish (rough)
-    water = sound | (lake_w > 0.5) | (lake_s > 0.5)
-    coh = np.where(water, 0.04, coh)
-    coh -= 0.3 * np.clip((f.lon + 122.07) * 14, 0, None)                             # forest toward the Cascade foothills
-    coh -= 0.2 * np.clip(f.noise(18) - 0.8, 0, None)
-    defo = np.where(water, np.nan, defo)
-    return f, defo, np.clip(coh, 0.03, 0.99)
-
-
-# ---------------------------------------------------------------- Oso
-def oso():
-    f = Frame((-121.95, 48.22, -121.75, 48.35), 200, 150, 303)
-    inc, az = 39, 260
-    # Slow creep on the hillside before it failed (placeholder), a few cm toward the valley.
-    creep = 0.07 * f.gauss(-121.846, 48.272, 0.7, 0.55, 20)
-    ue, un, uz = 0.0 * creep, 0.7 * creep, -0.5 * creep
-    defo = los_away(ue, un, uz, inc, az) + 0.004 * f.noise(20) + 0.002 * f.rng.standard_normal((f.h, f.w))
-
-    coh = 0.62 + 0.10 * f.noise(10) + 0.05 * f.noise(3)                              # forested slopes: moderate
-    river = f.gauss(-121.85, 48.286, 6.0, 0.35, -8)                                  # farmland on the valley floor
-    coh += 0.28 * river
-    coh -= 0.55 * f.gauss(-121.8465, 48.2825, 0.55, 0.75, -15)                       # the slide footprint
-    return f, defo, np.clip(coh, 0.03, 0.99)
-
-
-RECIPES = {"kilauea-hawaii": kilauea, "seattle-bellevue": seattle, "oso-landslide": oso}
-ALIASES = {"kilauea": "kilauea-hawaii", "seattle": "seattle-bellevue", "oso": "oso-landslide"}
+RECIPES = {"kilauea-hawaii": kilauea}
+ALIASES = {"kilauea": "kilauea-hawaii"}
 
 
 def write(story_id):

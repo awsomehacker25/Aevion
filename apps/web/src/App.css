@@ -259,3 +259,18 @@
   backdrop-filter: blur(10px); cursor: pointer; max-width: 230px;
 }
 .picker option { background: #0e1626; color: var(--ink); }
+
+/* map annotations */
+.annot { display: flex; align-items: center; gap: 8px; pointer-events: none; }
+.annot i { flex: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid #0b1220; box-shadow: 0 0 0 2px rgba(255,255,255,.8); }
+.annot.vent i { background: #ff5a4d; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 16px 4px rgba(255,90,77,.75); animation: pulse 2s ease-out infinite; }
+.annot span { padding: 4px 9px; border-radius: 8px; background: rgba(10,16,30,.88); border: 1px solid var(--line); color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,.5); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 0 0 rgba(255,90,77,.7); } 70% { box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 0 16px rgba(255,90,77,0); } 100% { box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 0 0 rgba(255,90,77,0); } }
+@media (prefers-reduced-motion: reduce) { .annot.vent i { animation: none; } }
+
+/* biggest-change callout */
+.stat { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.04); font-size: 13px; line-height: 1.45; color: #cdd8ef; }
+.stat b { color: #fff; }
+.stat .tw { color: #6fb3ff; font-weight: 700; } .stat .aw { color: #ffa65a; font-weight: 700; }
+.annot i, .annot span { transition: opacity .7s ease; }
+.annot.off i, .annot.off span { opacity: 0; }
