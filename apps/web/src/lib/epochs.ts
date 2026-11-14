@@ -7,7 +7,8 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const longDate = (d: string) => `${MONTHS[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8, 10))}`
 
 /** True when this period is the story's featured pair (which keeps the tour, radar views and annotations). */
-export const isFeatured = (story: Story, e: Epoch) => e.pair.reference === story.flagshipPair.reference
+export const isFeatured = (story: Story, e: Epoch) =>
+  e.pair.reference === story.flagshipPair.reference && e.pair.secondary === story.flagshipPair.secondary
 
 /**
  * The story as it should look while a different period is selected: that period's dates, its event, and a
@@ -17,22 +18,27 @@ export function epochStory(story: Story, e: Epoch): Story {
   const ref = ms(`${e.pair.reference}T00:00:00Z`)
   const sec = ms(`${e.pair.secondary}T00:00:00Z`)
   const between = e.event ? `with ${e.event.name} in between` : 'with no eruption episode listed in between'
+  const c = story.copy
+  const fill = (s: string) => s.replace('{from}', longDate(e.pair.reference)).replace('{to}', longDate(e.pair.secondary)).replace('{between}', between)
   const t = story.technical
+  const follow = !!c?.followTimeline
   return {
     ...story,
     subtitle: `${story.subtitle} · ${e.label}`,
-    storyText: `NISAR flew over on ${longDate(e.pair.reference)} and again on ${longDate(e.pair.secondary)}, ${between}. Comparing the two radar passes shows how the ground around the summit moved in that 12-day period.`,
+    storyText: c?.epochText
+      ? fill(c.epochText)
+      : `NISAR flew over on ${longDate(e.pair.reference)} and again on ${longDate(e.pair.secondary)}, ${between}. Comparing the two radar passes shows how the ground around the summit moved in that 12-day period.`,
     flagshipPair: { ...story.flagshipPair, reference: e.pair.reference, secondary: e.pair.secondary },
     event: e.event,
-    timeline: { start: iso(ref - 8 * DAY), end: iso(sec + 14 * DAY), initial: iso(sec + 3 * DAY) },
-    tour: undefined,
+    timeline: follow ? story.timeline : { start: iso(ref - 8 * DAY), end: iso(sec + 14 * DAY), initial: iso(sec + 3 * DAY) },
+    tour: follow ? story.tour : undefined,
     annotations: story.annotations
-      ?.filter((a) => a.appears !== 'change')
-      .map((a) => (a.kind === 'vent' ? { ...a, label: `Halemaʻumaʻu vent${e.event ? ` (${e.event.shortLabel})` : ''}` } : a)),
+      ?.filter((a) => follow || a.appears !== 'change')
+      .map((a) => (a.kind === 'vent' ? { ...a, label: `${c?.ventLabel ?? 'Halemaʻumaʻu vent'}${e.event ? ` (${e.event.shortLabel})` : ''}` } : a)),
     layers: story.layers.filter((l) => l.role === 'displacement' || l.role === 'coherence'),
     technical: t && {
       ...t,
-      title: `LOS displacement at Kīlauea summit, NISAR pair ${e.pair.reference} to ${e.pair.secondary}`,
+      title: c?.epochTechTitle ? c.epochTechTitle.replace('{from}', e.pair.reference).replace('{to}', e.pair.secondary) : `LOS displacement at Kīlauea summit, NISAR pair ${e.pair.reference} to ${e.pair.secondary}`,
       summary: t.summary.replace('Episode 54 (USGS HVO)', `${e.event?.name ?? 'no listed eruption episode'} (USGS HVO)`),
       caveats: t.caveats?.filter((c) => !c.includes('Aug 18')),
     },

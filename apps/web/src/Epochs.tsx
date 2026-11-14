@@ -1,20 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { eventTime, periodDates, periodTitle, sortEpochs } from './lib/periods'
 import type { VentMotion } from './lib/periods'
-import type { Epoch } from './types'
+import type { Epoch, StoryCopy } from './types'
 
-const mmText = (mm: number | null | undefined) => (mm == null ? 'no data' : `${mm > 0 ? '+' : ''}${mm.toFixed(0)} mm`)
+type Chart = NonNullable<StoryCopy['chart']>
+const DEFAULT_CHART: Chart = {
+  title: 'Ground motion at the vent, period by period', unit: 'mm', scale: 1000, minLim: 20,
+  ariaLabel: 'Mean line-of-sight motion near the vent for each 12-day period',
+  hint: 'Each bar is one 12-day NISAR period (start date shown). Orange is motion away from the satellite, blue toward it. A red dot marks an eruption episode in that period (USGS HVO timeline, to verify).',
+}
+const valText = (v: number | null | undefined, c: Chart) =>
+  v == null ? 'no data' : `${v > 0 ? '+' : ''}${v.toFixed(c.digits ?? 0)} ${c.unit}`
 
 interface PickProps {
   epochs: Epoch[]
   motion: VentMotion | null
   selected: string
   onSelect: (id: string) => void
+  /** Chart wording and units (from story.copy.chart). */
+  chart?: StoryCopy['chart']
 }
 
 /** All periods as rows: title, dates, event time and the motion at the vent. */
-export function PeriodList({ epochs, motion, selected, onSelect, role = 'list' }: PickProps & { role?: 'list' | 'listbox' }) {
+export function PeriodList({ epochs, motion, selected, onSelect, chart, role = 'list' }: PickProps & { role?: 'list' | 'listbox' }) {
   const rows = useMemo(() => sortEpochs(epochs), [epochs])
+  const c = chart ?? DEFAULT_CHART
   return (
     <div className="plist" role={role} aria-label="Measured periods">
       {rows.map((e) => {
@@ -29,7 +39,7 @@ export function PeriodList({ epochs, motion, selected, onSelect, role = 'list' }
               <b>{periodTitle(e)}</b> <span className="pdates">{periodDates(e)}</span>
               {t && <span className="ptime">{t}</span>}
             </span>
-            <span className={`pmm ${mm == null ? '' : mm < 0 ? 'neg' : 'pos'}`}>{mmText(mm)}</span>
+            {motion && <span className={`pmm ${mm == null ? '' : mm < 0 ? 'neg' : 'pos'}`}>{valText(mm, c)}</span>}
           </button>
         )
       })}
@@ -38,7 +48,7 @@ export function PeriodList({ epochs, motion, selected, onSelect, role = 'list' }
 }
 
 /** The always-visible control: previous, a menu of all periods, next. Lives in the timeline header. */
-export function PeriodSwitcher({ epochs, motion, selected, onSelect, onStep }: PickProps & { onStep: (delta: number) => void }) {
+export function PeriodSwitcher({ epochs, motion, selected, onSelect, onStep, chart }: PickProps & { onStep: (delta: number) => void }) {
   const rows = useMemo(() => sortEpochs(epochs), [epochs])
   const idx = rows.findIndex((e) => e.id === selected)
   const cur = rows[idx]
@@ -67,7 +77,7 @@ export function PeriodSwitcher({ epochs, motion, selected, onSelect, onStep }: P
       <button type="button" className="btn ps-step" onClick={() => onStep(1)} disabled={idx >= rows.length - 1} aria-label="Next period" title="Next period (right arrow)">&rsaquo;</button>
       {open && (
         <div className="pmenu">
-          <PeriodList epochs={epochs} motion={motion} selected={selected} onSelect={(id) => { onSelect(id); setOpen(false) }} role="listbox" />
+          <PeriodList epochs={epochs} motion={motion} selected={selected} chart={chart} onSelect={(id) => { onSelect(id); setOpen(false) }} role="listbox" />
         </div>
       )}
     </div>
@@ -79,22 +89,24 @@ const H = 150
 const PAD = { l: 30, r: 6, t: 14, b: 34 }
 
 /** Mean ground motion near the vent for each 12-day period, as bars. Click a bar to view that period. */
-export function EpochChart({ epochs, motion, selected, onSelect }: PickProps) {
+export function EpochChart({ epochs, motion, selected, onSelect, chart }: PickProps) {
+  const c = chart ?? DEFAULT_CHART
   const rows = useMemo(() => sortEpochs(epochs).map((e) => ({ e, mm: motion?.[e.id] ?? null })), [epochs, motion])
-  const lim = Math.max(20, ...rows.map((r) => Math.abs(r.mm ?? 0)))
+  const lim = Math.max(c.minLim, ...rows.map((r) => Math.abs(r.mm ?? 0)))
+  const tick = (x: number) => x.toFixed(lim < 10 ? 1 : 0)
   const slot = (W - PAD.l - PAD.r) / rows.length
   const y = (mm: number) => PAD.t + (1 - (mm + lim) / (2 * lim)) * (H - PAD.t - PAD.b)
   const short = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
   return (
     <div className="epochs">
-      <b>Ground motion at the vent, period by period</b>
-      <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Mean line-of-sight motion near the vent for each 12-day period">
+      <b>{c.title}</b>
+      <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={c.ariaLabel ?? c.title}>
         <line x1={PAD.l} x2={W - PAD.r} y1={y(0)} y2={y(0)} stroke="#6b7a99" strokeDasharray="3 3" />
-        <text x={2} y={y(lim) + 4} fontSize="9" fill="#93a3c4">+{lim.toFixed(0)}</text>
+        <text x={2} y={y(lim) + 4} fontSize="9" fill="#93a3c4">+{tick(lim)}</text>
         <text x={2} y={y(0) + 3} fontSize="9" fill="#93a3c4">0</text>
-        <text x={2} y={y(-lim) + 4} fontSize="9" fill="#93a3c4">-{lim.toFixed(0)}</text>
-        <text x={2} y={9} fontSize="8" fill="#93a3c4">mm</text>
+        <text x={2} y={y(-lim) + 4} fontSize="9" fill="#93a3c4">-{tick(lim)}</text>
+        <text x={2} y={9} fontSize="8" fill="#93a3c4">{c.unit}</text>
         {rows.map(({ e, mm }, i) => {
           const x = PAD.l + i * slot + slot * 0.16
           const bw = slot * 0.68
@@ -103,12 +115,12 @@ export function EpochChart({ epochs, motion, selected, onSelect }: PickProps) {
           const ht = mm == null ? 0 : Math.max(1.5, Math.abs(y(mm) - y(0)))
           return (
             <g key={e.id} role="button" tabIndex={0} className={`ep-bar ${on ? 'on' : ''}`}
-              aria-label={`${periodTitle(e)}, ${periodDates(e)}: ${mm == null ? 'no data' : `${mm.toFixed(0)} millimeters`}`}
+              aria-label={`${periodTitle(e)}, ${periodDates(e)}: ${valText(mm, c)}`}
               aria-pressed={on} onClick={() => onSelect(e.id)}
               onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onSelect(e.id) } }}>
               <rect x={PAD.l + i * slot} y={PAD.t} width={slot} height={H - PAD.t - PAD.b} fill="transparent" />
               <rect x={x} y={top} width={bw} height={ht} rx="2" fill={mm != null && mm < 0 ? '#3b8fd4' : '#f39237'} stroke={on ? '#fff' : 'none'} strokeWidth="2" />
-              <text x={x + bw / 2} y={H - 20} fontSize="8.5" textAnchor="middle" fill={on ? '#fff' : '#93a3c4'}>{short(e.pair.reference)}</text>
+              <text x={x + bw / 2} y={H - 20} fontSize="8.5" textAnchor="middle" fill={on ? '#fff' : '#93a3c4'}>{short(c.label === 'end' ? e.pair.secondary : e.pair.reference)}</text>
               {e.event && (
                 <g>
                   <circle cx={x + bw / 2} cy={H - 8} r="3.5" fill="#ff5a4d" />
@@ -119,7 +131,7 @@ export function EpochChart({ epochs, motion, selected, onSelect }: PickProps) {
           )
         })}
       </svg>
-      <p className="hint">Each bar is one 12-day NISAR period (start date shown). Orange is motion away from the satellite, blue toward it. A red dot marks an eruption episode in that period (USGS HVO timeline, to verify).</p>
+      <p className="hint">{c.hint}</p>
     </div>
   )
 }

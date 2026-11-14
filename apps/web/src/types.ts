@@ -42,6 +42,8 @@ export interface LayerDef {
   titleScientist?: string
   hintStory?: string
   hintScientist?: string
+  /** 'gray' shows the layer as a radar picture (weak to strong echo) instead of a change around zero. */
+  colormap?: 'gray'
 }
 
 export interface Resource {
@@ -70,13 +72,44 @@ export interface Epoch {
   pair: { reference: string; secondary: string }
   /** An eruption or other event inside the period, if any. */
   event?: { name: string; shortLabel: string; datetime: string; source: string }
+  /** Optional title for the period when it has no event (defaults to "Quiet"), for example "+24 days". */
+  title?: string
   deformation: string
-  coherence: string
+  /** Leave out to use the story's own coherence layer for every period. */
+  coherence?: string
+}
+
+/** Wording that differs from story to story. Everything here is optional; the defaults describe a Kilauea-style story. */
+export interface StoryCopy {
+  /** Label of the main view button: [Story mode, Scientist mode]. */
+  mainView?: [string, string]
+  /** Lines under "How to read this" in Story mode. */
+  howTo?: string[]
+  /** Text for a selected period. {from} and {to} are the two pass dates, {between} the event phrase. */
+  epochText?: string
+  /** Scientist title for a selected period. {from} and {to} as above. */
+  epochTechTitle?: string
+  /** Label of the vent mark while another period is selected. */
+  ventLabel?: string
+  /** What the period chart shows. `scale` turns the grid value into `unit`; `minLim` is the smallest axis limit. */
+  chart?: { title: string; hint: string; unit: string; scale: number; minLim: number; digits?: number; ariaLabel?: string; label?: 'start' | 'end' }
+  /** Replaces the formula line under Evidence in Scientist mode. */
+  evidenceNote?: string
+  /** Heading above the list of periods (default "All periods"). */
+  periodsHeading?: string
+  /**
+   * The period on screen follows the timeline: scrubbing to a later date shows the latest measured period up to that date.
+   * The timeline keeps its full range and the tour and map notes stay, whichever period is shown.
+   */
+  followTimeline?: boolean
 }
 
 export interface Story {
   id: string
   type?: StoryType
+  /** 'backscatter' for a story that shows radar brightness change instead of interferometric ground motion. */
+  kind?: 'interferometry' | 'backscatter'
+  copy?: StoryCopy
   title: string
   subtitle: string
   /** Name of the radar mission that measured it. Defaults to NISAR. */

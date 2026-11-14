@@ -43,10 +43,16 @@ export async function loadStory(id?: string): Promise<LoadedStory> {
     story.context ? getJson<UsgsContext>(dir + story.context).catch(() => undefined) : undefined,
     ...story.layers.map(async (l) => { grids[l.id] = await getGrid(dir + l.grid) }),
     ...(story.epochs ?? []).map(async (e) => {
-      const [deformation, coherence] = await Promise.all([getGrid(dir + e.deformation), getGrid(dir + e.coherence)])
-      epochGrids[e.id] = { deformation, coherence }
+      const [deformation, coherence] = await Promise.all([getGrid(dir + e.deformation), e.coherence ? getGrid(dir + e.coherence) : undefined])
+      epochGrids[e.id] = { deformation, coherence: coherence as Grid }
     }),
   ])
+  // A period without its own coherence file uses the story's coherence layer.
+  const mainCoherence = story.layers.find((l) => l.role === 'coherence')
+  for (const e of story.epochs ?? []) {
+    const g = epochGrids[e.id]
+    if (g && !g.coherence && mainCoherence) g.coherence = grids[mainCoherence.id]
+  }
 
   const f = story.flagshipPair
   const flagship = acq.pairs.find(

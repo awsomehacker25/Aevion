@@ -9,3 +9,7 @@ __pycache__/
 .vercel/
 
 .vercel
+
+# processing output for stories not built yet
+processing/pending/*/series/
+processing/pending/*/velocity.grid.json

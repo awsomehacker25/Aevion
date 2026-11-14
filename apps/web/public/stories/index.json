@@ -13,6 +13,20 @@
       "manifest": "kilauea-hawaii/story.json",
       "label": "Kīlauea volcano",
       "type": "volcano"
+    },
+    {
+      "id": "krasheninnikov-kamchatka",
+      "title": "A volcano that woke up after 500 years (Krasheninnikov, Kamchatka)",
+      "manifest": "krasheninnikov-kamchatka/story.json",
+      "label": "Krasheninnikov volcano",
+      "type": "volcano"
+    },
+    {
+      "id": "mexico-city-subsidence",
+      "title": "A city sinking, slowly (Mexico City)",
+      "manifest": "mexico-city-subsidence/story.json",
+      "label": "Mexico City subsidence",
+      "type": "subsidence"
     }
   ]
 }

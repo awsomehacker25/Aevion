@@ -1,12 +1,13 @@
 import type { Epoch, Grid, Story } from '../types'
 import { areaMean } from './analysis'
 
-/** Mean motion near the vent per period, in mm (null where there is no data). */
+/** Mean value near the vent per period, in the chart's unit (mm by default; null where there is no data). */
 export type VentMotion = Record<string, number | null>
 
 const RADIUS_CELLS = 15 // about 2 km
 
-export const sortEpochs = (epochs: Epoch[]) => [...epochs].sort((a, b) => a.pair.reference.localeCompare(b.pair.reference))
+export const sortEpochs = (epochs: Epoch[]) =>
+  [...epochs].sort((a, b) => a.pair.reference.localeCompare(b.pair.reference) || a.pair.secondary.localeCompare(b.pair.secondary))
 
 /** Looks up the vent on the story and averages each period's grid around it. */
 export function computeVentMotion(story: Story, grids?: Record<string, { deformation: Grid }>): VentMotion | null {
@@ -16,14 +17,14 @@ export function computeVentMotion(story: Story, grids?: Record<string, { deforma
   for (const e of story.epochs) {
     const g = grids[e.id]?.deformation
     const v = g ? areaMean(g, vent.lon, vent.lat, RADIUS_CELLS) : null
-    out[e.id] = v == null ? null : v * 1000
+    out[e.id] = v == null ? null : v * (story.copy?.chart?.scale ?? 1000)
   }
   return out
 }
 
-/** "Episode 54", "New vents", or "Quiet" (no eruption episode in that period). */
+/** "Episode 54", "New vents", the period's own title, or "Quiet" (no eruption episode in that period). */
 export const periodTitle = (e: Epoch) =>
-  e.event ? (e.event.name.startsWith('Episode') ? e.event.name : e.event.shortLabel) : 'Quiet'
+  e.event ? (e.event.name.startsWith('Episode') ? e.event.name : e.event.shortLabel) : (e.title ?? 'Quiet')
 
 /** The processed period whose two NISAR passes surround a moment, if there is one. */
 export function epochFor(story: Story, t: number): Epoch | undefined {

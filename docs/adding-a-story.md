@@ -15,6 +15,8 @@ Everything below lives in `apps/web/public/stories/<story-id>/`. The data format
 |---|---|---|---|
 | `venezuela-2026` | earthquake | NISAR (ARIA map) | provisional, real |
 | `kilauea-hawaii` | volcano | NISAR | provisional, real (one pair) |
+| `krasheninnikov-kamchatka` | volcano | NISAR (GCOV radar brightness) | provisional, real (11 passes) |
+| `mexico-city-subsidence` | subsidence | NISAR (GUNW chain) | beta, real (6 pairs) |
 
 ## Step 1: create the layout
 
@@ -81,3 +83,21 @@ physics check. Only the Venezuela story has one. Other story types simply skip t
   (GCOV). Run `prep_story_backscatter.py <story-dir>` (it reads the flagship pair's two dates), then
   `backscatter_to_story.py <story-dir>`. Add two layers with roles `backscatterHH` and `backscatterHV` to `story.json`
   (see the Kilauea story). The app adds "Radar HH" and "Radar HV" view buttons and shows both values in the point inspector.
+
+## Two more recipes (Krasheninnikov lava, Mexico City subsidence)
+
+Stories that are not built yet keep a small stub in `processing/pending/<id>/story.json` (map box, grid size, track).
+The prep scripts accept a stub in place of a story. Outputs go to `data/stacks/<id>/` and then to `<stub>/series/`.
+
+- **Lava flow (radar brightness over time):** `prep_story_backscatter.py <stub> --all` collects every pass of the track,
+  then `gcov_series_to_story.py <stub>` writes the brightness change of each date against the first date and a summary
+  of the area changed.
+- **Subsidence (cumulative motion):** `prep_story_data.py <stub>` collects the interferograms, then `chain_to_story.py <stub>`
+  adds consecutive pairs into cumulative motion per date plus an average rate in cm per month.
+
+Both stories set `copy.followTimeline`, so the period on screen follows the timeline cursor and the timeline keeps its full range.
+`kind: "backscatter"` (Krasheninnikov) turns the main layer into a radar picture instead of ground motion: a layer with `colormap: "gray"`
+is drawn weak to strong echo, and the fringes, confidence, cross-section and replay tools are hidden. `copy` holds the wording that
+differs from story to story (period text, chart units, how-to lines). `chain_to_story.py --stable-above <m>` fits the atmospheric ramp
+on the hills around a lake-bed city only (heights from the public AWS terrain tiles), and writes a steady-rate fit as well as the raw running totals.
+`build_next_stories.py` turns the processed series into the files under `apps/web/public/stories/<id>/`.

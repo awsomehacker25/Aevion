@@ -1,0 +1,403 @@
+{
+  "id": "mexico-city-subsidence",
+  "type": "subsidence",
+  "title": "A city sinking, slowly",
+  "subtitle": "Mexico City, October 2025 to January 2026",
+  "technical": {
+    "title": "Steady-rate LOS displacement of Mexico City, NISAR GUNW chain, track 113 descending, 2025-10-25 to 2026-01-17",
+    "subtitle": "NISAR L2 GUNW (beta), six consecutive pairs chained, ramp removed using the surrounding hills, steady rate fitted",
+    "summary": "Line-of-sight displacement from NISAR L-band (λ = 24.2 cm) interferograms. Six consecutive pairs on track 113 (descending) were converted to meters, each cleared of a smooth ramp fitted only to the hills around the city, and added end to end into running totals since Oct 25, 2025. Because the atmosphere on a single date is built into that date's total, a steady rate was fitted through zero to the six totals, and each period shows that rate times the days since Oct 25. Cells where any pair had coherence below 0.3 are empty. The fitted rate is about 2.4 cm per month at the strongest spot. Shown at about 160 m per cell (reduced from the 80 m product). One geometry cannot separate vertical from horizontal motion; for ground that sinks, the vertical motion is about 1.27 times the line-of-sight value at 38 degrees.",
+    "caveats": [
+      "The source interferograms are a beta NISAR product, not validated by NASA, and only about three months of dry-season data are used.",
+      "The sign convention (positive = away from the satellite) is assumed from the phase-to-range relation and has not been checked against NISAR documentation. If it is reversed, the colors mean the opposite.",
+      "The measured running totals are noisy. At the strongest spot they are -1.0, +6.5, +1.7, +2.8, +7.2 and +6.8 cm on Nov 6, Nov 18, Dec 12, Dec 24, Jan 5 and Jan 17. The atmosphere on each single date is built into that date's total, which is why they jump around (the Nov 18 total is inflated). The periods in this story therefore show a steady-rate fit, which is a model: it assumes the ground sinks at a constant rate through the dry season, and it is not the measured step on each date.",
+      "A smooth plane was removed from every pair to take out atmosphere and orbit errors. It was fitted only to the hills around the city (above 2,450 m), which are assumed to be stable. If the hills move too, or the ramp is not a plane, some motion is added or lost.",
+      "Radar sees only part of the motion. Along the line of sight, sinking at 2.4 cm per month would be about 3 cm per month straight down at 38 degrees. Without a second direction, sideways motion cannot be ruled out.",
+      "A smaller patch in the south shows motion toward the satellite (up to about 2.5 cm in this map). It could be noise, a leftover reference or atmosphere effect, or real movement; Aevion does not interpret it. It should not be read as the ground rising.",
+      "The Nov 18 to Nov 30 pair was left out of the chain (it does not link to the later pairs); a 24-day pair from Nov 18 to Dec 12 is used instead.",
+      "A large patch northeast of the airport has no data, where open water and wet clay of the former lake scramble the radar."
+    ]
+  },
+  "dataStatus": "beta",
+  "dataStatusNote": "Ground motion is measured by NISAR (beta L2 GUNW interferograms, track 113 descending, October 25, 2025 to January 17, 2026), added up and ramp-corrected by Aevion. It is not validated by NASA and the sign convention is assumed.",
+  "statusDetail": {
+    "story": "NISAR measurement, not yet validated",
+    "scientist": "NISAR GUNW (beta), six pairs chained and ramp-corrected by Aevion"
+  },
+  "storyText": "Mexico City is built on the bed of an ancient lake, and for more than a century it has been sinking as groundwater is pumped out of the clay beneath it. NISAR flew over every 12 days from October 25, 2025. Putting the passes together shows a broad patch of the old lake bed moving away from the satellite at about 2 centimeters a month, up to about 7 centimeters in under three months, in this measurement.",
+  "sensor": "NISAR",
+  "eventsLabel": "Earthquakes (USGS)",
+  "credits": "Imagery © Esri · Terrain: AWS Terrain Tiles · NISAR data: NASA/JPL-Caltech and ISRO, processed by Aevion · NISAR pass dates: NASA CMR",
+  "aoi": {
+    "bbox": [
+      -99.3,
+      19.25,
+      -98.95,
+      19.55
+    ],
+    "center": [
+      -99.12,
+      19.4
+    ],
+    "zoom": 10.6,
+    "pitch": 40,
+    "bearing": 0
+  },
+  "timeline": {
+    "start": "2025-10-18T00:00:00Z",
+    "end": "2026-01-30T00:00:00Z",
+    "initial": "2026-01-20T00:00:00Z"
+  },
+  "flagshipPair": {
+    "track": 113,
+    "orbitDirection": "D",
+    "reference": "2025-10-25",
+    "secondary": "2026-01-17"
+  },
+  "acquisitions": "acquisitions.json",
+  "events": "events.geojson",
+  "geometry": {
+    "incidenceDeg": 38,
+    "lookAzimuthDeg": 100,
+    "source": "Typical NISAR descending left-looking geometry; confirm against the granule metadata"
+  },
+  "copy": {
+    "mainView": [
+      "Ground motion",
+      "LOS displacement"
+    ],
+    "followTimeline": true,
+    "periodsHeading": "Motion by pass date",
+    "howTo": [
+      "Drag the timeline (or press play) to move through the NISAR passes. The map shows how much the ground has moved since October 25 at the steady rate NISAR measured.",
+      "Orange and blue show the ground moving away from or toward the satellite. Sinking ground moves away, so orange is the sinking side.",
+      "Click anywhere on the map to see how far that spot moved. Switch to Scientist mode for exact values and sources."
+    ],
+    "epochText": "The steady rate that fits all of NISAR's passes, carried forward from {from} to {to}. It shows how much the ground would have moved by then at that rate.",
+    "epochTechTitle": "Steady-rate LOS displacement of Mexico City, NISAR pairs chained, {from} to {to}",
+    "ventLabel": "Strongest sinking in this view",
+    "chart": {
+      "title": "Steady-rate motion at the strongest spot",
+      "unit": "cm",
+      "scale": 100,
+      "minLim": 2,
+      "digits": 1,
+      "label": "end",
+      "ariaLabel": "Steady-rate line-of-sight motion at the strongest spot, by NISAR pass date",
+      "hint": "Each bar is the steady rate that fits all the passes, times the days since October 25, at the marked spot northeast of the airport (end date shown). The raw totals at each date jump around because of the atmosphere; they are listed under Limitations in Scientist mode. Orange is motion away from the satellite (sinking, if the ground moved down)."
+    },
+    "evidenceNote": "Displacement = unwrapped phase × λ / (4π), with λ = 0.24196 m, summed over the chain of pairs after a plane is removed from each."
+  },
+  "why": [
+    {
+      "title": "Why is Mexico City sinking?",
+      "body": "The city sits on the bed of a former lake, on top of a thick layer of soft clay full of water. The city pumps much of its drinking water out of the aquifer in that clay. As the water leaves, the clay compacts like a sponge being squeezed, and the surface sinks. NASA notes this has gone on for more than a century, at up to about 35 cm a year in parts of the metro area in the 1990s and 2000s."
+    },
+    {
+      "title": "How does radar measure a few centimeters?",
+      "body": "NISAR sends L-band radar pulses and records the echo. Comparing two passes 12 days apart, a tiny change in distance to the ground shifts the echo's phase. One full color cycle in the Fringes view is about 12 cm of motion toward or away from the satellite, so a centimeter is a visible fraction of a band."
+    },
+    {
+      "title": "Why add the passes together?",
+      "body": "One 12-day pair shows less than a centimeter of sinking, which is about the size of the noise from the atmosphere. Adding six pairs end to end builds up the signal while the noise stays random, so the pattern becomes clear after about two months. Each pair also had a smooth ramp removed first, using the surrounding hills as the stable reference, because water in the air bends the radar and adds a ramp."
+    },
+    {
+      "title": "Why a steady rate instead of the raw totals?",
+      "body": "Water vapor in the air slows the radar differently on every single day. Each date's total includes that day's weather, so the six raw totals at the strongest spot read -1.0, +6.5, +1.7, +2.8, +7.2 and +6.8 cm, which is not how a city sinks. Fitting one steady rate through all six averages the weather out and gives about 2.4 cm a month, which matches the more-than-2-cm-a-month NASA reports. It is a model of constant sinking in the dry season, so treat it as a good estimate, not a day-by-day measurement."
+    },
+    {
+      "title": "Why can radar say \"sinking\" only partly?",
+      "body": "The satellite sees the ground from the side, along a slanted line, so it measures only the part of the motion along that line. For ground that moves straight down, the vertical motion is about 1.27 times what the satellite measures at 38 degrees, so 2.4 cm a month along the line of sight is about 3 cm a month down. Without a second direction it cannot tell down from sideways for sure."
+    },
+    {
+      "title": "Why does this matter?",
+      "body": "Uneven sinking cracks buildings, streets and water and sewer pipes, and bends the metro tracks. NASA's own example is the Angel of Independence monument on Paseo de la Reforma, which has had steps added to its base over the years as the ground sank around it. Knowing where the ground sinks fastest helps cities decide where to fix pipes and where to limit pumping."
+    },
+    {
+      "title": "What could NISAR do next?",
+      "body": "This story holds about three months of dry-season data. NISAR passes over every 12 days, all year, so it can show how the sinking changes with the rains, how fast the fastest spots are going and whether pumping limits help. The same method can watch sinking in any delta, aquifer or mine on Earth."
+    }
+  ],
+  "tour": [
+    {
+      "title": "Mexico City",
+      "text": "This is the Mexico City valley. The city is built on the bed of Lake Texcoco and the other lakes that the Aztecs and later the Spanish drained. The ground under it is soft clay full of water.",
+      "date": "2026-01-20T00:00:00Z",
+      "view": "los",
+      "camera": {
+        "center": [
+          -99.12,
+          19.4
+        ],
+        "zoom": 10.6,
+        "pitch": 40,
+        "bearing": 0
+      }
+    },
+    {
+      "title": "NISAR looks once",
+      "text": "On October 25, 2025, NISAR flew over and recorded the ground. Nothing is colored yet, because change needs a second picture to compare against.",
+      "date": "2025-10-26T00:00:00Z"
+    },
+    {
+      "title": "Twelve days later",
+      "text": "On November 6 NISAR came back. Twelve days is too short to see much: at about 2 cm a month the ground has moved under 1 cm, which is the size of the noise from the atmosphere. Only the faintest hint of a pattern shows.",
+      "date": "2025-11-08T00:00:00Z"
+    },
+    {
+      "title": "Why single dates are noisy",
+      "text": "The raw total on November 18 reads about 6 cm at the strongest spot, then falls back to under 2 cm by December 12. The ground did not rise: the weather on that one day bent the radar. Fitting one steady rate to all the passes averages this out.",
+      "date": "2025-11-20T00:00:00Z"
+    },
+    {
+      "title": "Week by week it builds",
+      "text": "As more passes arrive the total grows. By late December an orange patch is clear, northeast of the airport on the old lake bed. Press play to watch the passes arrive.",
+      "date": "2025-12-26T00:00:00Z",
+      "camera": {
+        "center": [
+          -99.06,
+          19.45
+        ],
+        "zoom": 11.3,
+        "pitch": 45,
+        "bearing": 0
+      }
+    },
+    {
+      "title": "Three months later",
+      "text": "By January 17, 2026, the steady rate gives about 7 cm away from the satellite at the strongest spot, about 2.4 cm a month, northeast of the airport. If the ground moved straight down, the sinking is about 1.27 times that.",
+      "date": "2026-01-19T00:00:00Z"
+    },
+    {
+      "title": "Counting the waves",
+      "text": "Each color band is about 12 cm of motion. This is about 7 cm at the strongest spot, so you see only a little over half a band there. The fringes are a model-based display here, so treat the rings as a way to see the pattern.",
+      "view": "fringes"
+    },
+    {
+      "title": "How sure are we?",
+      "text": "Dark areas have little signal: open water and wet clay of the former lake scramble the radar, and dense buildings and plants can too. Those cells are left empty.",
+      "view": "coherence"
+    },
+    {
+      "title": "What this says",
+      "text": "A city can sink by centimeters a month while nothing seems to move. A satellite that looks every 12 days can map where, block by block, and the same method works for every city on a lake bed or an aquifer. This is early, beta data for three dry months, so the numbers are a starting point, not a final answer.",
+      "view": "los"
+    }
+  ],
+  "resources": [
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR StoryMaps",
+      "url": "https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/",
+      "description": "Interactive stories on floods, wildfires, subsidence, oil slicks and glacier motion."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Synthetic Aperture Radar",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar",
+      "description": "How radar frequency, wavelength and polarization work."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Remote Sensing",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing",
+      "description": "The basics of satellite data and resolution."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NASA ARSET trainings",
+      "url": "https://appliedsciences.nasa.gov/get-involved/training",
+      "description": "Free online courses, including SAR and NISAR (English and Spanish)."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR applications white papers",
+      "url": "https://nisar.jpl.nasa.gov/applications/societal-benefit/",
+      "description": "Two-page overviews of how NISAR data helps society."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "ASF Data Search (Vertex)",
+      "url": "https://search.asf.alaska.edu/",
+      "description": "Search and download NISAR granules from the NASA SAR archive."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NISAR Data User Guide",
+      "url": "https://nisar-docs.asf.alaska.edu/",
+      "description": "Product specs, known issues and access methods."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NASA Earthdata Search",
+      "url": "https://search.earthdata.nasa.gov/search",
+      "description": "Discover and compare NASA Earth science datasets."
+    },
+    {
+      "group": "learn",
+      "audience": "both",
+      "title": "NASA: US-Indian mission maps extreme subsidence in Mexico City",
+      "url": "https://www.nasa.gov/missions/nisar/us-indian-space-mission-maps-extreme-subsidence-in-mexico-city/",
+      "description": "The NISAR subsidence map for October 2025 to January 2026."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "GUNW product guide",
+      "url": "https://nisar-docs.asf.alaska.edu/gunw/",
+      "description": "Layers and conventions of the interferogram product."
+    }
+  ],
+  "layers": [
+    {
+      "id": "deformation",
+      "role": "displacement",
+      "badge": "DERIVED",
+      "grid": "deformation.grid.json",
+      "units": "m",
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "positiveMeans": "away from the satellite (the ground sinking, if it moved straight down)",
+      "negativeMeans": "toward the satellite (rising, or noise)",
+      "name": "Ground motion (line of sight)",
+      "displayUnits": "cm",
+      "displayScale": 100,
+      "range": [
+        -0.07,
+        0.07
+      ],
+      "quietBelow": 0.008,
+      "hintStory": "Orange means the ground moved away from the satellite, which is what sinking looks like. Blue means toward it. Changes under 0.8 cm are left clear so the real pattern stands out. This is the motion since October 25, 2025, at the steady rate that fits the passes.",
+      "hintScientist": "Steady-rate LOS displacement in meters (rate fitted through zero to the six running totals, times days since Oct 25), after referencing, plane removal on hills and chaining. Positive = away from the satellite (assumed, not verified). Changes below 8 mm are drawn transparent.",
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GUNW (unwrapped interferogram), beta",
+        "granuleId": "Chain of 6 NISAR GUNW pairs added end to end: NISAR_L2_PR_GUNW_003_113_D_079_004_4000_SH_20251025T011329_20251025T011404_20251106T011330_20251106T011404_X05009_N_F_J_001, NISAR_L2_PR_GUNW_004_113_D_079_005_4000_SH_20251106T011330_20251106T011404_20251118T011330_20251118T011405_X05010_N_F_J_001, NISAR_L2_PR_GUNW_005_113_D_079_007_4000_SH_20251118T011330_20251118T011405_20251212T011331_20251212T011406_X05010_N_F_J_001, NISAR_L2_PR_GUNW_007_113_D_079_008_4000_SH_20251212T011331_20251212T011406_20251224T011332_20251224T011406_X05010_N_F_J_001, NISAR_L2_PR_GUNW_008_113_D_079_009_4000_SH_20251224T011332_20251224T011406_20260105T011332_20260105T011407_X05010_N_F_J_001, NISAR_L2_PR_GUNW_009_113_D_079_010_4000_SH_20260105T011332_20260105T011407_20260117T011333_20260117T011407_X05010_N_F_J_001",
+        "maturity": "BETA",
+        "referenceDate": "2025-10-25",
+        "secondaryDate": "2026-01-17",
+        "measurement": "Radar line-of-sight displacement since Oct 25, 2025, from a steady-rate fit, relative to the hills around the city",
+        "signConvention": "Positive = away from the satellite (range increase). Assumed from the phase-to-range relation; not verified against NISAR documentation. If the ground moves down, the range gets longer, so sinking would be positive.",
+        "geometry": "Track 113 descending, frame 79, HH, left-looking, about 38 degrees from vertical (typical; confirm from the granule)",
+        "wavelength": "0.24196 m (center frequency 1.239 GHz)",
+        "method": "Aevion read unwrappedPhase inside the map box for six consecutive pairs (12 days each, except a 24-day pair Nov 18 to Dec 12), set invalid cells (connected component 0) to no data, converted phase to meters, subtracted the median of cells with coherence above 0.8, and removed a robust plane (fitted to cells with coherence of at least 0.5) from each pair to take out atmosphere and orbit ramps. The ramp was fitted only to cells on the hills around the city (higher than 2,450 m, from the AWS terrain tiles), so the sinking lake bed is not part of the reference. The six pairs were then added end to end into six running totals, a steady rate was fitted through zero to those totals in every cell, and each period shows that rate times the days since Oct 25. Cells where any pair had coherence below 0.3 were left empty. Resampled to a 220 by 205 grid.",
+        "license": "NASA data, free to use. Research-grade, not for operational use."
+      }
+    },
+    {
+      "id": "coherence",
+      "role": "coherence",
+      "badge": "DERIVED",
+      "grid": "coherence.grid.json",
+      "units": "1",
+      "displayUnits": "",
+      "displayScale": 1,
+      "range": [
+        0,
+        1
+      ],
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "label": "Coherence",
+      "name": "Coherence",
+      "titleStory": "How much we can trust it",
+      "titleScientist": "Lowest coherence along the chain (0 to 1)",
+      "hintStory": "Bright means the radar passes matched well in every step. Dark means the ground or plants changed too much to trust the measurement. The blank patch is where radar returned no usable signal.",
+      "hintScientist": "For each cell, the lowest interferometric coherence magnitude of any pair in the chain. Cells below 0.3 are empty; cells below the threshold are faded and hatched when masking is on.",
+      "provenance": {
+        "product": "NISAR L2 GUNW coherenceMagnitude (HH), beta",
+        "granuleId": "Chain of 6 NISAR GUNW pairs added end to end: NISAR_L2_PR_GUNW_003_113_D_079_004_4000_SH_20251025T011329_20251025T011404_20251106T011330_20251106T011404_X05009_N_F_J_001, NISAR_L2_PR_GUNW_004_113_D_079_005_4000_SH_20251106T011330_20251106T011404_20251118T011330_20251118T011405_X05010_N_F_J_001, NISAR_L2_PR_GUNW_005_113_D_079_007_4000_SH_20251118T011330_20251118T011405_20251212T011331_20251212T011406_X05010_N_F_J_001, NISAR_L2_PR_GUNW_007_113_D_079_008_4000_SH_20251212T011331_20251212T011406_20251224T011332_20251224T011406_X05010_N_F_J_001, NISAR_L2_PR_GUNW_008_113_D_079_009_4000_SH_20251224T011332_20251224T011406_20260105T011332_20260105T011407_X05010_N_F_J_001, NISAR_L2_PR_GUNW_009_113_D_079_010_4000_SH_20260105T011332_20260105T011407_20260117T011333_20260117T011407_X05010_N_F_J_001",
+        "maturity": "BETA",
+        "measurement": "Coherence, 0 (no signal) to 1 (perfect)",
+        "method": "Per cell, the minimum over the six pairs, resampled to the same grid as the displacement layer."
+      }
+    }
+  ],
+  "defaultThreshold": 0.4,
+  "annotations": [
+    {
+      "lon": -99.051,
+      "lat": 19.4732,
+      "label": "Strongest sinking in this view",
+      "kind": "vent"
+    },
+    {
+      "lon": -98.9972,
+      "lat": 19.4813,
+      "label": "No data: lake bed and wet clay scramble the radar",
+      "kind": "note"
+    }
+  ],
+  "epochs": [
+    {
+      "id": "ep-2025-11-06",
+      "label": "Oct 25 to Nov 6",
+      "title": "+12 days",
+      "pair": {
+        "reference": "2025-10-25",
+        "secondary": "2025-11-06"
+      },
+      "deformation": "epochs/ep-2025-11-06.deformation.grid.json"
+    },
+    {
+      "id": "ep-2025-11-18",
+      "label": "Oct 25 to Nov 18",
+      "title": "+24 days",
+      "pair": {
+        "reference": "2025-10-25",
+        "secondary": "2025-11-18"
+      },
+      "deformation": "epochs/ep-2025-11-18.deformation.grid.json"
+    },
+    {
+      "id": "ep-2025-12-12",
+      "label": "Oct 25 to Dec 12",
+      "title": "+48 days",
+      "pair": {
+        "reference": "2025-10-25",
+        "secondary": "2025-12-12"
+      },
+      "deformation": "epochs/ep-2025-12-12.deformation.grid.json"
+    },
+    {
+      "id": "ep-2025-12-24",
+      "label": "Oct 25 to Dec 24",
+      "title": "+60 days",
+      "pair": {
+        "reference": "2025-10-25",
+        "secondary": "2025-12-24"
+      },
+      "deformation": "epochs/ep-2025-12-24.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-01-05",
+      "label": "Oct 25 to Jan 5",
+      "title": "+72 days",
+      "pair": {
+        "reference": "2025-10-25",
+        "secondary": "2026-01-05"
+      },
+      "deformation": "epochs/ep-2026-01-05.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-01-17",
+      "label": "Oct 25 to Jan 17",
+      "title": "+84 days",
+      "pair": {
+        "reference": "2025-10-25",
+        "secondary": "2026-01-17"
+      },
+      "deformation": "deformation.grid.json",
+      "coherence": "coherence.grid.json"
+    }
+  ]
+}

@@ -21,6 +21,10 @@ function ramp(stops: string[], t: number): RGB {
 const DIVERGING = ['#1d4f91', '#3b8fd4', '#f4f4f4', '#f39237', '#b8430a']
 const CONFIDENCE = ['#0b0b1a', '#3b1f6b', '#8a2f87', '#e0556a', '#ffd479']
 
+/** The radar picture itself (not a change): dark navy for weak echoes up to white for strong ones. */
+const RADAR_GRAY = ['#070d1c', '#2a3550', '#6b7792', '#b6bfd2', '#ffffff']
+export const GRAY_GRADIENT = `linear-gradient(90deg, ${RADAR_GRAY.join(',')})`
+
 export const LEGEND_GRADIENTS: Record<ViewMode, string> = {
   los: `linear-gradient(90deg, ${DIVERGING.join(',')})`,
   fringes: 'linear-gradient(90deg, hsl(0 85% 55%), hsl(60 85% 55%), hsl(120 85% 45%), hsl(180 85% 45%), hsl(240 85% 60%), hsl(300 85% 55%), hsl(360 85% 55%))',
@@ -40,6 +44,8 @@ export interface RenderOpts {
   low?: boolean
   /** Displacement smaller than this (same units as range) is fully transparent in the ground-motion view. */
   quiet?: number
+  /** 'gray' draws the values as a radar picture (low to high) instead of a change around zero. */
+  colormap?: 'gray'
 }
 
 const smooth = (a: number, b: number, x: number) => {
@@ -70,6 +76,7 @@ function hsl(h: number, s: number, l: number): RGB {
 const DIVERGING_LUT = lut((t) => ramp(DIVERGING, t))
 const CONFIDENCE_LUT = lut((t) => ramp(CONFIDENCE, t))
 const FRINGE_LUT = lut((t) => hsl(t * 360, 0.85, 0.52))
+const GRAY_LUT = lut((t) => ramp(RADAR_GRAY, t))
 
 /** Bilinear sample of a grid, NaN where any neighbor is a gap. */
 function bilinear(g: Grid, fx: number, fy: number): number {
@@ -121,7 +128,11 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasE
       let li: number // index into a color table
       let lutArr: Uint8ClampedArray
       let a: number
-      if (mode === 'los') {
+      if (mode === 'los' && o.colormap === 'gray') {
+        li = Math.round(Math.min(1, Math.max(0, (d - lo) / (hi - lo))) * (LUT_N - 1))
+        lutArr = GRAY_LUT
+        a = 0.95 * grow
+      } else if (mode === 'los') {
         const tt = d / half // -1..1
         li = Math.round(Math.min(1, Math.max(0, (tt + 1) / 2)) * (LUT_N - 1))
         lutArr = DIVERGING_LUT

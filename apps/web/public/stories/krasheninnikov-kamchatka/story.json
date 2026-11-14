@@ -1,0 +1,494 @@
+{
+  "id": "krasheninnikov-kamchatka",
+  "type": "volcano",
+  "kind": "backscatter",
+  "title": "A volcano that woke up after 500 years",
+  "subtitle": "Krasheninnikov, Kamchatka, Russia",
+  "technical": {
+    "title": "HH backscatter of Krasheninnikov volcano, NISAR GCOV, track 60 descending, 2026-06-18 to 2026-10-28",
+    "subtitle": "NISAR L2 GCOV (provisional), HHHH power in dB, 11 passes 12 days apart",
+    "summary": "Radar backscatter (the HHHH term of the L-band GCOV product, λ = 24.2 cm) of the volcano and its flanks for each of 11 NISAR passes on one track, block-averaged to about 105 m cells and shown in dB. Nothing is subtracted: every period is the radar picture of one pass. Fresh lava is rough and reflects the radar strongly, so it is bright against smoother ground, and NASA/JPL's published time-lapse of the same volcano shows lava this way. The same brightness also depends on snow, soil moisture and vegetation, so the maps need to be read with that in mind.",
+    "caveats": [
+      "The source granules are provisional NISAR products, not validated by NASA. The Oct 28 pass is the validated product (GCOV V1), so the last period mixes two data maturities.",
+      "Only passes from June 18, 2026 onward are in the public catalog so far. NISAR first imaged this volcano on Dec 25, 2025, and the earlier passes (the ones that show the lava building up) are not in this story.",
+      "Brightness is not the same as lava. Wet snow absorbs radar and looks dark, and as it melts the ground looks brighter. Between Jun 18 and Aug 17 about 150 km² of this map box brightened by more than 3 dB, in a smooth way that looks like snow melt, and parts darkened again in October. This is an interpretation from the images; weather or field data would be needed to confirm it.",
+      "The bright fan east of the crater is labelled as lava because NASA/JPL describes the lava flowing east and appearing bright. Aevion did not map lava boundaries or check the fan against other data.",
+      "Between dates the whole scene can shift by 1 to 2 dB (calibration, moisture, snow). Nothing is corrected for that here.",
+      "One viewing direction (descending, looking left) distorts steep slopes: some face the radar and look bright, others are in radar shadow."
+    ]
+  },
+  "dataStatus": "provisional",
+  "dataStatusNote": "Radar brightness measured by NISAR (provisional L2 GCOV backscatter, track 60 descending, June 18 to October 28, 2026), averaged and converted to dB by Aevion. It is not validated by NASA. What the brightness means (lava, snow, wet ground) is interpretation.",
+  "statusDetail": {
+    "story": "NISAR radar pictures, not yet validated",
+    "scientist": "NISAR GCOV (provisional), HH backscatter in dB, one pass per period"
+  },
+  "storyText": "Krasheninnikov, on Russia's Kamchatka Peninsula, had been quiet since about 1550. After a magnitude 8.8 earthquake on July 30, 2025, it apparently woke up and began to erupt. NISAR looks at it from space every 12 days, through cloud and darkness. In these radar pictures, fresh lava shows up bright against darker ground. Drag the timeline to watch the volcano from June to October, and watch what snow does to the picture.",
+  "sensor": "NISAR",
+  "eventsLabel": "Earthquakes (USGS)",
+  "credits": "Imagery © Esri · Terrain: AWS Terrain Tiles · NISAR data: NASA/JPL-Caltech and ISRO, processed by Aevion · NISAR pass dates: NASA CMR",
+  "aoi": {
+    "bbox": [
+      160.09,
+      54.47,
+      160.45,
+      54.7
+    ],
+    "center": [
+      160.27,
+      54.585
+    ],
+    "zoom": 11.1,
+    "pitch": 48,
+    "bearing": 0
+  },
+  "timeline": {
+    "start": "2026-06-04T00:00:00Z",
+    "end": "2026-11-10T00:00:00Z",
+    "initial": "2026-08-20T00:00:00Z"
+  },
+  "flagshipPair": {
+    "track": 60,
+    "orbitDirection": "D",
+    "reference": "2026-07-24",
+    "secondary": "2026-08-17"
+  },
+  "acquisitions": "acquisitions.json",
+  "events": "events.geojson",
+  "copy": {
+    "mainView": [
+      "Radar picture (HH)",
+      "HH backscatter"
+    ],
+    "followTimeline": true,
+    "periodsHeading": "All radar passes",
+    "howTo": [
+      "Drag the timeline (or press play) to move from one radar pass to the next. The picture changes at each pass.",
+      "Bright means a strong radar echo (rough surfaces such as fresh lava), dark means a weak one (smooth ground or wet snow).",
+      "Click anywhere on the map to see how strong the echo is there. Switch to Scientist mode for the numbers and sources."
+    ],
+    "epochText": "NISAR flew over on {to}. This is the radar picture from that pass.",
+    "epochTechTitle": "HH backscatter of Krasheninnikov volcano, NISAR pass {to}",
+    "evidenceNote": "Backscatter is the power of the radar echo from each ground cell (HHHH term of the covariance matrix), averaged in linear power and converted to dB (10 log10). Bright = strong echo, dark = weak echo."
+  },
+  "why": [
+    {
+      "title": "Why did Krasheninnikov erupt now?",
+      "body": "This volcano had been quiet since about 1550. A magnitude 8.8 earthquake struck offshore on July 30, 2025, and a few days later the volcano began to erupt. NASA says the quake apparently jolted it awake, which is likely but not proven: shaking can change the pressure on a magma chamber, but scientists are still working out how often that triggers an eruption."
+    },
+    {
+      "title": "How does radar see lava?",
+      "body": "A radar satellite sends pulses and records the echo. Rough, jagged surfaces such as fresh lava scatter a lot of the energy back, so they look bright. Smooth surfaces, such as calm water, mirror it away and look dark. Radar also works at night and through cloud, which matters in Kamchatka, where the volcano is often hidden. NASA/JPL notes that lava looks brighter than the surrounding snow or bare ground."
+    },
+    {
+      "title": "Why does the picture change when there is no new lava?",
+      "body": "Radar also feels water. Wet snow absorbs the radar and looks dark, and as it melts the ground looks brighter. Between June 18 and August 17, about 150 square kilometers of this map brightened by more than 3 dB in a smooth, gradual way, then barely changed until October, when parts darkened again. That pattern fits melting and returning snow, though only weather or field data could confirm it. It is why scientists compare many passes before calling a bright patch lava."
+    },
+    {
+      "title": "What do HH and HV show?",
+      "body": "NISAR transmits horizontally polarized radar and records two kinds of echo. HH (horizontal back) mostly responds to the ground and to smooth or rough surfaces. HV (cross-polarized) responds more strongly to rough, scattering surfaces and to leaves and branches. Comparing them helps tell fresh rough lava from bare ground. Switch between them with the Radar HV button."
+    },
+    {
+      "title": "Why a radar picture and not a ground-motion map?",
+      "body": "For ground motion, NISAR compares the wave phase between two passes. Fresh lava, ash, snow and vegetation scramble the phase, so this volcano has no usable interferogram. The strength of the echo still works, which is why this story uses brightness."
+    },
+    {
+      "title": "What could NISAR do next?",
+      "body": "NASA says NISAR can cover nearly all of the roughly 1,300 active volcanoes above sea level, including remote ones like Krasheninnikov that have no instruments on the ground. It passes over every 12 days from two directions, so a new flow or a change in a crater can be noticed within days. The same method can watch glaciers, floods and forest change anywhere on Earth."
+    }
+  ],
+  "tour": [
+    {
+      "title": "Krasheninnikov",
+      "text": "This is Krasheninnikov volcano on the Pacific coast of Kamchatka, in far eastern Russia. It had not erupted in nearly five centuries. The picture you see is made by radar, not a camera.",
+      "date": "2026-06-20T00:00:00Z",
+      "view": "los",
+      "camera": {
+        "center": [
+          160.27,
+          54.585
+        ],
+        "zoom": 11.1,
+        "pitch": 48,
+        "bearing": 0
+      }
+    },
+    {
+      "title": "How to read a radar picture",
+      "text": "Bright means the radar echo was strong, dark means weak. Rough, jagged surfaces, such as fresh lava, scatter a lot of the radar back and look bright. Smooth ground looks dark.",
+      "date": "2026-07-26T00:00:00Z"
+    },
+    {
+      "title": "The lava fan",
+      "text": "East of the crater is a bright, branching fan. NASA/JPL's time-lapse of this volcano shows lava spreading east from the crater and fanning out, and it appears bright in the radar.",
+      "date": "2026-08-20T00:00:00Z",
+      "camera": {
+        "center": [
+          160.305,
+          54.612
+        ],
+        "zoom": 12.3,
+        "pitch": 55,
+        "bearing": 5
+      }
+    },
+    {
+      "title": "Snow hides the picture",
+      "text": "Back in June the same hillside looks very different. Wet snow absorbs radar, so large slopes are dark. This is the first public NISAR pass, on June 18.",
+      "date": "2026-06-20T00:00:00Z",
+      "camera": {
+        "center": [
+          160.22,
+          54.55
+        ],
+        "zoom": 11.6,
+        "pitch": 50,
+        "bearing": 0
+      }
+    },
+    {
+      "title": "The snow melts",
+      "text": "Over the next five weeks the slope brightens step by step, by about 12 dB at this spot, as the snow melts and the ground shows through. This smooth ramp is a sign of snow melt, not a new lava flow.",
+      "date": "2026-07-26T00:00:00Z"
+    },
+    {
+      "title": "A snow-free summer",
+      "text": "From late July to September the picture hardly changes. This is the clearest view of the volcano's surface. Between passes, new lava would be a patch that suddenly gets brighter.",
+      "date": "2026-09-12T00:00:00Z",
+      "camera": {
+        "center": [
+          160.27,
+          54.585
+        ],
+        "zoom": 11.1,
+        "pitch": 48,
+        "bearing": 0
+      }
+    },
+    {
+      "title": "Autumn returns",
+      "text": "By October parts of the slopes darken again, which fits the first snow of the season returning. The scene median drops by about 2 dB in the last pass, on October 28.",
+      "date": "2026-10-30T00:00:00Z"
+    },
+    {
+      "title": "A second echo (HV)",
+      "text": "HV listens to a different part of the echo. It responds more to rough, scattering surfaces. Compare it with the main picture to separate rough lava from smoother bare ground.",
+      "date": "2026-08-20T00:00:00Z",
+      "view": "hv"
+    },
+    {
+      "title": "Why this matters",
+      "text": "Krasheninnikov is remote and has no ground instruments. A satellite that looks every 12 days, through cloud, can still notice when a volcano wakes up. Reading the pictures well means knowing what else changes the brightness, and that is why this story shows snow as well as lava.",
+      "view": "los"
+    }
+  ],
+  "resources": [
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR StoryMaps",
+      "url": "https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/",
+      "description": "Interactive stories on floods, wildfires, subsidence, oil slicks and glacier motion."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Synthetic Aperture Radar",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar",
+      "description": "How radar frequency, wavelength and polarization work."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Remote Sensing",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing",
+      "description": "The basics of satellite data and resolution."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NASA ARSET trainings",
+      "url": "https://appliedsciences.nasa.gov/get-involved/training",
+      "description": "Free online courses, including SAR and NISAR (English and Spanish)."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR applications white papers",
+      "url": "https://nisar.jpl.nasa.gov/applications/societal-benefit/",
+      "description": "Two-page overviews of how NISAR data helps society."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "ASF Data Search (Vertex)",
+      "url": "https://search.asf.alaska.edu/",
+      "description": "Search and download NISAR granules from the NASA SAR archive."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NISAR Data User Guide",
+      "url": "https://nisar-docs.asf.alaska.edu/",
+      "description": "Product specs, known issues and access methods."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NASA Earthdata Search",
+      "url": "https://search.earthdata.nasa.gov/search",
+      "description": "Discover and compare NASA Earth science datasets."
+    },
+    {
+      "group": "learn",
+      "audience": "both",
+      "title": "NASA/JPL: US-India satellite captures time-lapse of a volcanic eruption",
+      "url": "https://www.jpl.nasa.gov/news/us-india-satellite-captures-time-lapse-video-of-volcanic-eruption/",
+      "description": "The published NISAR time-lapse of Krasheninnikov from December 2025 to August 2026."
+    },
+    {
+      "group": "learn",
+      "audience": "both",
+      "title": "NASA SVS: Krasheninnikov time-lapse",
+      "url": "https://svs.gsfc.nasa.gov/5675",
+      "description": "The animation frames and dates."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "GCOV product guide",
+      "url": "https://nisar-docs.asf.alaska.edu/gcov/",
+      "description": "Layers and conventions of the backscatter product."
+    }
+  ],
+  "layers": [
+    {
+      "id": "hh-backscatter",
+      "role": "displacement",
+      "name": "Radar picture (HH)",
+      "badge": "DERIVED",
+      "grid": "deformation.grid.json",
+      "units": "dB",
+      "displayUnits": "dB",
+      "displayScale": 1,
+      "range": [
+        -20,
+        0
+      ],
+      "colormap": "gray",
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "positiveMeans": "a stronger echo (rough surfaces, wet ground)",
+      "negativeMeans": "a weaker echo (smooth ground, wet snow)",
+      "titleStory": "How strongly the ground echoes the radar (HH)",
+      "titleScientist": "HH backscatter (dB)",
+      "hintStory": "Bright means a strong radar echo, such as rough fresh lava. Dark means a weak one, such as smooth ground or wet snow. Fresh lava is not the only thing that looks bright, so compare several dates before reading a bright patch as lava.",
+      "hintScientist": "L-band HHHH power from the GCOV product, block-averaged in linear power and shown in dB (typical range −18 to −3 dB here). One pass per period; nothing is subtracted, and no scene-wide correction is applied (the scene median moves between about −9 and −6 dB from date to date).",
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GCOV (geocoded polarimetric covariance), HHHH term, provisional (the Oct 28 pass is the validated product)",
+        "granuleId": "NISAR_L2_PR_GCOV_028_060_D_061_4005_DHDH_A_20260817T084924_20260817T085002_P05023_N_F_J_001 (featured pass; every pass has its own granule, see the Periods tab)",
+        "maturity": "PROVISIONAL",
+        "referenceDate": "2026-07-24",
+        "secondaryDate": "2026-08-17",
+        "geometry": "Track 60 descending, frame 61, left-looking, dual-pol mode (DHDH)",
+        "polarization": "HH (L-band, about 24 cm)",
+        "measurement": "Radar backscatter power, in dB (a picture of how strongly the ground echoes the radar, not a change)",
+        "method": "Aevion read the HHHH power layer inside the map box (the full file is never saved), averaged the linear power in blocks down to about 105 m cells, converted to dB, and resampled to a 220 by 220 grid. No smoothing, no background correction and no terrain correction beyond what the product has.",
+        "license": "NASA data, free to use. Research-grade, not for operational use."
+      }
+    },
+    {
+      "id": "coherence",
+      "role": "coherence",
+      "name": "Coverage",
+      "label": "Coverage",
+      "badge": "DERIVED",
+      "grid": "coherence.grid.json",
+      "units": "1",
+      "displayUnits": "",
+      "displayScale": 1,
+      "range": [
+        0,
+        1
+      ],
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "titleStory": "Where there is data",
+      "titleScientist": "Valid-data coverage (1 = a value, empty = none)",
+      "hintStory": "Every cell in this picture has a radar value. This story does not use the interferometric confidence layer.",
+      "hintScientist": "Always 1 where the backscatter has a value. Backscatter has no coherence; this layer only exists because every story carries one.",
+      "provenance": {
+        "product": "Derived from the GCOV backscatter grid",
+        "maturity": "PROVISIONAL",
+        "measurement": "1 where the backscatter has a value",
+        "method": "Set to 1 wherever the HH grid is not empty."
+      }
+    },
+    {
+      "id": "backscatter-hv",
+      "role": "backscatterHV",
+      "name": "Radar picture (HV)",
+      "badge": "DERIVED",
+      "grid": "backscatter-hv.grid.json",
+      "units": "dB",
+      "displayUnits": "dB",
+      "displayScale": 1,
+      "range": [
+        -26,
+        -2
+      ],
+      "colormap": "gray",
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "positiveMeans": "a stronger cross-polarized echo (rough surfaces, leaves)",
+      "negativeMeans": "a weaker echo (smooth surfaces)",
+      "titleStory": "The cross-polarized echo (HV)",
+      "titleScientist": "HV backscatter (dB)",
+      "hintStory": "HV listens to a different part of the echo. It responds more to rough, scattering surfaces and to plants. Shown for the featured pass only (August 17).",
+      "hintScientist": "L-band HVHV power from the GCOV product for the featured pass (2026-08-17), block-averaged in linear power and shown in dB.",
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GCOV, HVHV term, provisional",
+        "granuleId": "NISAR_L2_PR_GCOV_028_060_D_061_4005_DHDH_A_20260817T084924_20260817T085002_P05023_N_F_J_001 (featured pass; every pass has its own granule, see the Periods tab)",
+        "maturity": "PROVISIONAL",
+        "referenceDate": "2026-07-24",
+        "secondaryDate": "2026-08-17",
+        "geometry": "Track 60 descending, frame 61, left-looking, dual-pol mode (DHDH)",
+        "polarization": "HV (L-band, about 24 cm)",
+        "measurement": "Radar backscatter power, in dB (a picture of how strongly the ground echoes the radar, not a change)",
+        "method": "Aevion read the HHHH power layer inside the map box (the full file is never saved), averaged the linear power in blocks down to about 105 m cells, converted to dB, and resampled to a 220 by 220 grid. No smoothing, no background correction and no terrain correction beyond what the product has.",
+        "license": "NASA data, free to use. Research-grade, not for operational use."
+      }
+    }
+  ],
+  "defaultThreshold": 0.3,
+  "annotations": [
+    {
+      "lon": 160.3052,
+      "lat": 54.6169,
+      "label": "Bright lava fan, east of the crater",
+      "kind": "note"
+    },
+    {
+      "lon": 160.2154,
+      "lat": 54.5494,
+      "label": "Slope that brightens as snow melts (Jun to Jul)",
+      "kind": "note"
+    }
+  ],
+  "epochs": [
+    {
+      "id": "ep-2026-06-18",
+      "label": "Jun 18",
+      "title": "Pass 1",
+      "pair": {
+        "reference": "2026-06-06",
+        "secondary": "2026-06-18"
+      },
+      "deformation": "epochs/ep-2026-06-18.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-06-30",
+      "label": "Jun 30",
+      "title": "Pass 2",
+      "pair": {
+        "reference": "2026-06-18",
+        "secondary": "2026-06-30"
+      },
+      "deformation": "epochs/ep-2026-06-30.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-07-12",
+      "label": "Jul 12",
+      "title": "Pass 3",
+      "pair": {
+        "reference": "2026-06-30",
+        "secondary": "2026-07-12"
+      },
+      "deformation": "epochs/ep-2026-07-12.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-07-24",
+      "label": "Jul 24",
+      "title": "Pass 4",
+      "pair": {
+        "reference": "2026-07-12",
+        "secondary": "2026-07-24"
+      },
+      "deformation": "epochs/ep-2026-07-24.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-08-17",
+      "label": "Aug 17",
+      "title": "Pass 5",
+      "pair": {
+        "reference": "2026-07-24",
+        "secondary": "2026-08-17"
+      },
+      "deformation": "deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-08-29",
+      "label": "Aug 29",
+      "title": "Pass 6",
+      "pair": {
+        "reference": "2026-08-17",
+        "secondary": "2026-08-29"
+      },
+      "deformation": "epochs/ep-2026-08-29.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-09-10",
+      "label": "Sep 10",
+      "title": "Pass 7",
+      "pair": {
+        "reference": "2026-08-29",
+        "secondary": "2026-09-10"
+      },
+      "deformation": "epochs/ep-2026-09-10.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-09-22",
+      "label": "Sep 22",
+      "title": "Pass 8",
+      "pair": {
+        "reference": "2026-09-10",
+        "secondary": "2026-09-22"
+      },
+      "deformation": "epochs/ep-2026-09-22.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-10-04",
+      "label": "Oct 4",
+      "title": "Pass 9",
+      "pair": {
+        "reference": "2026-09-22",
+        "secondary": "2026-10-04"
+      },
+      "deformation": "epochs/ep-2026-10-04.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-10-16",
+      "label": "Oct 16",
+      "title": "Pass 10",
+      "pair": {
+        "reference": "2026-10-04",
+        "secondary": "2026-10-16"
+      },
+      "deformation": "epochs/ep-2026-10-16.deformation.grid.json"
+    },
+    {
+      "id": "ep-2026-10-28",
+      "label": "Oct 28",
+      "title": "Pass 11",
+      "pair": {
+        "reference": "2026-10-16",
+        "secondary": "2026-10-28"
+      },
+      "deformation": "epochs/ep-2026-10-28.deformation.grid.json"
+    }
+  ]
+}

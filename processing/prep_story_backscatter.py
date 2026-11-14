@@ -117,7 +117,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("story_dir")
     ap.add_argument("--dates", nargs="+")
-    ap.add_argument("--short-name", default="NISAR_L2_GCOV_PROVISIONAL_V1")
+    ap.add_argument("--all", action="store_true", help="every pass of the story's track inside the story's timeline (ignores --dates)")
+    ap.add_argument("--short-name", nargs="+", default=["NISAR_L2_GCOV_PROVISIONAL_V1"], help="one or more products, e.g. also NISAR_L2_GCOV_V1")
     ap.add_argument("--out", default="data/stacks")
     ap.add_argument("--strategy", default="interactive", choices=["interactive", "netrc", "environment"])
     ap.add_argument("--dry-run", action="store_true", help="list what would be fetched; no login, no download")
@@ -128,33 +129,45 @@ def main():
     f = story["flagshipPair"]
     dates = a.dates or [f["reference"], f["secondary"]]
     bbox = story["aoi"]["bbox"]
-    g = json.loads((sd / story["layers"][0]["grid"]).read_text(encoding="utf-8"))
-    w, h_px = g["width"], g["height"]
+    if story.get("layers"):
+        g = json.loads((sd / story["layers"][0]["grid"]).read_text(encoding="utf-8"))
+        w, h_px = g["width"], g["height"]
+    else:  # a story that is not built yet: the stub lists its grid size
+        w, h_px = story["gridSize"]
+    if a.all:
+        t = story["timeline"]
+        lo, hi = t["start"][:10], t["end"][:10]
+    else:
+        lo, hi = min(dates), max(dates)
     out_dir = Path(a.out) / story["id"]
 
     # find the granules (public search, no login)
     import urllib.parse
     import urllib.request
-    q = urllib.parse.urlencode({
-        "short_name": a.short_name, "bounding_box": ",".join(map(str, bbox)),
-        "temporal": f"{min(dates)}T00:00:00Z,{max(dates)}T23:59:59Z", "page_size": 200, "sort_key": "start_date",
-    })
-    entries = json.load(urllib.request.urlopen(f"https://cmr.earthdata.nasa.gov/search/granules.json?{q}", timeout=60))["feed"]["entry"]
+    entries = []
+    for short in a.short_name:
+        q = urllib.parse.urlencode({
+            "short_name": short, "bounding_box": ",".join(map(str, bbox)),
+            "temporal": f"{lo}T00:00:00Z,{hi}T23:59:59Z", "page_size": 200, "sort_key": "start_date",
+        })
+        for e in json.load(urllib.request.urlopen(f"https://cmr.earthdata.nasa.gov/search/granules.json?{q}", timeout=60))["feed"]["entry"]:
+            e["_short"] = short
+            entries.append(e)
     wanted = []
     for e in entries:
         m = TITLE.search(e["title"])
         if not m or int(m["track"]) != f["track"] or m["dir"] != f["orbitDirection"]:
             continue
         d = f"{m['t0'][:4]}-{m['t0'][4:6]}-{m['t0'][6:8]}"
-        if d in dates and not any(x["date"] == d for x in wanted):
-            wanted.append(dict(date=d, title=e["title"], mode=m["mode"], size=float(e.get("granule_size", 0)), track=m["track"], orbit=m["dir"]))
+        if (a.all or d in dates) and not any(x["date"] == d for x in wanted):
+            wanted.append(dict(date=d, short=e["_short"], title=e["title"], mode=m["mode"], size=float(e.get("granule_size", 0)), track=m["track"], orbit=m["dir"]))
     todo = [x for x in wanted if not (out_dir / out_name(x["track"], x["orbit"], x["date"])).exists()]
 
-    print(f"story {story['id']}: {len(wanted)} GCOV granules found for track {f['track']}{f['orbitDirection']} on {', '.join(dates)}")
+    print(f"story {story['id']}: {len(wanted)} GCOV granules found for track {f['track']}{f['orbitDirection']} on {'all dates' if a.all else ', '.join(dates)}")
     for x in wanted:
         done = "done" if x not in todo else "to fetch"
         print(f"   {x['date']}  polarization mode {x['mode']}  {x['size'] / 1000:.1f} GB in full  [{done}]  {x['title'][:60]}")
-    missing = [d for d in dates if d not in {x["date"] for x in wanted}]
+    missing = [] if a.all else [d for d in dates if d not in {x["date"] for x in wanted}]
     if missing:
         print("   not found in the catalog:", ", ".join(missing))
     if a.dry_run or not todo:
@@ -169,7 +182,7 @@ def main():
     t0 = time.time()
     for x in todo:
         print(f"{x['date']}: opening remote file...", flush=True)
-        res = earthaccess.search_data(short_name=a.short_name, readable_granule_name=x["title"])
+        res = earthaccess.search_data(short_name=x["short"], readable_granule_name=x["title"])
         if not res:
             print("   granule not found in CMR, skipping")
             continue
@@ -181,7 +194,7 @@ def main():
             continue
         name = out_name(x["track"], x["orbit"], x["date"])
         tmp = out_dir / (name + ".tmp.npz")
-        np.savez_compressed(tmp, hh_db=hh, hv_db=hv, bbox=np.array(bbox), date=x["date"], track=int(x["track"]), orbit=x["orbit"], granule=x["title"])
+        np.savez_compressed(tmp, hh_db=hh, hv_db=hv, bbox=np.array(bbox), date=x["date"], track=int(x["track"]), orbit=x["orbit"], granule=x["title"], product=x["short"])
         tmp.replace(out_dir / name)
         print(f"   saved {name}: HH {np.nanmedian(hh):.1f} dB median, HV {np.nanmedian(hv):.1f} dB median, ~{cf.bytes / 1e6:.0f} MB read", flush=True)
     print(f"done in {(time.time() - t0) / 60:.1f} min")

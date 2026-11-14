@@ -81,10 +81,20 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   const ok = layers && !('error' in layers) ? layers : null
   const radar = useMemo(() => (data ? { hh: pickOptional(data, 'backscatterHH'), hv: pickOptional(data, 'backscatterHV') } : null), [data])
 
+  // Stories that follow the timeline show the latest measured period up to the cursor (before the first one, the first).
+  const follow = !!data?.story.copy?.followTimeline
+  const shownEpochId = useMemo(() => {
+    const eps = data?.story.epochs
+    if (!follow || !data || !eps?.length) return epochId
+    let pick = sortEpochs(eps)[0]
+    for (const e of sortEpochs(eps)) if (ms(`${e.pair.secondary}T00:00:00Z`) <= cursor) pick = e
+    return isFeatured(data.story, pick) ? null : pick.id
+  }, [follow, data, cursor, epochId])
+
   // What is on screen: the featured period, or another measured period the viewer picked.
   const view = useMemo(() => {
     if (!data || !ok || !radar) return null
-    const e = epochId ? data.story.epochs?.find((x) => x.id === epochId) : undefined
+    const e = shownEpochId ? data.story.epochs?.find((x) => x.id === shownEpochId) : undefined
     const g = e ? data.epochGrids?.[e.id] : undefined
     if (!e || !g || isFeatured(data.story, e)) {
       return { story: data.story, displacement: ok.displacement, coherence: ok.coherence, flagship: data.flagship, radar }
@@ -99,7 +109,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
       flagship: pair,
       radar: { hh: undefined, hv: undefined },
     }
-  }, [data, ok, radar, epochId])
+  }, [data, ok, radar, shownEpochId])
 
   // Switch to another measured period: its grids, its event, and a timeline window around it.
   const selectEpoch = useCallback((id: string) => {
@@ -108,7 +118,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     const featured = isFeatured(data.story, e)
     const st = featured ? data.story : epochStory(data.story, e)
     setEpochId(featured ? null : id)
-    setCursor(ms(st.timeline.initial))
+    setCursor(data.story.copy?.followTimeline ? ms(`${e.pair.secondary}T12:00:00Z`) : ms(st.timeline.initial))
     setTour(null)
     setPicked(null)
     setProfile({ a: null, b: null })
@@ -123,7 +133,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   }, [])
   useEffect(() => () => window.clearTimeout(noteTimer.current), [])
 
-  const selectedEpochId = data?.story.epochs?.find((e) => (epochId ? e.id === epochId : isFeatured(data.story, e)))?.id ?? ''
+  const selectedEpochId = data?.story.epochs?.find((e) => (shownEpochId ? e.id === shownEpochId : isFeatured(data.story, e)))?.id ?? ''
   const ventMotion = useMemo(() => (data ? computeVentMotion(data.story, data.epochGrids) : null), [data])
   // A click on an eruption dot: go to its NISAR period if one was processed, otherwise just go to the date and say so.
   const onEpisode = useCallback((e: EventMark, t: number) => {
@@ -233,10 +243,13 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>Loading story&hellip;</span></div>
 
   const { story, flagship: viewPair } = view
+  // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
+  const shownMode: ViewMode = (mode === 'hh' && !view.radar.hh) || (mode === 'hv' && !view.radar.hv) ? 'los' : mode
   const { context } = data
   const progress = changeProgress(story, cursor, viewPair?.secondary)
   const showChange = progress >= 1
   const sci = ui === 'scientist'
+  const bs = story.kind === 'backscatter'
   const replayBtn = <ReplayButton running={replay != null} onStart={startReplay} onStop={stopReplay} />
   const swipeBtn = (
     <button className="cta ghost" aria-pressed={swipe} onClick={() => {
@@ -247,13 +260,13 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   const epochs = data.story.epochs
   const periodsTab = epochs?.length ? (
     <>
-      <EpochChart epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} />
-      <h2>All periods</h2>
-      <PeriodList epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} />
+      {ventMotion && <EpochChart epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} chart={story.copy?.chart} />}
+      <h2>{story.copy?.periodsHeading ?? 'All periods'}</h2>
+      <PeriodList epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} chart={story.copy?.chart} />
     </>
   ) : undefined
   const periodSwitcher = epochs?.length ? (
-    <PeriodSwitcher epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} onStep={stepEpoch} />
+    <PeriodSwitcher epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} onStep={stepEpoch} chart={story.copy?.chart} />
   ) : undefined
   const timelineData = { ...data, story, flagship: viewPair }
   const impact = context && (
@@ -265,54 +278,54 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     <div className="app">
       <MapView story={story} quakes={data.quakes} context={context} displacement={view.displacement} coherence={view.coherence}
         radarHH={view.radar.hh} radarHV={view.radar.hv}
-        mode={mode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={viewPair?.secondary} swipe={swipe} cursor={cursor}
+        mode={shownMode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={viewPair?.secondary} swipe={swipe} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
         onProfilePoint={addProfilePoint}
         replayScale={replay} />
       <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} />
-      <SidePanel story={story} ui={ui} mode={mode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
+      <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}
         radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }}
         slots={sci ? {
           analysis: (
             <>
-              <div className="actions">{swipeBtn}{replayBtn}</div>
-              <ProfileControls picking={picking} hasLine={!!profileData}
+              <div className="actions">{swipeBtn}{!bs && replayBtn}</div>
+              {!bs && <ProfileControls picking={picking} hasLine={!!profileData}
                 onStart={() => { setProfile({ a: null, b: null }); setPicking(true); setPicked(null) }}
-                onClear={() => { setProfile({ a: null, b: null }); setPicking(false) }} />
+                onClear={() => { setProfile({ a: null, b: null }); setPicking(false) }} />}
               <PhysicsCheck context={context} result={physics} geometry={story.geometry} overlays={overlays} setOverlays={setOverlays} />
             </>
           ),
           impact,
           periods: periodsTab,
-          los: <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />,
+          los: bs ? undefined : <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />,
         } : {
           actions: (
             <div className="actions">
-              <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />
+              {!bs && <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />}
               <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
               {swipeBtn}
-              {replayBtn}
+              {!bs && replayBtn}
             </div>
           ),
           impact,
           periods: periodsTab,
           why: <WhyCards items={story.why} />,
-          los: <LosDiagram sci={false} />,
+          los: bs ? undefined : <LosDiagram sci={false} />,
         }} />
       {replay != null && (
         <div className="replay-chip">Illustrative replay: the satellite measured the final result, not the motion as it happened</div>
       )}
       <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
-        Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between
+        {!bs && <>Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between</>}
       </div>
       <div className={`replay-chip fade note ${note ? 'on' : ''}`} role="status" aria-hidden={!note}>{note}</div>
       {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={view.displacement} coherence={view.coherence}
-          threshold={threshold} showChange={showChange} sensor={story.sensor} radar={view.radar} onClose={() => setPicked(null)} />
+          threshold={threshold} showChange={showChange} sensor={story.sensor} kind={story.kind} radar={view.radar} onClose={() => setPicked(null)} />
       )}
       {sci && profileData && profile.a && profile.b && (
         <ProfileCard points={profileData.points} totalKm={profileData.totalKm} offset={offset} threshold={threshold}

@@ -210,8 +210,11 @@ def main():
     story = json.loads((sd / "story.json").read_text(encoding="utf-8"))
     acq = json.loads((sd / story["acquisitions"]).read_text(encoding="utf-8"))
     bbox = story["aoi"]["bbox"]
-    g = json.loads((sd / story["layers"][0]["grid"]).read_text(encoding="utf-8"))
-    w, h_px = g["width"], g["height"]  # match the story's current grid size
+    if story.get("layers"):
+        g = json.loads((sd / story["layers"][0]["grid"]).read_text(encoding="utf-8"))
+        w, h_px = g["width"], g["height"]  # match the story's current grid size
+    else:  # a story that is not built yet: the stub lists its grid size
+        w, h_px = story["gridSize"]
 
     pairs = pick_pairs(story, acq, a.tracks, a.start, a.end)
     pairs = [pairs[i] for i in spread_order(len(pairs))]  # an even spread over the span, whatever the cutoff

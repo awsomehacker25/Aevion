@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { LAMBDA, LEGEND_GRADIENTS } from './lib/render'
+import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
 import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
 
@@ -87,6 +87,7 @@ interface SideProps {
 
 export function SidePanel(p: SideProps) {
   const sci = p.ui === 'scientist'
+  const bs = p.story.kind === 'backscatter'
   const tech = p.story.technical
   const radarLayer = p.mode === 'hh' ? p.radar?.hh : p.mode === 'hv' ? p.radar?.hv : undefined
   const active = radarLayer ?? (p.mode === 'coherence' ? p.coherence : p.displacement)
@@ -124,7 +125,9 @@ export function SidePanel(p: SideProps) {
         : {
             left: sci ? fmtNum(lo) : fmtNum(lo * active.displayScale),
             right: sci ? fmtNum(hi) : fmtNum(hi * active.displayScale),
-            title: sci ? `LOS displacement (${active.units})` : `How far the ground moved (${active.displayUnits})`,
+            title: bs
+              ? (sci ? (p.displacement.titleScientist ?? p.displacement.name) : (p.displacement.titleStory ?? p.displacement.name))
+              : sci ? `LOS displacement (${active.units})` : `How far the ground moved (${active.displayUnits})`,
             hint: sci
               ? (p.displacement.hintScientist ?? 'Line-of-sight displacement in meters. Sign convention and reference point are listed under Evidence.')
               : (p.displacement.hintStory ?? 'Blue and orange show the ground moving toward or away from the satellite, not up or down.'),
@@ -175,7 +178,9 @@ export function SidePanel(p: SideProps) {
                   {p.flagship && <tr><th>{p.story.sensor ?? 'NISAR'} pair</th><td className="mono">{p.flagship.granuleId}</td></tr>}
                 </tbody>
               </table>
-              <p className="hint">Displacement = unwrapped phase &times; &lambda; / (4&pi;), with &lambda; = {LAMBDA} m for L-band.</p>
+              {p.story.copy?.evidenceNote
+                ? <p className="hint">{p.story.copy.evidenceNote}</p>
+                : <p className="hint">Displacement = unwrapped phase &times; &lambda; / (4&pi;), with &lambda; = {LAMBDA} m for L-band.</p>}
             </>
           ),
         },
@@ -191,9 +196,11 @@ export function SidePanel(p: SideProps) {
               <div className="howto">
                 <h2>How to read this</h2>
                 <ul>
-                  <li>Drag the timeline to the second {p.story.sensor ?? 'NISAR'} pass to see the change appear.</li>
-                  <li>Click anywhere on the map to see how far that spot moved.</li>
-                  <li>Switch to Scientist mode for exact values and sources.</li>
+                  {(p.story.copy?.howTo ?? [
+                    `Drag the timeline to the second ${p.story.sensor ?? 'NISAR'} pass to see the change appear.`,
+                    'Click anywhere on the map to see how far that spot moved.',
+                    'Switch to Scientist mode for exact values and sources.',
+                  ]).map((t) => <li key={t}>{t}</li>)}
                 </ul>
               </div>
             </>
@@ -214,35 +221,36 @@ export function SidePanel(p: SideProps) {
 
         <div className="views">
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
-            title={sci ? 'LOS displacement' : 'Ground motion'} sub={sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
-          <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
-            title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />
-          <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
-            title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />
+            title={(p.story.copy?.mainView ?? ['Ground motion', 'LOS displacement'])[sci ? 1 : 0]}
+            sub={bs ? (sci ? 'GCOV HHHH change, dB' : 'How much brighter or darker') : sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
+          {!bs && <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
+            title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />}
+          {!bs && <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
+            title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />}
         </div>
         {(p.radar?.hh || p.radar?.hv) && (
           <div className="views radar">
             {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
               title="Radar HH" sub={sci ? 'GCOV HHHH change, dB' : 'Ground-sensitive brightness change'} />}
             {p.radar.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
-              title="Radar HV" sub={sci ? 'GCOV HVHV change, dB' : 'Plant-sensitive brightness change'} />}
+              title="Radar HV" sub={p.radar.hv.colormap === 'gray' ? (sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants') : sci ? 'GCOV HVHV change, dB' : 'Plant-sensitive brightness change'} />}
           </div>
         )}
 
         <div className="legend">
           <div className="legend-title">{legend.title} <Badge kind={active.badge} synthetic={active.synthetic} /></div>
-          <div className="bar" style={{ background: LEGEND_GRADIENTS[p.mode] }} />
+          <div className="bar" style={{ background: (radarLayer ?? (p.mode === 'los' ? p.displacement : undefined))?.colormap === 'gray' ? GRAY_GRADIENT : LEGEND_GRADIENTS[p.mode] }} />
           <div className="ends"><span>{legend.left}</span><span>{legend.right}</span></div>
         </div>
 
         <details className="settings">
           <summary>About this layer and display settings</summary>
           <p className="hint">{legend.hint}</p>
-          <label className="check">
+          {!bs && <label className="check">
             <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
             <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : 'Fade and hatch areas where the measurement is unreliable'}</span>
-          </label>
-          {sci && p.fadeLow && (
+          </label>}
+          {sci && !bs && p.fadeLow && (
             <label className="slider">
               {p.coherence.label ?? 'Coherence'} threshold: <b>{p.threshold.toFixed(2)}</b>
               <input type="range" min={0.1} max={0.9} step={0.05} value={p.threshold} onChange={(e) => p.setThreshold(Number(e.target.value))} />
@@ -313,11 +321,14 @@ interface InspectProps {
   threshold: number
   showChange: boolean
   sensor?: string
+  /** 'backscatter' stories describe a brightness change instead of ground motion. */
+  kind?: 'interferometry' | 'backscatter'
   radar?: { hh?: { layer: LayerDef; grid: Grid }; hv?: { layer: LayerDef; grid: Grid } }
   onClose: () => void
 }
 
-export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', radar, onClose }: InspectProps) {
+export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', kind, radar, onClose }: InspectProps) {
+  const bs = kind === 'backscatter'
   const sci = ui === 'scientist'
   const g = displacement.grid
   const d = sampleGrid(g, point[0], point[1])
@@ -337,7 +348,7 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
       <button className="x" onClick={onClose} aria-label="Close">&times;</button>
       <div className="coords">{point[1].toFixed(sci ? 5 : 2)}&deg;, {point[0].toFixed(sci ? 5 : 2)}&deg;</div>
       {!showChange ? (
-        <p>{sci ? `No second ${sensor} acquisition at the selected date.` : `No ${sensor} change is available at this date. Move the timeline to the second pass.`}</p>
+        <p>{bs ? `No ${sensor} radar picture is shown yet at this date. Move the timeline forward.` : sci ? `No second ${sensor} acquisition at the selected date.` : `No ${sensor} change is available at this date. Move the timeline to the second pass.`}</p>
       ) : d == null ? (
         <p>Outside the processed area.</p>
       ) : sci ? (
@@ -345,8 +356,8 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
           <div className="big mono">{d.toFixed(4)} <small>{displacement.layer.units}</small></div>
           <table className="prov">
             <tbody>
-              <tr><th>LOS (display)</th><td>{cm! > 0 ? '+' : ''}{cm!.toFixed(2)} {displacement.layer.displayUnits}</td></tr>
-              <tr><th>{coherence.layer.label ?? 'Coherence'}</th><td>{c!.toFixed(3)} ({conf}{c! < threshold ? ', masked' : ''})</td></tr>
+              {!bs && <tr><th>LOS (display)</th><td>{cm! > 0 ? '+' : ''}{cm!.toFixed(2)} {displacement.layer.displayUnits}</td></tr>}
+              {!bs && <tr><th>{coherence.layer.label ?? 'Coherence'}</th><td>{c!.toFixed(3)} ({conf}{c! < threshold ? ', masked' : ''})</td></tr>}
               {(['hh', 'hv'] as const).map((k) => {
                 const r = radar?.[k]
                 const v = r ? sampleGrid(r.grid, point[0], point[1]) : null
@@ -360,8 +371,12 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
         </>
       ) : (
         <>
-          <div className="big">{cm! > 0 ? '+' : ''}{cm!.toFixed(0)} <small>{displacement.layer.displayUnits}</small></div>
-          <p>{Math.abs(cm!) < 1 ? 'The ground here barely moved.' : `The ground here moved ${dir}.`} {conf === 'Low' ? 'We are not very sure about this spot.' : conf === 'High' ? 'We are confident in this measurement.' : 'This measurement is fairly reliable.'}</p>
+          <div className="big">{cm! > 0 ? '+' : ''}{cm!.toFixed(bs ? 1 : 0)} <small>{displacement.layer.displayUnits}</small></div>
+          {bs
+            ? (displacement.layer.colormap === 'gray'
+              ? <p>{cm! > -5 ? 'A strong echo: a rough or wet surface, such as fresh lava, bare rock or wet ground.' : cm! > -9 ? 'A typical echo for rough, bare ground.' : cm! > -14 ? 'A weak echo: a smoother surface, or ground covered by wet snow.' : 'A very weak echo: a smooth surface that mirrors the radar away, or wet snow.'} The radar picture does not say by itself which one it is.</p>
+              : <p>{Math.abs(cm!) < 1.5 ? 'The radar brightness here barely changed.' : `This spot looks ${dir} to the radar than on the first pass.`} Brightness changes can come from lava, but also from snow, wet ground and plants, so a change alone does not say which.</p>)
+            : <p>{Math.abs(cm!) < 1 ? 'The ground here barely moved.' : `The ground here moved ${dir}.`} {conf === 'Low' ? 'We are not very sure about this spot.' : conf === 'High' ? 'We are confident in this measurement.' : 'This measurement is fairly reliable.'}</p>}
           <Badge kind={displacement.layer.badge} synthetic={displacement.layer.synthetic} />
         </>
       )}

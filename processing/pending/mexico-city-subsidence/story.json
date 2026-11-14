@@ -1,0 +1,31 @@
+{
+ "id": "mexico-city-subsidence",
+ "note": "Stub used only by the processing scripts until the story is built.",
+ "gridSize": [
+  300,
+  280
+ ],
+ "aoi": {
+  "bbox": [
+   -99.3,
+   19.25,
+   -98.95,
+   19.55
+  ],
+  "center": [
+   -99.12,
+   19.4
+  ]
+ },
+ "timeline": {
+  "start": "2025-10-20T00:00:00Z",
+  "end": "2026-01-25T00:00:00Z"
+ },
+ "acquisitions": "acquisitions.json",
+ "flagshipPair": {
+  "track": 113,
+  "orbitDirection": "D",
+  "reference": "2025-10-25",
+  "secondary": "2026-01-17"
+ }
+}

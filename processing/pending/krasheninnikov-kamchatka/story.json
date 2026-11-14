@@ -1,0 +1,30 @@
+{
+ "id": "krasheninnikov-kamchatka",
+ "note": "Stub used only by the processing scripts until the story is built.",
+ "gridSize": [
+  300,
+  300
+ ],
+ "aoi": {
+  "bbox": [
+   160.09,
+   54.47,
+   160.45,
+   54.7
+  ],
+  "center": [
+   160.27,
+   54.585
+  ]
+ },
+ "timeline": {
+  "start": "2026-06-01T00:00:00Z",
+  "end": "2026-11-10T00:00:00Z"
+ },
+ "flagshipPair": {
+  "track": 60,
+  "orbitDirection": "D",
+  "reference": "2026-06-18",
+  "secondary": "2026-10-28"
+ }
+}

@@ -244,6 +244,7 @@ export default function MapView(p: Props) {
       range: radar ? radar.layer.range : p.mode === 'coherence' ? p.coherence.layer.range : p.displacement.layer.range,
       fadeLow: radar ? false : p.fadeLow, threshold: p.threshold,
       scale: p.replayScale ?? 1, low: p.replayScale != null, quiet: (radar ?? p.displacement).layer.quietBelow,
+      colormap: (radar ?? p.displacement).layer.colormap,
     })
     paintOverlay()
   }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])

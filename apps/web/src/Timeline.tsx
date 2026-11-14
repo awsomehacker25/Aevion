@@ -183,7 +183,9 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
   const sec = ms(story.flagshipPair.secondary + 'T00:00:00Z')
   const ref = ms(story.flagshipPair.reference + 'T00:00:00Z')
   const status =
-    cursor < ref ? `Before the first ${sensor} pass of the pair. Nothing to compare yet.`
+    story.kind === 'backscatter'
+      ? (cursor < sec ? `No ${sensor} radar picture yet at this date.` : `Showing the ${sensor} radar picture from the pass on ${fmtDate(sec)}.`)
+    : cursor < ref ? `Before the first ${sensor} pass of the pair. Nothing to compare yet.`
     : cursor < sec ? 'Reference pass collected. Waiting for the second pass.'
     : `Showing ${sensor} change between ${fmtDate(ref)} and ${fmtDate(sec)}.`
 
