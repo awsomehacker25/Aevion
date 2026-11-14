@@ -5,7 +5,8 @@ import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { BASEMAP } from './config'
 import { beachball } from './lib/beachball'
-import { eventReached } from './lib/progress'
+import { playhead } from './lib/playhead'
+import { changeProgress, eventReached, overlayOpacity } from './lib/progress'
 import { renderOverlay } from './lib/render'
 import { fmtDate } from './lib/data'
 import type { CameraReq, Grid, LayerDef, Overlays, QuakeCollection, Story, UsgsContext, ViewMode } from './types'
@@ -21,6 +22,8 @@ interface Props {
   threshold: number
   /** How much of the change to show at the current date, 0 to 1 (see lib/progress.ts). */
   progress: number
+  /** Exact time of the second pass, for the per-frame fade while playing. */
+  secondaryIso?: string
   cursor: number
   overlays: Overlays
   camera: CameraReq | null
@@ -73,7 +76,7 @@ export default function MapView(p: Props) {
   const [ready, setReady] = useState(false)
 
   // Everything on the map is a function of the timeline position, so scrubbing backward undoes it again.
-  const scale = p.replayScale ?? Math.round(p.progress * 40) / 40
+  const scale = p.replayScale ?? p.progress
   const evReached = eventReached(p.story, p.cursor)
   const annotations = p.story.annotations
   const annotKey = (annotations ?? [])
@@ -115,7 +118,11 @@ export default function MapView(p: Props) {
       // keep the focus area clear of the side panel and timeline
       if (window.innerWidth > 760) map.setPadding({ left: 360, bottom: 150, top: 0, right: 0 })
       map.addSource('overlay', { type: 'image', url: TRANSPARENT, coordinates: corners(aoi.bbox) })
-      map.addLayer({ id: 'overlay', type: 'raster', source: 'overlay', paint: { 'raster-opacity': 0, 'raster-fade-duration': 0, 'raster-resampling': 'linear' } })
+      map.addLayer({ id: 'overlay', type: 'raster', source: 'overlay', paint: {
+        'raster-opacity': 0, 'raster-fade-duration': 0, 'raster-resampling': 'linear',
+        // we fade this layer ourselves, every frame; the map's own 300 ms opacity animation would fight with that and can leave a stale frame
+        'raster-opacity-transition': { duration: 0, delay: 0 },
+      } })
 
       // AOI outline
       map.addSource('aoi', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[...corners(aoi.bbox), corners(aoi.bbox)[0]]] } } })
@@ -195,17 +202,28 @@ export default function MapView(p: Props) {
       mode: p.mode,
       range: p.mode === 'coherence' ? p.coherence.layer.range : p.displacement.layer.range,
       fadeLow: p.fadeLow, threshold: p.threshold,
-      scale, low: scale > 0 && scale < 1, quiet: p.displacement.layer.quietBelow,
+      scale: p.replayScale ?? 1, low: p.replayScale != null, quiet: p.displacement.layer.quietBelow,
     })
     ;(map.getSource('overlay') as ImageSource).updateImage({ url, coordinates: corners(p.story.aoi.bbox) })
-  }, [ready, p.displacement, p.coherence, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, scale])
+  }, [ready, p.displacement, p.coherence, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
 
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    // nothing before the event; the confidence view fades in with the change
-    map.setPaintProperty('overlay', 'raster-opacity', scale <= 0 ? 0 : p.mode === 'coherence' ? 0.95 * Math.min(1, scale * 1.5) : 0.95)
-  }, [ready, scale, p.mode])
+    if (p.replayScale != null) { map.setPaintProperty('overlay', 'raster-opacity', 0.95); return }
+    if (playhead.active) return // while playing, the per-frame subscriber below owns the fade
+    // The overlay is drawn once at full strength; the build-up only fades it, so nothing is redrawn as time moves.
+    map.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(p.progress, p.mode))
+  }, [ready, p.progress, p.mode, p.replayScale])
+
+  // while playing, fade smoothly every animation frame instead of at the slower React update rate
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || p.replayScale != null) return
+    return playhead.subscribe((t) => {
+      map.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(changeProgress(p.story, t, p.secondaryIso), p.mode))
+    })
+  }, [ready, p.replayScale, p.story, p.mode, p.secondaryIso])
 
   // quakes appear as the date cursor passes them (these are real, so time-filtering is fine)
   // Only touch the map when the set of visible quakes actually changes, not on every

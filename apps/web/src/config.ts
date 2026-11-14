@@ -21,3 +21,6 @@ export const DEFAULT_COHERENCE_THRESHOLD = 0.5
 
 /** Seconds for the timeline "play" animation to cross the whole date range. */
 export const PLAY_SECONDS = 14
+
+/** Playback slows down so the change takes at least this many seconds to build up. */
+export const BUILD_SECONDS = 3.5

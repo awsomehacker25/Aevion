@@ -161,7 +161,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   return (
     <div className="app">
       <MapView story={story} quakes={data.quakes} context={context} displacement={ok.displacement} coherence={ok.coherence}
-        mode={mode} fadeLow={fadeLow} threshold={threshold} progress={progress} cursor={cursor}
+        mode={mode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={data.flagship?.secondary} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
         onProfilePoint={addProfilePoint}
@@ -197,9 +197,9 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
       {replay != null && (
         <div className="replay-chip">Illustrative replay: the satellite measured the final result, not the motion as it happened</div>
       )}
-      {replay == null && progress > 0 && progress < 1 && (
-        <div className="replay-chip">Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between</div>
-      )}
+      <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
+        Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between
+      </div>
       {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={ok.displacement} coherence={ok.coherence}

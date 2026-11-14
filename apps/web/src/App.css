@@ -274,3 +274,5 @@
 .stat .tw { color: #6fb3ff; font-weight: 700; } .stat .aw { color: #ffa65a; font-weight: 700; }
 .annot i, .annot span { transition: opacity .7s ease; }
 .annot.off i, .annot.off span { opacity: 0; }
+.replay-chip.fade { opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+.replay-chip.fade.on { opacity: 1; }

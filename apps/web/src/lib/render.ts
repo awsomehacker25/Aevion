@@ -45,17 +45,17 @@ const smooth = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
-function bilinear(g: Grid, fx: number, fy: number): number {
-  const x0 = Math.min(g.width - 1, Math.max(0, Math.floor(fx)))
-  const y0 = Math.min(g.height - 1, Math.max(0, Math.floor(fy)))
-  const x1 = Math.min(g.width - 1, x0 + 1)
-  const y1 = Math.min(g.height - 1, y0 + 1)
-  const tx = fx - x0
-  const ty = fy - y0
-  const v = (x: number, y: number) => g.values[y * g.width + x]
-  const a = v(x0, y0), b = v(x1, y0), c = v(x0, y1), d = v(x1, y1)
-  if (a == null || b == null || c == null || d == null) return NaN // gap in the data
-  return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty
+// Color lookup tables, built once. Looking colors up is far cheaper than blending stops for every pixel.
+const LUT_N = 256
+function lut(rgbAt: (t: number) => RGB): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(LUT_N * 3)
+  for (let i = 0; i < LUT_N; i++) {
+    const c = rgbAt(i / (LUT_N - 1))
+    out[i * 3] = c[0]
+    out[i * 3 + 1] = c[1]
+    out[i * 3 + 2] = c[2]
+  }
+  return out
 }
 
 function hsl(h: number, s: number, l: number): RGB {
@@ -63,6 +63,25 @@ function hsl(h: number, s: number, l: number): RGB {
   const a = s * Math.min(l, 1 - l)
   const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
   return [f(0) * 255, f(8) * 255, f(4) * 255]
+}
+
+const DIVERGING_LUT = lut((t) => ramp(DIVERGING, t))
+const CONFIDENCE_LUT = lut((t) => ramp(CONFIDENCE, t))
+const FRINGE_LUT = lut((t) => hsl(t * 360, 0.85, 0.52))
+
+/** Bilinear sample of a grid, NaN where any neighbor is a gap. */
+function bilinear(g: Grid, fx: number, fy: number): number {
+  const w = g.width
+  const x0 = Math.min(w - 1, Math.max(0, Math.floor(fx)))
+  const y0 = Math.min(g.height - 1, Math.max(0, Math.floor(fy)))
+  const x1 = Math.min(w - 1, x0 + 1)
+  const y1 = Math.min(g.height - 1, y0 + 1)
+  const tx = fx - x0
+  const ty = fy - y0
+  const vals = g.values
+  const a = vals[y0 * w + x0], b = vals[y0 * w + x1], c = vals[y1 * w + x0], d = vals[y1 * w + x1]
+  if (a == null || b == null || c == null || d == null) return NaN // gap in the data
+  return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty
 }
 
 /** Draws the selected view to a PNG data URL, upsampled 2x with bilinear interpolation. */
@@ -76,6 +95,7 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
   cv.height = H
   const ctx = cv.getContext('2d')!
   const img = ctx.createImageData(W, H)
+  const data = img.data
   const [lo, hi] = o.range
   const half = Math.max(Math.abs(lo), Math.abs(hi))
   const feather = Math.max(4, Math.round(Math.min(W, H) * 0.05))
@@ -84,46 +104,54 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
   const q0 = o.quiet ? Math.min(0.85, (o.quiet * Math.max(k, 0.001)) / half) : 0.03
   const ramp0 = o.quiet ? 0.22 * Math.max(k, 0.001) : 0.22
   const grow = o.quiet ? Math.min(1, k * 3) : 1
+  const mode = o.mode
+  const fadeLow = o.fadeLow && mode !== 'coherence'
+  const thr = o.threshold
 
   for (let y = 0; y < H; y++) {
+    const fy = (y + 0.5) / S - 0.5
     for (let x = 0; x < W; x++) {
       const fx = (x + 0.5) / S - 0.5
-      const fy = (y + 0.5) / S - 0.5
       const d = bilinear(defo, fx, fy) * k
       let c = bilinear(coh, fx, fy)
-      if (Number.isNaN(d) || (o.mode === 'coherence' && Number.isNaN(c))) continue // no data: stay transparent
+      if (Number.isNaN(d) || (mode === 'coherence' && Number.isNaN(c))) continue // no data: stay transparent
       if (Number.isNaN(c)) c = 0
-      let rgb: RGB
+      let li: number // index into a color table
+      let lutArr: Uint8ClampedArray
       let a: number
-      if (o.mode === 'los') {
-        const t = d / half // -1..1
-        rgb = ramp(DIVERGING, (t + 1) / 2)
+      if (mode === 'los') {
+        const tt = d / half // -1..1
+        li = Math.round(Math.min(1, Math.max(0, (tt + 1) / 2)) * (LUT_N - 1))
+        lutArr = DIVERGING_LUT
         // Near-zero motion is fully transparent so the imagery shows through; only real motion gets color.
-        a = 0.92 * grow * Math.pow(smooth(q0, q0 + ramp0, Math.abs(t)), 0.7)
-      } else if (o.mode === 'fringes') {
+        a = 0.92 * grow * Math.pow(smooth(q0, q0 + ramp0, Math.abs(tt)), 0.7)
+      } else if (mode === 'fringes') {
         const phase = (((d / (LAMBDA / 2)) % 1) + 1) % 1
-        rgb = hsl(phase * 360, 0.85, 0.52)
+        li = Math.round(phase * (LUT_N - 1))
+        lutArr = FRINGE_LUT
         // Almost no motion would all be one flat color, so fade it out like the ground-motion view.
         a = 0.85 * smooth(0.008, 0.05, Math.abs(d))
       } else {
-        rgb = ramp(CONFIDENCE, (c - lo) / (hi - lo))
+        li = Math.round(Math.min(1, Math.max(0, (c - lo) / (hi - lo))) * (LUT_N - 1))
+        lutArr = CONFIDENCE_LUT
         a = 0.85
       }
-      if (o.fadeLow && o.mode !== 'coherence') {
+      let r = lutArr[li * 3], g = lutArr[li * 3 + 1], b = lutArr[li * 3 + 2]
+      if (fadeLow) {
         // Very low coverage is speckle: hide it. Moderately low coverage is faded and hatched.
-        if (c < o.threshold * 0.5) continue
-        a *= smooth(o.threshold - 0.12, o.threshold + 0.04, c)
-        if (c < o.threshold && (x + y) % 10 < 2) {
-          rgb = [235, 235, 235]
+        if (c < thr * 0.5) continue
+        a *= smooth(thr - 0.12, thr + 0.04, c)
+        if (c < thr && (x + y) % 10 < 2) {
+          r = g = b = 235
           a = Math.max(a, 0.22)
         }
       }
       a *= smooth(0, feather, Math.min(x, y, W - 1 - x, H - 1 - y)) // soft edges, no visible box
       const i = (y * W + x) * 4
-      img.data[i] = rgb[0]
-      img.data[i + 1] = rgb[1]
-      img.data[i + 2] = rgb[2]
-      img.data[i + 3] = Math.round(a * 255)
+      data[i] = r
+      data[i + 1] = g
+      data[i + 2] = b
+      data[i + 3] = Math.round(a * 255)
     }
   }
   ctx.putImageData(img, 0, 0)

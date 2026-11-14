@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { PLAY_SECONDS } from './config'
+import { BUILD_SECONDS, PLAY_SECONDS } from './config'
 import { fmtDate, ms } from './lib/data'
+import { playhead } from './lib/playhead'
+import { buildWindow, playClock } from './lib/progress'
 import type { AcquisitionPair, LoadedStory } from './types'
 
 interface Props {
@@ -34,6 +36,10 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
   const cursorRef = useRef(cursor)
   const lineRef = useRef<HTMLDivElement>(null)
   const latestRef = useRef(cursor) // where the animation currently is
+  const clock = useMemo(
+    () => playClock(start, end, span / PLAY_SECONDS, buildWindow(story, data.flagship?.secondary), BUILD_SECONDS),
+    [start, end, span, story, data.flagship?.secondary],
+  )
 
   useEffect(() => { cursorRef.current = cursor }, [cursor])
 
@@ -49,21 +55,24 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
   useEffect(() => {
     if (!playing) return
     const from = cursorRef.current
+    const s0 = clock.toPlay(from) // seconds of playback at the starting position
     latestRef.current = from
+    playhead.active = true
     const t0 = performance.now()
     let id = 0
     let lastCommit = t0
     const step = (now: number) => {
-      const t = Math.min(end, from + ((now - t0) / 1000) * (span / PLAY_SECONDS))
+      const t = Math.min(end, clock.toTime(s0 + (now - t0) / 1000))
       latestRef.current = t
+      playhead.emit(t) // smooth visuals on the map follow this every frame
       if (lineRef.current) lineRef.current.style.left = `${((t - start) / span) * 100}%`
       if (t >= end) { setCursor(end); setPlaying(false); return }
       if (now - lastCommit >= COMMIT_MS) { lastCommit = now; setCursor(t) }
       id = requestAnimationFrame(step)
     }
     id = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(id)
-  }, [playing, span, start, end, setCursor])
+    return () => { cancelAnimationFrame(id); playhead.active = false }
+  }, [playing, span, start, end, setCursor, clock])
 
   // Real NISAR acquisition times from the catalog: every pair contributes its two passes.
   const passes = useMemo<Pass[]>(() => {
