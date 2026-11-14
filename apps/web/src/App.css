@@ -75,7 +75,7 @@
 .tl-head { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
 .btn { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.06); min-width: 82px; }
 .btn:hover { background: rgba(255,255,255,.12); }
-.tl-date { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tl-date { font-weight: 600; font-variant-numeric: tabular-nums; min-width: 190px; white-space: nowrap; }
 .tl-status { color: var(--muted); font-size: 12.5px; margin-left: auto; text-align: right; }
 .tl-track { position: relative; height: 92px; margin: 0 4px 0 118px; }
 .tl-row { position: absolute; left: 0; right: 0; height: 26px; }

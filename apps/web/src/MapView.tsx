@@ -126,13 +126,17 @@ export default function MapView(p: Props) {
   }, [ready, p.showChange])
 
   // quakes appear as the date cursor passes them (these are real, so time-filtering is fine)
+  // Only touch the map when the set of visible quakes actually changes, not on every
+  // animation frame, which would force constant re-processing while playing.
+  const visibleQuakes = p.quakes.features.filter((q) => q.properties.time <= p.cursor).length
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
     const f = ['<=', ['get', 'time'], p.cursor] as maplibregl.FilterSpecification
     map.setFilter('quake', f)
     map.setFilter('quake-halo', ['all', f, ['>=', ['get', 'mag'], 7]] as maplibregl.FilterSpecification)
-  }, [ready, p.cursor])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, visibleQuakes])
 
   useEffect(() => {
     const map = mapRef.current
