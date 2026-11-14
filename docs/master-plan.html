@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aevion Master Plan</title>
+<style>
+  :root {
+    --ink: #1b1f27;
+    --muted: #5b6472;
+    --line: #dfe3ea;
+    --bg: #ffffff;
+    --soft: #f5f7fa;
+    --accent: #1f4fd8;
+    --observed: #1f4fd8;
+    --derived: #b7791f;
+    --context: #4a5568;
+    --whatif: #7b3fb5;
+    --warn: #b42318;
+    --ok: #1a7f4b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 34px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  h2 { font-size: 22px; margin: 40px 0 10px; padding-top: 8px; border-top: 2px solid var(--ink); letter-spacing: -0.01em; }
+  h3 { font-size: 16px; margin: 22px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  .meta b { color: var(--ink); }
+  .callout { background: var(--soft); border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 4px; margin: 14px 0; }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.ok { border-left-color: var(--ok); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 7px 9px; border: 1px solid var(--line); }
+  th { background: var(--soft); font-weight: 600; }
+  code { font: 13px Consolas, "SF Mono", Menlo, monospace; background: var(--soft); padding: 1px 5px; border-radius: 3px; }
+  pre { background: var(--soft); padding: 12px 14px; border-radius: 4px; overflow-x: auto; font: 12.5px/1.45 Consolas, "SF Mono", Menlo, monospace; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: #fff; padding: 2px 7px; border-radius: 10px; vertical-align: 1px; }
+  .b-observed { background: var(--observed); }
+  .b-derived { background: var(--derived); }
+  .b-context { background: var(--context); }
+  .b-whatif { background: var(--whatif); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 10px; border: 1px solid currentColor; }
+  .t-must { color: var(--ok); }
+  .t-stretch { color: var(--derived); }
+  .t-cut { color: var(--warn); }
+  .check { list-style: none; padding-left: 0; }
+  .check li::before { content: "\2610\00a0"; }
+  .toc { columns: 2; font-size: 14px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .small { font-size: 13px; color: var(--muted); }
+  @media print {
+    main { padding: 0; max-width: none; }
+    h2 { break-after: avoid; }
+    table, pre, .callout { break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+  @page { margin: 16mm 14mm; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Aevion: Master Plan</h1>
+<p class="sub">A NISAR-powered Earth change twin for NASA Space Apps 2026, challenge: Dancing with the SARs.</p>
+
+<div class="meta">
+  <span><b>Version</b> 1.0</span>
+  <span><b>Last updated</b> 2026-11-10</span>
+  <span><b>Event</b> Nov 14&ndash;15, 2026 (confirm on the official site)</span>
+  <span><b>Repo</b> github.com/awsomehacker25/Aevion (private)</span>
+</div>
+
+<div class="callout">
+  <b>How to edit this file.</b> This HTML is the source of truth. Edit <code>docs/master-plan.html</code>, add a line to the
+  <a href="#changelog">Changelog</a>, then run <code>docs/build-pdf.ps1</code> to regenerate <code>docs/master-plan.pdf</code>.
+  Never edit the PDF by hand.
+</div>
+
+<ol class="toc">
+  <li><a href="#summary">Summary</a></li>
+  <li><a href="#decisions">Decisions</a></li>
+  <li><a href="#gate0">Gate 0: verify first</a></li>
+  <li><a href="#scope">Scope</a></li>
+  <li><a href="#science">Science rules</a></li>
+  <li><a href="#product">Product and demo</a></li>
+  <li><a href="#arch">Architecture</a></li>
+  <li><a href="#timeline">Timeline</a></li>
+  <li><a href="#team">Team</a></li>
+  <li><a href="#risks">Risks</a></li>
+  <li><a href="#validation">Validation</a></li>
+  <li><a href="#judging">Judging alignment</a></li>
+  <li><a href="#open">Open questions</a></li>
+  <li><a href="#changelog">Changelog</a></li>
+  <li><a href="#sources">Sources and unverified claims</a></li>
+</ol>
+
+<h2 id="summary">1. Summary</h2>
+<p><b>One line:</b> Aevion lets anyone fly through a landscape, scrub through real NISAR observations, see where the surface changed, and inspect the evidence and uncertainty behind every result.</p>
+<p><b>Flagship story:</b> surface deformation from the June 2026 Venezuela earthquakes, using a NISAR interferogram pair (pre-event June 13, post-event June 25) as reported in the source plan. This is conditional on Gate 0.</p>
+<p><b>Core principle:</b> we visualize what NISAR observed, explain what we derive, show where we are uncertain, and label simulations as simulations.</p>
+<p><b>What we are not building:</b> a fire-spread predictor, a global on-demand processor, a raw SAR-to-InSAR pipeline, or a multi-mission data fusion tool.</p>
+
+<h2 id="decisions">2. Decisions</h2>
+<p>Three plans were reviewed: the original wildfire twin, TerraCascade, and the Dancing with the SARs blueprint. The blueprint is the base. Here is what we took from each.</p>
+<table>
+  <tr><th>Source plan</th><th>Verdict</th><th>What we do with it</th></tr>
+  <tr>
+    <td>Wildfire digital twin (original)</td>
+    <td><span class="tag t-stretch">STRETCH</span></td>
+    <td>Wildfire becomes a secondary story using GCOV backscatter, validated against FIRMS or official perimeters. Labeled &ldquo;radar-observed disturbance likelihood&rdquo;, not &ldquo;burn detected&rdquo;. Backscatter changes have many causes, so it is not the flagship.</td>
+  </tr>
+  <tr>
+    <td>TerraCascade</td>
+    <td><span class="tag t-cut">CUT (mostly)</span></td>
+    <td>It targets a different challenge (Imagine Our Connected Earth) and needs about eight datasets with mismatched grids and coverage. We keep only the ideas that strengthen validity: the badge system, a click-to-inspect value stack, and an &ldquo;evidence completeness&rdquo; readout.</td>
+  </tr>
+  <tr>
+    <td>SARs blueprint</td>
+    <td><span class="tag t-must">BASE</span></td>
+    <td>NISAR is the centerpiece, earthquake deformation is the flagship, and there is honest handling of product maturity, coherence, and uncertainty. Adopted with the changes below.</td>
+  </tr>
+</table>
+
+<h3>Changes we made to the blueprint</h3>
+<ol>
+  <li><b>Added Gate 0.</b> The whole flagship depends on data we have not confirmed exists. Verify first, and have a fallback story ready.</li>
+  <li><b>Line-of-sight is not vertical.</b> The blueprint extrudes terrain by LOS displacement. LOS is a projection onto the satellite&rsquo;s look direction, not up/down motion. We color by LOS displacement as the primary view. Any 3D exaggeration is an optional, clearly labeled illustrative mode, with the true value always shown.</li>
+  <li><b>Renderer decision checkpoint.</b> Cesium is the primary choice, but we set a hard checkpoint at hour 12 of the event. If Cesium terrain plus overlay is not working by then, drop to a 2.5D view (MapLibre or deck.gl) and spend the time on explanation and uncertainty instead.</li>
+  <li><b>Fewer, sharper features.</b> The MVP is one finished story plus one small second story, not a platform.</li>
+  <li><b>Evidence completeness</b> (from TerraCascade): for any selected pixel or region, show which layers have valid data, and which are masked or missing.</li>
+  <li><b>Static-first deployment.</b> The demo runs entirely from prepared static files so the backend or network can fail without breaking the pitch.</li>
+</ol>
+
+<h2 id="gate0">3. Gate 0: verify before building</h2>
+<div class="callout warn">
+  Several key facts below come from AI-generated research and post-date what we could independently confirm. Do not build on them until checked. Target: done by end of Nov 12.
+</div>
+<ul class="check">
+  <li>NASA Earthdata Login account created (free; each person creates their own, never shared in chat or repo).</li>
+  <li>The Venezuela June 2026 earthquake line-of-sight displacement product exists and opens. Source cited in the blueprint: the NASA Earthdata GIS item for &ldquo;Line of Sight Surface Displacement Maps (NISAR) for the Venezuela Earthquakes&rdquo;.</li>
+  <li>The underlying NISAR granules (L2 GUNW, or the product it was derived from) are listed in ASF/CMR for the same dates, and we know their maturity level (BETA, PROVISIONAL or VALIDATED).</li>
+  <li>We can actually download a small subset of one granule and read it (earthaccess or asf_search plus xarray/h5netcdf/rasterio).</li>
+  <li>Space Apps 2026 dates and rules confirmed, including what work is allowed before the event starts.</li>
+  <li>A GCOV area of interest identified for the second story, with at least two usable acquisitions.</li>
+  <li>Fallback decided (see below) in case the Venezuela pair is not usable.</li>
+</ul>
+<h3>Fallback ladder</h3>
+<ol>
+  <li>Venezuela GUNW or ARIA displacement (flagship).</li>
+  <li>Another earthquake, volcano or subsidence interferogram that NISAR actually covers.</li>
+  <li>A GCOV backscatter-change story (wetland flood dynamics is the easiest) with the same UI, badges and uncertainty treatment.</li>
+</ol>
+<p class="small">Pre-event work should be limited to accounts, access checks, tooling and planning. Check the official rules on pre-built code before writing the app ahead of time.</p>
+
+<h2 id="scope">4. Scope</h2>
+<table>
+  <tr><th>Capability</th><th>Tier</th></tr>
+  <tr><td>3D terrain view of one prepared area</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Real NISAR deformation layer (LOS) with true units and legend</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Before/after timeline across the two acquisition dates, with gaps shown, never interpolated</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Coherence / uncertainty view (low-confidence areas fade or hatch)</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Evidence &amp; provenance panel (granule, CRID, maturity, dates, polarization)</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Observed / Derived / Context / What-if badges on every layer</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Click-to-inspect value stack at a point</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Guided story mode plus Scientist mode toggle</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Static fallback bundle and backup demo video</td><td><span class="tag t-must">MUST</span></td></tr>
+  <tr><td>Satellite line-of-sight explainer widget</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
+  <tr><td>Optional exaggerated 3D mode (labeled illustrative)</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
+  <tr><td>Second story: GCOV change (wetland, or fire disturbance)</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
+  <tr><td>Globe landing page with story markers</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
+  <tr><td>Glacier vectors, volcano time-lapse</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
+  <tr><td>User-selected area, live global processing, S-band comparison, what-if scenario engine, fire-spread simulation</td><td><span class="tag t-cut">CUT</span></td></tr>
+</table>
+
+<h2 id="science">5. Science rules</h2>
+<h3>Layer badges</h3>
+<p>
+  <span class="badge b-observed">OBSERVED</span> direct NISAR measurement or standard mission product &nbsp;
+  <span class="badge b-derived">DERIVED</span> computed by us with a documented method &nbsp;
+  <span class="badge b-context">CONTEXT</span> DEM, optical imagery, boundaries &nbsp;
+  <span class="badge b-whatif">WHAT-IF</span> hypothetical
+</p>
+<p>Every layer shows its badge, mission and product name, acquisition dates, resolution, and a one-line method. Every derived value has a &ldquo;show formula&rdquo; control. No unlabeled extrapolation and no opaque scores.</p>
+
+<h3>Non-negotiables</h3>
+<ul>
+  <li><b>Never mix product maturity</b> (BETA, PROVISIONAL, VALIDATED) inside one change calculation. Pin granule IDs and CRIDs.</li>
+  <li><b>Deformation is always shown with coherence.</b> A displacement map without its quality layer is not shipped.</li>
+  <li><b>Exaggeration is always labeled</b> with the factor, and the true value is in every tooltip.</li>
+  <li><b>LOS means line-of-sight.</b> We state the sign convention (toward or away from the satellite) in the legend and verify it against the published product.</li>
+  <li><b>Backscatter change is not a verdict.</b> Use language like &ldquo;radar-observed change&rdquo; or &ldquo;disturbance likelihood&rdquo;, with alternatives listed (moisture, roughness, geometry, processing differences).</li>
+  <li><b>Do not claim</b> NISAR reconstructs buildings, trees or cracks, or that anything is a forecast.</li>
+</ul>
+
+<h3>Known issues to surface in the UI</h3>
+<ul>
+  <li>Ionospheric effects, strongest at high latitudes; residual phase can remain after correction.</li>
+  <li>Radio-frequency interference in some products.</li>
+  <li>Speckle: single-pixel differences are not change. Use spatial filtering and, where possible, a multi-date baseline.</li>
+  <li>Geometry: foreshortening, layover and shadow. GCOV applies radiometric terrain correction but is still not a photograph.</li>
+  <li>Decorrelation: vegetation, water and snow lower coherence.</li>
+  <li>Coverage: acquisitions are not uniform in time. Show real gaps.</li>
+</ul>
+
+<h3>Displacement from phase (for the data lead)</h3>
+<p>For an unwrapped interferogram, LOS displacement is approximately <code>d = phase &times; &lambda; / (4&pi;)</code>, with &lambda; about 0.24 m for NISAR L-band. Confirm the layer is already in meters, choose a stable reference area, and check the sign convention before presenting any number. Use the published GUNW or ARIA values, and cross-check ours against them.</p>
+
+<h3>Backscatter change (second story)</h3>
+<pre>db   = 10 * log10(gcov_power)
+base = median(pre_event_stack_db);  spread = MAD(pre_event_stack_db)
+anomaly = (event_db - base) / spread
+score = |anomaly| * valid_mask * confidence_factor</pre>
+
+<h2 id="product">6. Product and demo</h2>
+<h3>Modes</h3>
+<p><b>Explore</b> (free navigation), <b>Story</b> (guided), <b>Compare</b> (pre/post slider), <b>Evidence</b> (provenance, uncertainty, alternatives).</p>
+<p>Story Mode answers &ldquo;what changed?&rdquo;. Scientist Mode answers &ldquo;what exactly did NISAR measure, and how confident are we?&rdquo;.</p>
+
+<h3>Click-to-inspect panel</h3>
+<p>Clicking any point shows a stack: LOS displacement (true units), coherence, quality flags, acquisition dates, maturity, and which supporting layers have valid data there (evidence completeness).</p>
+
+<h3>Three-minute demo script</h3>
+<ol>
+  <li>Open on Earth: &ldquo;Earth never stops moving. Most of that movement is invisible to us.&rdquo;</li>
+  <li>Fly to Venezuela. &ldquo;In June 2026, earthquakes changed this landscape. NISAR passed over before and after.&rdquo;</li>
+  <li>Click the pre-event date, then the post-event date. The deformation field appears: &ldquo;These colors are radar measurements, not an artist&rsquo;s simulation.&rdquo;</li>
+  <li>Toggle exaggeration (if built): &ldquo;We amplify centimeters so humans can see them. The numbers stay true.&rdquo;</li>
+  <li>Toggle coherence: &ldquo;We don&rsquo;t hide uncertainty. Where the measurement is unreliable, the map tells you.&rdquo;</li>
+  <li>Click a point: show the value stack and provenance.</li>
+  <li>Zoom out to the globe with story markers: &ldquo;The same engine can show many rhythms of a changing Earth.&rdquo;</li>
+</ol>
+<p class="small">Do not spend the demo teaching SAR physics. Teach only what the story needs.</p>
+
+<h3>Accessibility</h3>
+<p>Color-blind-safe palette (not red/green only), hatching option, numeric tooltips, pause controls on every animation, story text readable without 3D motion, labeled charts.</p>
+
+<h2 id="arch">7. Architecture</h2>
+<pre>NASA/ASF data  -> Python preprocessing (offline) -> COG/tiles + JSON metadata
+               -> static hosting (CDN) -> React + TypeScript + CesiumJS client
+               (optional) FastAPI for metadata/profile lookups</pre>
+<table>
+  <tr><th>Layer</th><th>Choice</th><th>Notes</th></tr>
+  <tr><td>Frontend</td><td>React + TypeScript</td><td>Vite is the simplest setup.</td></tr>
+  <tr><td>3D</td><td>CesiumJS</td><td>Fallback at the hour-12 checkpoint: MapLibre or deck.gl in 2.5D.</td></tr>
+  <tr><td>Processing</td><td>Python: earthaccess / asf_search, xarray, h5netcdf, rasterio, GDAL</td><td>Runs offline before and during the event. Subset to one small AOI.</td></tr>
+  <tr><td>Web assets</td><td>COG, PNG/WebP tiles, GeoJSON, JSON metadata</td><td>Tiles of 50&ndash;300 KB. Never ship raw HDF5 to the browser.</td></tr>
+  <tr><td>Backend</td><td>FastAPI, optional</td><td>Only if needed. The demo must work without it.</td></tr>
+  <tr><td>Hosting</td><td>Vercel or Cloudflare Pages + static assets</td><td>Also keep a local copy of everything for the demo machine.</td></tr>
+  <tr><td>CI</td><td>GitHub Actions</td><td>Lint and build only.</td></tr>
+</table>
+<p><b>Credentials:</b> Earthdata credentials stay server-side or on a developer machine, never in the browser or the repo. Prefer preprocessing everything and hosting only public derived assets.</p>
+
+<h3>Provenance record (stored per layer and shown in the UI)</h3>
+<pre>collection, product_type, acquisition_datetime, track, orbit_direction,
+polarization, frequency, crid, maturity, source_granule_id,
+processing_timestamp, method, units, sign_convention</pre>
+
+<h3>Repository layout</h3>
+<pre>aevion/
+  apps/web/            frontend
+  apps/api/            optional FastAPI
+  processing/          search, extract, change detection, tiling scripts
+  data/stories.json    story definitions
+  data/provenance/     per-layer provenance JSON
+  docs/                this plan, science, methodology, uncertainty
+  tests/
+  LICENSE  CITATION.cff  README.md</pre>
+<p><b>Licensing:</b> Code Apache-2.0, docs CC BY 4.0, data keeps NASA/ISRO attribution and terms. Space Apps requires open licensing and citing resources.</p>
+
+<h2 id="timeline">8. Timeline</h2>
+<table>
+  <tr><th>When</th><th>Goal</th></tr>
+  <tr><td>Nov 10&ndash;12 (before event)</td><td>Gate 0 complete. Accounts, access, rules check, team roles, repo scaffold, tool installs. Choose the flagship AOI and fallback.</td></tr>
+  <tr><td>Nov 13</td><td>Dry run of the data-access steps. Agree the demo script and the design (wireframes only). Confirm who is presenting.</td></tr>
+  <tr><td>Event hr 0&ndash;6</td><td>One real NISAR layer extracted and rendered as a flat image.</td></tr>
+  <tr><td>Event hr 6&ndash;12</td><td>Layer on 3D terrain. <b>Checkpoint at hr 12:</b> Cesium works, or switch to 2.5D.</td></tr>
+  <tr><td>Event hr 12&ndash;18</td><td>Timeline, before/after compare, coherence view.</td></tr>
+  <tr><td>Event hr 18&ndash;24</td><td>Freeze the science pipeline and numbers. No new algorithms after this.</td></tr>
+  <tr><td>Day 2 morning</td><td>Evidence panel, click-to-inspect, story narration, camera transitions.</td></tr>
+  <tr><td>Day 2 afternoon</td><td>Second story if on track, polish, accessibility pass, README and methodology page.</td></tr>
+  <tr><td>Day 2 final hours</td><td>Record backup demo video, rehearse the pitch repeatedly, submit early.</td></tr>
+</table>
+
+<h2 id="team">9. Team</h2>
+<p><i>Fill in names. Merge roles if the team is small.</i></p>
+<table>
+  <tr><th>Role</th><th>Owns</th><th>Person</th></tr>
+  <tr><td>SAR / data lead</td><td>Data selection, interpretation, QA, validation</td><td>TBD</td></tr>
+  <tr><td>Geospatial engineer</td><td>Python preprocessing, rasters, tiles</td><td>TBD</td></tr>
+  <tr><td>3D frontend</td><td>Cesium scene, overlays, timeline</td><td>TBD</td></tr>
+  <tr><td>Full-stack</td><td>State, metadata, deployment, static fallback</td><td>TBD</td></tr>
+  <tr><td>Design / story</td><td>Story mode, explanations, accessibility, visual polish</td><td>TBD</td></tr>
+  <tr><td>Pitch / product</td><td>Narrative, validation write-up, video, submission</td><td>TBD</td></tr>
+</table>
+
+<h2 id="risks">10. Risks</h2>
+<table>
+  <tr><th>Risk</th><th>Mitigation</th></tr>
+  <tr><td>Flagship data is missing or unusable</td><td>Gate 0 and the fallback ladder.</td></tr>
+  <tr><td>Processing too much data</td><td>One small AOI, preprocess offline, stream subsets only.</td></tr>
+  <tr><td>Cesium eats the first day</td><td>Hour-12 checkpoint, 2.5D fallback.</td></tr>
+  <tr><td>Overinterpreting backscatter</td><td>Lead with deformation; conservative labels elsewhere.</td></tr>
+  <tr><td>Beautiful but misleading visuals</td><td>Always show actual value beside any exaggeration; coherence always available.</td></tr>
+  <tr><td>Mixing product generations</td><td>Pin granule IDs and CRIDs; show them in provenance.</td></tr>
+  <tr><td>Demo fails live</td><td>Static bundle, local copy, recorded backup video.</td></tr>
+  <tr><td>Pitch spends too long on SAR physics</td><td>Teach only what the story needs; rehearse.</td></tr>
+  <tr><td>Rules about pre-built work</td><td>Verify rules in Gate 0; keep pre-event work to setup.</td></tr>
+</table>
+
+<h2 id="validation">11. Validation and testing</h2>
+<h3>Scientific validation</h3>
+<ul>
+  <li>Earthquake: compare against the published NASA/ARIA displacement, and GNSS or USGS information where available.</li>
+  <li>Flood or wetland: compare against optical water observations or authoritative flood extents.</li>
+  <li>Wildfire: compare against FIRMS detections, optical burn products or official perimeters.</li>
+</ul>
+<h3>Tests</h3>
+<ul>
+  <li><b>Science:</b> nodata stays nodata, units are correct, dates are correct, dB conversion is correct, maturity levels are not mixed, LOS sign matches the source product.</li>
+  <li><b>Software:</b> tiles load, metadata schema validates, timeline state works, mobile layout works, fallback assets work offline.</li>
+  <li><b>Human:</b> show a non-expert and ask: What changed? How do you know? How certain is it? They should answer all three from the interface alone.</li>
+</ul>
+
+<h2 id="judging">12. Judging alignment</h2>
+<table>
+  <tr><th>Criterion</th><th>How Aevion answers it</th></tr>
+  <tr><td>Impact</td><td>Makes complex SAR change information understandable to non-specialists and decision-makers.</td></tr>
+  <tr><td>Creativity</td><td>Real NISAR measurements in an explorable 3D time experience, with uncertainty and radar physics explained in context.</td></tr>
+  <tr><td>Validity</td><td>Observed / derived / context / what-if separation, provenance, coherence, formulas on demand, cross-checks against published products.</td></tr>
+  <tr><td>Relevance</td><td>Directly implements the challenge: an interactive app using NISAR data to track and visualize surface change.</td></tr>
+  <tr><td>Presentation</td><td>One clear story, a strong before/after reveal, a rehearsed three-minute demo and a backup video.</td></tr>
+</table>
+
+<h2 id="open">13. Open questions</h2>
+<ul class="check">
+  <li>Final project name: Aevion (decided). Domain / handle availability not checked.</li>
+  <li>Team size and who covers each role.</li>
+  <li>Does the Venezuela pair pass Gate 0? If not, which fallback?</li>
+  <li>Is pre-event coding allowed under the 2026 rules?</li>
+  <li>Cesium ion token or self-hosted terrain? (Check free-tier limits.)</li>
+  <li>Second story: wetland flood or wildfire disturbance?</li>
+  <li>Where do we host the live demo, and who owns the backup machine?</li>
+</ul>
+
+<h2 id="changelog">14. Changelog</h2>
+<table>
+  <tr><th>Version</th><th>Date</th><th>Change</th></tr>
+  <tr><td>1.0</td><td>2026-11-10</td><td>First master plan. Merged the three source plans, chose the SARs blueprint as the base, added Gate 0, fallback ladder, LOS caveat, hour-12 renderer checkpoint, and static-first deployment.</td></tr>
+</table>
+
+<h2 id="sources">15. Sources and unverified claims</h2>
+<p>This plan is built from three AI-generated research documents plus the official challenge text. Treat the following as <b>unverified until Gate 0 is complete</b>:</p>
+<ul>
+  <li>The June 2026 Venezuela earthquakes and the NISAR acquisitions on June 13 and June 25.</li>
+  <li>The ASF/NISAR data release timeline (January sample, February bulk release, July provisional, November validated).</li>
+  <li>NISAR product short names (for example <code>NISAR_L2_GCOV_V1</code>, <code>NISAR_L2_GUNW_V1</code>, <code>NISAR_L2_GOFF_V1</code>) and the 80 m GUNW posting.</li>
+  <li>The Space Apps 2026 event dates and judging criteria.</li>
+  <li>The NASA/JPL stories cited as examples (Mississippi Delta, Pacific Northwest, Hubbard Glacier, Krasheninnikov eruption).</li>
+</ul>
+<p>Primary places to check:</p>
+<ul>
+  <li>Challenge page: spaceappschallenge.org/2026/challenges/dancing-with-the-sars</li>
+  <li>NISAR data user guide: nisar-docs.asf.alaska.edu</li>
+  <li>NASA NISAR mission page: science.nasa.gov/mission/nisar</li>
+  <li>NASA Earthdata GIS item for Venezuela LOS displacement (link in the blueprint)</li>
+  <li>CMR search API and the earthaccess documentation</li>
+</ul>
+
+</main>
+</body>
+</html>
