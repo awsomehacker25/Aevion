@@ -57,8 +57,8 @@
   "events": "events.geojson",
   "copy": {
     "mainView": [
-      "Radar picture (HH)",
-      "HH backscatter"
+      "Radar HH",
+      "Radar HH"
     ],
     "followTimeline": true,
     "periodsHeading": "All radar passes",
@@ -86,7 +86,7 @@
     },
     {
       "title": "What do HH and HV show?",
-      "body": "NISAR transmits horizontally polarized radar and records two kinds of echo. HH (horizontal back) mostly responds to the ground and to smooth or rough surfaces. HV (cross-polarized) responds more strongly to rough, scattering surfaces and to leaves and branches. Comparing them helps tell fresh rough lava from bare ground. Switch between them with the Radar HV button."
+      "body": "NISAR transmits horizontally polarized radar and records two kinds of echo. HH (horizontal back) mostly responds to the ground and to smooth or rough surfaces. HV (cross-polarized) responds more strongly to rough, scattering surfaces and to leaves and branches. Comparing them helps tell fresh rough lava from bare ground. Switch between them with the Radar HV button; every pass has both."
     },
     {
       "title": "Why a radar picture and not a ground-motion map?",
@@ -346,8 +346,8 @@
       "negativeMeans": "a weaker echo (smooth surfaces)",
       "titleStory": "The cross-polarized echo (HV)",
       "titleScientist": "HV backscatter (dB)",
-      "hintStory": "HV listens to a different part of the echo. It responds more to rough, scattering surfaces and to plants. Shown for the featured pass only (August 17).",
-      "hintScientist": "L-band HVHV power from the GCOV product for the featured pass (2026-08-17), block-averaged in linear power and shown in dB.",
+      "hintStory": "HV listens to a different part of the echo. It responds more to rough, scattering surfaces and to plants.",
+      "hintScientist": "L-band HVHV power from the GCOV product for every pass, block-averaged in linear power and shown in dB.",
       "provenance": {
         "mission": "NISAR (NASA-ISRO)",
         "band": "L-band",
@@ -388,7 +388,8 @@
         "reference": "2026-06-06",
         "secondary": "2026-06-18"
       },
-      "deformation": "epochs/ep-2026-06-18.deformation.grid.json"
+      "deformation": "epochs/ep-2026-06-18.deformation.grid.json",
+      "hv": "epochs/ep-2026-06-18.hv.grid.json"
     },
     {
       "id": "ep-2026-06-30",
@@ -398,7 +399,8 @@
         "reference": "2026-06-18",
         "secondary": "2026-06-30"
       },
-      "deformation": "epochs/ep-2026-06-30.deformation.grid.json"
+      "deformation": "epochs/ep-2026-06-30.deformation.grid.json",
+      "hv": "epochs/ep-2026-06-30.hv.grid.json"
     },
     {
       "id": "ep-2026-07-12",
@@ -408,7 +410,8 @@
         "reference": "2026-06-30",
         "secondary": "2026-07-12"
       },
-      "deformation": "epochs/ep-2026-07-12.deformation.grid.json"
+      "deformation": "epochs/ep-2026-07-12.deformation.grid.json",
+      "hv": "epochs/ep-2026-07-12.hv.grid.json"
     },
     {
       "id": "ep-2026-07-24",
@@ -418,7 +421,8 @@
         "reference": "2026-07-12",
         "secondary": "2026-07-24"
       },
-      "deformation": "epochs/ep-2026-07-24.deformation.grid.json"
+      "deformation": "epochs/ep-2026-07-24.deformation.grid.json",
+      "hv": "epochs/ep-2026-07-24.hv.grid.json"
     },
     {
       "id": "ep-2026-08-17",
@@ -428,7 +432,8 @@
         "reference": "2026-07-24",
         "secondary": "2026-08-17"
       },
-      "deformation": "deformation.grid.json"
+      "deformation": "deformation.grid.json",
+      "hv": "backscatter-hv.grid.json"
     },
     {
       "id": "ep-2026-08-29",
@@ -438,7 +443,8 @@
         "reference": "2026-08-17",
         "secondary": "2026-08-29"
       },
-      "deformation": "epochs/ep-2026-08-29.deformation.grid.json"
+      "deformation": "epochs/ep-2026-08-29.deformation.grid.json",
+      "hv": "epochs/ep-2026-08-29.hv.grid.json"
     },
     {
       "id": "ep-2026-09-10",
@@ -448,7 +454,8 @@
         "reference": "2026-08-29",
         "secondary": "2026-09-10"
       },
-      "deformation": "epochs/ep-2026-09-10.deformation.grid.json"
+      "deformation": "epochs/ep-2026-09-10.deformation.grid.json",
+      "hv": "epochs/ep-2026-09-10.hv.grid.json"
     },
     {
       "id": "ep-2026-09-22",
@@ -458,7 +465,8 @@
         "reference": "2026-09-10",
         "secondary": "2026-09-22"
       },
-      "deformation": "epochs/ep-2026-09-22.deformation.grid.json"
+      "deformation": "epochs/ep-2026-09-22.deformation.grid.json",
+      "hv": "epochs/ep-2026-09-22.hv.grid.json"
     },
     {
       "id": "ep-2026-10-04",
@@ -468,7 +476,8 @@
         "reference": "2026-09-22",
         "secondary": "2026-10-04"
       },
-      "deformation": "epochs/ep-2026-10-04.deformation.grid.json"
+      "deformation": "epochs/ep-2026-10-04.deformation.grid.json",
+      "hv": "epochs/ep-2026-10-04.hv.grid.json"
     },
     {
       "id": "ep-2026-10-16",
@@ -478,7 +487,8 @@
         "reference": "2026-10-04",
         "secondary": "2026-10-16"
       },
-      "deformation": "epochs/ep-2026-10-16.deformation.grid.json"
+      "deformation": "epochs/ep-2026-10-16.deformation.grid.json",
+      "hv": "epochs/ep-2026-10-16.hv.grid.json"
     },
     {
       "id": "ep-2026-10-28",
@@ -488,7 +498,8 @@
         "reference": "2026-10-16",
         "secondary": "2026-10-28"
       },
-      "deformation": "epochs/ep-2026-10-28.deformation.grid.json"
+      "deformation": "epochs/ep-2026-10-28.deformation.grid.json",
+      "hv": "epochs/ep-2026-10-28.hv.grid.json"
     }
   ]
 }

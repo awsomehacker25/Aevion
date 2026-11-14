@@ -9,7 +9,7 @@
     "summary": "Line-of-sight displacement from a NISAR L-band (λ = 24.2 cm) interferogram with a 12-day baseline spanning Episode 54 (USGS HVO). Unwrapped phase converted to meters, referenced to the median of high-coherence cells, then a quadratic surface fitted to cells more than 9 km from the vent was removed to take out atmospheric and orbital tilt. Shown at about 120 to 135 m per cell in the story grid (reduced from the 80 m product). One geometry cannot separate vertical from horizontal motion.",
     "caveats": [
       "The source interferogram is a provisional NISAR product, not validated by NASA.",
-      "The sign convention (positive = away from the satellite) is assumed from the phase-to-range relation and has not been checked against NISAR documentation.",
+      "The sign convention (positive = away from the satellite) follows from how NISAR's processor (ISCE3) forms the interferogram, reference times the conjugate of the secondary, so a longer range on the second date gives a positive phase. NISAR's product description does not state the sign, so this comes from the processing code, not from NASA's documentation.",
       "A smooth quadratic tilt was removed using cells more than 9 km from the vent. This can also remove real broad deformation, so only the local pattern should be read.",
       "Coherence is only about 0.5 on average (forest and old lava), so fine detail is uncertain. The area near the vent has no data.",
       "The pair also spans other changes between Aug 18 and Aug 30. The next pair (Aug 30 to Sep 11) has no eruption and shows the opposite sign at the same place. That is consistent with the summit sinking during the eruption and swelling back afterward, but this is an interpretation to confirm.",
@@ -296,7 +296,7 @@
         0.05
       ],
       "hintStory": "Orange means the ground moved away from the satellite, blue means toward it. Changes under 1.5 cm are left clear so the real motion stands out. Around the summit it reaches about 4 cm.",
-      "hintScientist": "LOS displacement in meters after referencing and tilt removal. Positive = away from the satellite (assumed, not verified). Changes below 15 mm are drawn transparent. Cells near the vent have no data.",
+      "hintScientist": "LOS displacement in meters after referencing and tilt removal. Positive = away from the satellite (from the ISCE3 processing convention). Changes below 15 mm are drawn transparent. Cells near the vent have no data.",
       "provenance": {
         "mission": "NISAR (NASA-ISRO)",
         "band": "L-band",
@@ -306,7 +306,7 @@
         "referenceDate": "2026-08-18",
         "secondaryDate": "2026-08-30",
         "measurement": "Radar line-of-sight displacement, relative to a reference level",
-        "signConvention": "Positive = away from the satellite (range increase). Assumed from the phase-to-range relation; not verified against NISAR documentation.",
+        "signConvention": "Positive = away from the satellite (range increase). From the ISCE3 convention NISAR's processor uses (interferogram = reference times conjugate of secondary): a range increase gives positive phase. NISAR's product description does not state the sign.",
         "geometry": "Track 72 descending, frame 79, HH, left-looking, about 39 degrees from vertical (typical; confirm from the granule)",
         "wavelength": "0.24196 m (center frequency 1.239 GHz)",
         "method": "Aevion read unwrappedPhase inside the map box, set invalid cells (connected component 0) to no data, converted phase to meters, subtracted the median of cells with coherence above 0.8, resampled to a 220 by 200 grid, then removed a robust quadratic surface fitted to cells with coherence of at least 0.3 beyond 9 km of the vent.",

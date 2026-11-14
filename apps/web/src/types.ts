@@ -75,6 +75,8 @@ export interface Epoch {
   /** Optional title for the period when it has no event (defaults to "Quiet"), for example "+24 days". */
   title?: string
   deformation: string
+  /** The period's HV radar picture, for stories whose radar views change with the period. */
+  hv?: string
   /** Leave out to use the story's own coherence layer for every period. */
   coherence?: string
 }
@@ -270,5 +272,5 @@ export interface LoadedStory {
   flagship?: AcquisitionPair
   quakes: QuakeCollection
   context?: UsgsContext
-  epochGrids?: Record<string, { deformation: Grid; coherence: Grid }>
+  epochGrids?: Record<string, { deformation: Grid; coherence: Grid; hv?: Grid }>
 }

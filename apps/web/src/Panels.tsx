@@ -219,7 +219,7 @@ export function SidePanel(p: SideProps) {
         <h1>{sci && tech ? tech.title : p.story.title}</h1>
         <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
 
-        <div className="views">
+        <div className={`views ${bs ? 'two' : ''}`}>
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
             title={(p.story.copy?.mainView ?? ['Ground motion', 'LOS displacement'])[sci ? 1 : 0]}
             sub={bs ? (sci ? 'GCOV HHHH change, dB' : 'How much brighter or darker') : sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
@@ -227,8 +227,10 @@ export function SidePanel(p: SideProps) {
             title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />}
           {!bs && <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
             title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />}
+          {bs && p.radar?.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
+            title="Radar HV" sub={sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants'} />}
         </div>
-        {(p.radar?.hh || p.radar?.hv) && (
+        {!bs && (p.radar?.hh || p.radar?.hv) && (
           <div className="views radar">
             {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
               title="Radar HH" sub={sci ? 'GCOV HHHH change, dB' : 'Ground-sensitive brightness change'} />}

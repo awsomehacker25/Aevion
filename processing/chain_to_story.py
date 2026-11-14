@@ -200,7 +200,7 @@ def main():
     iy, ix = np.unravel_index(np.nanargmax(np.abs(np.where(np.isfinite(vel), vel, 0))), vel.shape)
     print(f"strongest cell: {vel[iy, ix]:+.2f} cm/month near {bbox[3] - (iy + .5) / h * (bbox[3] - bbox[1]):.4f}, "
           f"{bbox[0] + (ix + .5) / w * (bbox[2] - bbox[0]):.4f}")
-    print("sign: positive is away from the satellite (assumed). For ground that sinks the line-of-sight range gets longer.")
+    print("sign: positive is away from the satellite (ISCE3 convention: reference times conjugate of secondary). For ground that sinks the line-of-sight range gets longer.")
     (out / "summary.json").write_text(json.dumps({"track": track, "chain": [p["file"] for p in chain], "dates": summary}, indent=1), encoding="utf-8")
     print("wrote", out, "and velocity.grid.json")
 

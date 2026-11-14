@@ -25,7 +25,9 @@ export function epochStory(story: Story, e: Epoch): Story {
   return {
     ...story,
     subtitle: `${story.subtitle} · ${e.label}`,
-    storyText: c?.epochText
+    storyText: follow
+      ? story.storyText // a story that follows the timeline keeps one text for every period, so nothing changes as the cursor passes a pass
+      : c?.epochText
       ? fill(c.epochText)
       : `NISAR flew over on ${longDate(e.pair.reference)} and again on ${longDate(e.pair.secondary)}, ${between}. Comparing the two radar passes shows how the ground around the summit moved in that 12-day period.`,
     flagshipPair: { ...story.flagshipPair, reference: e.pair.reference, secondary: e.pair.secondary },
@@ -42,6 +44,21 @@ export function epochStory(story: Story, e: Epoch): Story {
       summary: t.summary.replace('Episode 54 (USGS HVO)', `${e.event?.name ?? 'no listed eruption episode'} (USGS HVO)`),
       caveats: t.caveats?.filter((c) => !c.includes('Aug 18')),
     },
+  }
+}
+
+/**
+ * For a story that follows the timeline: the featured period shows the same text as the others, with only the period's
+ * label added, so the panel does not change when the cursor reaches the featured pass.
+ */
+export function labelledStory(story: Story, e?: Epoch): Story {
+  if (!story.copy?.followTimeline || !e) return story
+  const t = story.technical
+  const title = story.copy.epochTechTitle
+  return {
+    ...story,
+    subtitle: `${story.subtitle} · ${e.label}`,
+    technical: t && title ? { ...t, title: title.replace('{from}', e.pair.reference).replace('{to}', e.pair.secondary) } : t,
   }
 }
 

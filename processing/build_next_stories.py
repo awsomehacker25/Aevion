@@ -97,9 +97,12 @@ def krasheninnikov():
         z = np.load(f, allow_pickle=True)
         d, bbox = str(z["date"]), [float(v) for v in z["bbox"]]
         hh = resize(z["hh_db"].astype("float64"), WIDTH)
+        hv = resize(z["hv_db"].astype("float64"), WIDTH)
+        if d != featured:
+            write_grid(out / "epochs" / f"ep-{d}.hv.grid.json", hv, bbox, "dB", "hv_backscatter", 0.1)
         if d == featured:
             write_grid(out / "deformation.grid.json", hh, bbox, "dB", "hh_backscatter", 0.1)
-            write_grid(out / "backscatter-hv.grid.json", resize(z["hv_db"].astype("float64"), WIDTH), bbox, "dB", "hv_backscatter", 0.1)
+            write_grid(out / "backscatter-hv.grid.json", hv, bbox, "dB", "hv_backscatter", 0.1)
             write_grid(out / "coherence.grid.json", np.where(np.isfinite(hh), 1.0, np.nan), bbox, "1", "coverage", 0.01)
             x, y, v = hotspot(hh, bbox, center=(160.27, 54.585), radius_km=8)
             print(f"   brightest smoothed spot within 8 km of the summit on {d}: {v:.1f} dB at {y}, {x}")

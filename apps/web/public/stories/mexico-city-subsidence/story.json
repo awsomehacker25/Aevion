@@ -9,7 +9,7 @@
     "summary": "Line-of-sight displacement from NISAR L-band (λ = 24.2 cm) interferograms. Six consecutive pairs on track 113 (descending) were converted to meters, each cleared of a smooth ramp fitted only to the hills around the city, and added end to end into running totals since Oct 25, 2025. Because the atmosphere on a single date is built into that date's total, a steady rate was fitted through zero to the six totals, and each period shows that rate times the days since Oct 25. Cells where any pair had coherence below 0.3 are empty. The fitted rate is about 2.4 cm per month at the strongest spot. Shown at about 160 m per cell (reduced from the 80 m product). One geometry cannot separate vertical from horizontal motion; for ground that sinks, the vertical motion is about 1.27 times the line-of-sight value at 38 degrees.",
     "caveats": [
       "The source interferograms are a beta NISAR product, not validated by NASA, and only about three months of dry-season data are used.",
-      "The sign convention (positive = away from the satellite) is assumed from the phase-to-range relation and has not been checked against NISAR documentation. If it is reversed, the colors mean the opposite.",
+      "The sign convention (positive = away from the satellite) follows from how NISAR's processor (ISCE3) forms the interferogram, reference times the conjugate of the secondary, so a longer range on the second date gives a positive phase. NISAR's product description does not state the sign, so this comes from the processing code, not from NASA's documentation.",
       "The measured running totals are noisy. At the strongest spot they are -1.0, +6.5, +1.7, +2.8, +7.2 and +6.8 cm on Nov 6, Nov 18, Dec 12, Dec 24, Jan 5 and Jan 17. The atmosphere on each single date is built into that date's total, which is why they jump around (the Nov 18 total is inflated). The periods in this story therefore show a steady-rate fit, which is a model: it assumes the ground sinks at a constant rate through the dry season, and it is not the measured step on each date.",
       "A smooth plane was removed from every pair to take out atmosphere and orbit errors. It was fitted only to the hills around the city (above 2,450 m), which are assumed to be stable. If the hills move too, or the ramp is not a plane, some motion is added or lost.",
       "Radar sees only part of the motion. Along the line of sight, sinking at 2.4 cm per month would be about 3 cm per month straight down at 38 degrees. Without a second direction, sideways motion cannot be ruled out.",
@@ -19,7 +19,7 @@
     ]
   },
   "dataStatus": "beta",
-  "dataStatusNote": "Ground motion is measured by NISAR (beta L2 GUNW interferograms, track 113 descending, October 25, 2025 to January 17, 2026), added up and ramp-corrected by Aevion. It is not validated by NASA and the sign convention is assumed.",
+  "dataStatusNote": "Ground motion is measured by NISAR (beta L2 GUNW interferograms, track 113 descending, October 25, 2025 to January 17, 2026), added up and ramp-corrected by Aevion. It is not validated by NASA and the sign convention comes from the processor's code, not from NASA documentation.",
   "statusDetail": {
     "story": "NISAR measurement, not yet validated",
     "scientist": "NISAR GUNW (beta), six pairs chained and ramp-corrected by Aevion"
@@ -276,7 +276,7 @@
       ],
       "quietBelow": 0.008,
       "hintStory": "Orange means the ground moved away from the satellite, which is what sinking looks like. Blue means toward it. Changes under 0.8 cm are left clear so the real pattern stands out. This is the motion since October 25, 2025, at the steady rate that fits the passes.",
-      "hintScientist": "Steady-rate LOS displacement in meters (rate fitted through zero to the six running totals, times days since Oct 25), after referencing, plane removal on hills and chaining. Positive = away from the satellite (assumed, not verified). Changes below 8 mm are drawn transparent.",
+      "hintScientist": "Steady-rate LOS displacement in meters (rate fitted through zero to the six running totals, times days since Oct 25), after referencing, plane removal on hills and chaining. Positive = away from the satellite (from the ISCE3 processing convention). Changes below 8 mm are drawn transparent.",
       "provenance": {
         "mission": "NISAR (NASA-ISRO)",
         "band": "L-band",
@@ -286,7 +286,7 @@
         "referenceDate": "2025-10-25",
         "secondaryDate": "2026-01-17",
         "measurement": "Radar line-of-sight displacement since Oct 25, 2025, from a steady-rate fit, relative to the hills around the city",
-        "signConvention": "Positive = away from the satellite (range increase). Assumed from the phase-to-range relation; not verified against NISAR documentation. If the ground moves down, the range gets longer, so sinking would be positive.",
+        "signConvention": "Positive = away from the satellite (range increase). From the ISCE3 convention NISAR's processor uses (interferogram = reference times conjugate of secondary): a range increase gives positive phase. NISAR's product description does not state the sign. If the ground moves down, the range gets longer, so sinking would be positive.",
         "geometry": "Track 113 descending, frame 79, HH, left-looking, about 38 degrees from vertical (typical; confirm from the granule)",
         "wavelength": "0.24196 m (center frequency 1.239 GHz)",
         "method": "Aevion read unwrappedPhase inside the map box for six consecutive pairs (12 days each, except a 24-day pair Nov 18 to Dec 12), set invalid cells (connected component 0) to no data, converted phase to meters, subtracted the median of cells with coherence above 0.8, and removed a robust plane (fitted to cells with coherence of at least 0.5) from each pair to take out atmosphere and orbit ramps. The ramp was fitted only to cells on the hills around the city (higher than 2,450 m, from the AWS terrain tiles), so the sinking lake bed is not part of the reference. The six pairs were then added end to end into six running totals, a steady rate was fitted through zero to those totals in every cell, and each period shows that rate times the days since Oct 25. Cells where any pair had coherence below 0.3 were left empty. Resampled to a 220 by 205 grid.",

@@ -36,15 +36,17 @@ export async function loadStory(id?: string): Promise<LoadedStory> {
 
   // Everything below is independent, so fetch it all at once. The context file is optional.
   const grids: Record<string, Grid> = {}
-  const epochGrids: Record<string, { deformation: Grid; coherence: Grid }> = {}
+  const epochGrids: Record<string, { deformation: Grid; coherence: Grid; hv?: Grid }> = {}
   const [acq, quakes, context] = await Promise.all([
     getJson<{ pairs: AcquisitionPair[] }>(dir + story.acquisitions),
     getJson<QuakeCollection>(dir + story.events),
     story.context ? getJson<UsgsContext>(dir + story.context).catch(() => undefined) : undefined,
     ...story.layers.map(async (l) => { grids[l.id] = await getGrid(dir + l.grid) }),
     ...(story.epochs ?? []).map(async (e) => {
-      const [deformation, coherence] = await Promise.all([getGrid(dir + e.deformation), e.coherence ? getGrid(dir + e.coherence) : undefined])
-      epochGrids[e.id] = { deformation, coherence: coherence as Grid }
+      const [deformation, coherence, hv] = await Promise.all([
+        getGrid(dir + e.deformation), e.coherence ? getGrid(dir + e.coherence) : undefined, e.hv ? getGrid(dir + e.hv) : undefined,
+      ])
+      epochGrids[e.id] = { deformation, coherence: coherence as Grid, hv }
     }),
   ])
   // A period without its own coherence file uses the story's coherence layer.

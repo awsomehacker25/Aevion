@@ -3,7 +3,7 @@ import './App.css'
 import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms } from './lib/data'
-import { epochLayer, epochStory, isFeatured } from './lib/epochs'
+import { epochLayer, epochStory, isFeatured, labelledStory } from './lib/epochs'
 import { computeVentMotion, epochFor, sortEpochs } from './lib/periods'
 import { changeProgress } from './lib/progress'
 import { compareToModel } from './lib/physics'
@@ -15,7 +15,7 @@ import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
-import type { Camera, CameraReq, City, EventMark, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
+import type { Camera, CameraReq, City, EventMark, Grid, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
 
 function pickLayer(d: LoadedStory, role: LayerDef['role']) {
   const layer = d.story.layers.find((l) => l.role === role)
@@ -96,8 +96,21 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     if (!data || !ok || !radar) return null
     const e = shownEpochId ? data.story.epochs?.find((x) => x.id === shownEpochId) : undefined
     const g = e ? data.epochGrids?.[e.id] : undefined
+    // a story that follows the timeline cross-fades into the next measured period
+    let next: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; from: number; to: number } | undefined
+    if (data.story.copy?.followTimeline && data.story.epochs?.length) {
+      const rows = sortEpochs(data.story.epochs)
+      const cur = e ?? rows.find((x) => isFeatured(data.story, x))
+      const nx = cur ? rows[rows.indexOf(cur) + 1] : undefined
+      const ng = nx ? (isFeatured(data.story, nx) ? { deformation: ok.displacement.grid, coherence: ok.coherence.grid, hv: radar.hv?.grid } : data.epochGrids?.[nx.id]) : undefined
+      if (cur && nx && ng) {
+        next = { displacement: { layer: ok.displacement.layer, grid: ng.deformation }, coherence: { layer: ok.coherence.layer, grid: ng.coherence },
+          radarHV: radar.hv && ng.hv ? { layer: radar.hv.layer, grid: ng.hv } : undefined, from: ms(`${cur.pair.secondary}T00:00:00Z`), to: ms(`${nx.pair.secondary}T00:00:00Z`) }
+      }
+    }
     if (!e || !g || isFeatured(data.story, e)) {
-      return { story: data.story, displacement: ok.displacement, coherence: ok.coherence, flagship: data.flagship, radar }
+      const featured = e ?? data.story.epochs?.find((x) => isFeatured(data.story, x))
+      return { story: labelledStory(data.story, featured), displacement: ok.displacement, coherence: ok.coherence, flagship: data.flagship, radar, next }
     }
     const f = data.story.flagshipPair
     const pair = data.pairs.find((p) => p.track === f.track && p.orbitDirection === f.orbitDirection &&
@@ -107,7 +120,8 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
       displacement: { layer: epochLayer(ok.displacement.layer, e, pair), grid: g.deformation },
       coherence: { layer: ok.coherence.layer, grid: g.coherence },
       flagship: pair,
-      radar: { hh: undefined, hv: undefined },
+      radar: { hh: undefined, hv: radar.hv && g.hv ? { layer: radar.hv.layer, grid: g.hv } : undefined },
+      next,
     }
   }, [data, ok, radar, shownEpochId])
 
@@ -123,7 +137,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     setPicked(null)
     setProfile({ a: null, b: null })
     setPicking(false)
-    if (!featured) setMode((m) => (m === 'hh' || m === 'hv' ? 'los' : m))
+    if (!featured && !data.story.copy?.followTimeline) setMode((m) => (m === 'hh' || m === 'hv' ? 'los' : m))
   }, [data])
 
   const flashNote = useCallback((msg: string) => {
@@ -277,7 +291,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   return (
     <div className="app">
       <MapView story={story} quakes={data.quakes} context={context} displacement={view.displacement} coherence={view.coherence}
-        radarHH={view.radar.hh} radarHV={view.radar.hv}
+        radarHH={view.radar.hh} radarHV={view.radar.hv} next={view.next}
         mode={shownMode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={viewPair?.secondary} swipe={swipe} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
