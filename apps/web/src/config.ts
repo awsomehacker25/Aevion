@@ -1,0 +1,23 @@
+/**
+ * App-level configuration. Data (grids, dates, text) lives in public/stories/<id>/story.json.
+ * Only things that are NOT story data live here: map base layers and tuning.
+ *
+ * To swap a base layer, change the URL. To use Cesium instead of MapLibre later, only
+ * MapView.tsx needs to be replaced; everything else works from the story manifest.
+ */
+export const BASEMAP = {
+  // Satellite imagery. Esri World Imagery is free for development; check terms before launch.
+  imageryTiles: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  imageryAttribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
+  // Elevation tiles (Terrarium encoding), free, no key. Swap for Cesium World Terrain / your own tiles.
+  terrainTiles: 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+  terrainEncoding: 'terrarium' as const,
+  terrainAttribution: 'Terrain: Mapzen / AWS Terrain Tiles',
+  terrainExaggeration: 1.6,
+}
+
+/** Coherence below this is treated as unreliable by default. Users can change it in the UI. */
+export const DEFAULT_COHERENCE_THRESHOLD = 0.5
+
+/** Seconds for the timeline "play" animation to cross the whole date range. */
+export const PLAY_SECONDS = 14

@@ -1,0 +1,52 @@
+import type { AcquisitionPair, Grid, LoadedStory, QuakeCollection, Story } from '../types'
+
+const BASE = `${import.meta.env.BASE_URL}stories/`
+
+async function getJson<T>(url: string): Promise<T> {
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`${url}: ${r.status}`)
+  return r.json() as Promise<T>
+}
+
+/**
+ * Loads a story by id. Everything the app shows comes from files under
+ * public/stories/<id>/. To use real data, replace the grid files and edit story.json.
+ */
+export async function loadStory(id?: string): Promise<LoadedStory> {
+  const index = await getJson<{ stories: { id: string; manifest: string }[] }>(`${BASE}index.json`)
+  const entry = index.stories.find((s) => s.id === id) ?? index.stories[0]
+  const dir = `${BASE}${entry.manifest.split('/')[0]}/`
+  const story = await getJson<Story>(`${BASE}${entry.manifest}`)
+
+  const grids: Record<string, Grid> = {}
+  await Promise.all(story.layers.map(async (l) => { grids[l.id] = await getJson<Grid>(dir + l.grid) }))
+
+  const acq = await getJson<{ pairs: AcquisitionPair[] }>(dir + story.acquisitions)
+  const quakes = await getJson<QuakeCollection>(dir + story.events)
+
+  const f = story.flagshipPair
+  const flagship = acq.pairs.find(
+    (p) => p.track === f.track && p.orbitDirection === f.orbitDirection &&
+      p.reference.startsWith(f.reference) && p.secondary.startsWith(f.secondary),
+  )
+  return { story, grids, pairs: acq.pairs, flagship, quakes }
+}
+
+/** Nearest-cell lookup. Returns null outside the grid or on nodata. */
+export function sampleGrid(g: Grid, lon: number, lat: number): number | null {
+  const [w, s, e, n] = g.bbox
+  if (lon < w || lon > e || lat < s || lat > n) return null
+  const x = Math.min(g.width - 1, Math.floor(((lon - w) / (e - w)) * g.width))
+  const y = Math.min(g.height - 1, Math.floor(((n - lat) / (n - s)) * g.height))
+  const v = g.values[y * g.width + x]
+  return v == null || v === g.nodata || Number.isNaN(v) ? null : v
+}
+
+export const ms = (iso: string) => Date.parse(iso)
+
+export function fmtDate(t: number, withTime = false): string {
+  const d = new Date(t)
+  const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+  if (!withTime) return date
+  return `${date}, ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })} UTC`
+}

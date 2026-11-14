@@ -1,0 +1,103 @@
+{
+  "id": "venezuela-2026",
+  "title": "The ground moved here",
+  "subtitle": "Venezuela earthquakes, June 2026",
+  "dataStatus": "placeholder",
+  "dataStatusNote": "Deformation and coherence layers are synthetic placeholders in the final data format. Earthquake locations and NISAR acquisition dates are real. Replace the grid files and set dataStatus to \"provisional\" or \"validated\" when real NISAR products are processed.",
+  "storyText": "On June 24, 2026, a magnitude 7.2 and a magnitude 7.5 earthquake struck northern Venezuela within a minute of each other. NISAR flew over this area on June 13 and again on June 25. Comparing those two radar passes shows how far the ground moved along the satellite's line of sight.",
+  "aoi": {
+    "bbox": [
+      -69.4,
+      9.6,
+      -66.4,
+      11.3
+    ],
+    "center": [
+      -67.9,
+      10.45
+    ],
+    "zoom": 8.3,
+    "pitch": 62,
+    "bearing": -18
+  },
+  "timeline": {
+    "start": "2026-06-08T00:00:00Z",
+    "end": "2026-07-10T00:00:00Z",
+    "initial": "2026-06-26T00:00:00Z"
+  },
+  "event": {
+    "name": "M7.2 and M7.5 earthquakes",
+    "shortLabel": "M7.5",
+    "datetime": "2026-06-24T22:05:00Z",
+    "source": "USGS"
+  },
+  "flagshipPair": {
+    "track": 162,
+    "orbitDirection": "A",
+    "reference": "2026-06-13",
+    "secondary": "2026-06-25"
+  },
+  "acquisitions": "acquisitions.json",
+  "events": "usgs-events.geojson",
+  "layers": [
+    {
+      "id": "deformation",
+      "role": "displacement",
+      "name": "Ground motion (line of sight)",
+      "badge": "OBSERVED",
+      "grid": "deformation.grid.json",
+      "units": "m",
+      "displayUnits": "cm",
+      "displayScale": 100,
+      "range": [
+        -0.5,
+        0.5
+      ],
+      "appearsAfter": "secondary",
+      "synthetic": true,
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GUNW (geocoded unwrapped interferogram)",
+        "shortName": "NISAR_L2_GUNW_PROVISIONAL_V1",
+        "maturity": "PROVISIONAL",
+        "polarization": "HH",
+        "referenceDate": "2026-06-13",
+        "secondaryDate": "2026-06-25",
+        "measurement": "Radar line-of-sight displacement",
+        "signConvention": "Positive = toward the satellite (to be verified against the real product)",
+        "method": "Unwrapped phase x wavelength / (4 pi), reference point removed",
+        "note": "Currently a synthetic placeholder."
+      }
+    },
+    {
+      "id": "coherence",
+      "role": "coherence",
+      "name": "Measurement confidence (coherence)",
+      "badge": "OBSERVED",
+      "grid": "coherence.grid.json",
+      "units": "1",
+      "displayUnits": "",
+      "displayScale": 1,
+      "range": [
+        0,
+        1
+      ],
+      "appearsAfter": "secondary",
+      "synthetic": true,
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GUNW coherence magnitude",
+        "shortName": "NISAR_L2_GUNW_PROVISIONAL_V1",
+        "maturity": "PROVISIONAL",
+        "polarization": "HH",
+        "referenceDate": "2026-06-13",
+        "secondaryDate": "2026-06-25",
+        "measurement": "Interferometric coherence, 0 (unreliable) to 1 (reliable)",
+        "method": "Product layer, used as the confidence mask",
+        "note": "Currently a synthetic placeholder."
+      }
+    }
+  ]
+}

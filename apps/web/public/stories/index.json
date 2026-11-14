@@ -1,0 +1,9 @@
+{
+  "stories": [
+    {
+      "id": "venezuela-2026",
+      "title": "Venezuela earthquakes, June 2026",
+      "manifest": "venezuela-2026/story.json"
+    }
+  ]
+}

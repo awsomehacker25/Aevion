@@ -72,7 +72,7 @@
 <p class="sub">A NISAR-powered Earth change twin for NASA Space Apps 2026, challenge: Dancing with the SARs.</p>
 
 <div class="meta">
-  <span><b>Version</b> 1.1</span>
+  <span><b>Version</b> 1.2</span>
   <span><b>Last updated</b> 2026-11-10</span>
   <span><b>Event</b> Nov 14&ndash;15, 2026 (confirm on the official site)</span>
   <span><b>Repo</b> github.com/awsomehacker25/Aevion (private)</span>
@@ -153,6 +153,16 @@
   <li>Search NISAR coverage over Washington State (Seattle/Bellevue region and the Cascades) for the local story, and shortlist one event with usable pre and post passes (see <a href="#local">Local story</a>).</li>
   <li>Fallback decided (see below) in case the Venezuela pair is not usable.</li>
 </ul>
+<h3>Gate 0 progress (checked 2026-11-10)</h3>
+<table>
+  <tr><th>Item</th><th>Result</th></tr>
+  <tr><td>Venezuela earthquakes are real</td><td><span class="tag t-must">CONFIRMED</span> USGS lists M7.2 (San Felipe) and M7.5 (Catia La Mar) on 2026-06-24 around 22:04&ndash;22:05 UTC, plus 16 aftershocks of M4.3+ in the following weeks.</td></tr>
+  <tr><td>NISAR products exist in the catalog</td><td><span class="tag t-must">CONFIRMED</span> NASA CMR lists BETA, PROVISIONAL and VALIDATED collections, including <code>NISAR_L2_GUNW_PROVISIONAL_V1</code>.</td></tr>
+  <tr><td>The June 13 to June 25 pair exists</td><td><span class="tag t-must">CONFIRMED</span> Provisional GUNW granules for track 162 ascending, reference 2026-06-13, secondary 2026-06-25. The GUNW product naming also shows a descending track 155 acquisition at 2026-06-24 23:10 UTC, about an hour after the quake (reference only; no coseismic pair yet).</td></tr>
+  <tr><td>Validated GUNW over the area</td><td><span class="tag t-cut">NONE YET</span> Zero granules for <code>NISAR_L2_GUNW_V1</code> and <code>_BETA_V1</code> over the area in that window.</td></tr>
+  <tr><td>Download and read a real granule</td><td><span class="tag t-stretch">OPEN</span> Needs Earthdata Login. Not done.</td></tr>
+  <tr><td>Event rules on pre-event work</td><td><span class="tag t-stretch">OPEN</span> The prototype in <code>apps/web</code> was built with synthetic placeholder data. Confirm that is acceptable before the event.</td></tr>
+</table>
 <h3>Fallback ladder</h3>
 <ol>
   <li>Venezuela GUNW or ARIA displacement (flagship).</li>
@@ -266,7 +276,7 @@ score = |anomaly| * valid_mask * confidence_factor</pre>
 <table>
   <tr><th>Layer</th><th>Choice</th><th>Notes</th></tr>
   <tr><td>Frontend</td><td>React + TypeScript</td><td>Vite is the simplest setup.</td></tr>
-  <tr><td>3D</td><td>CesiumJS</td><td>Fallback at the hour-12 checkpoint: MapLibre or deck.gl in 2.5D.</td></tr>
+  <tr><td>3D</td><td>MapLibre GL with 3D terrain (prototype). CesiumJS is the upgrade path.</td><td>The prototype uses MapLibre because it needs no access token and is fast to build. Only <code>MapView.tsx</code> depends on it. See <code>docs/data-contract.md</code> for what is swappable.</td></tr>
   <tr><td>Processing</td><td>Python: earthaccess / asf_search, xarray, h5netcdf, rasterio, GDAL</td><td>Runs offline before and during the event. Subset to one small AOI.</td></tr>
   <tr><td>Web assets</td><td>COG, PNG/WebP tiles, GeoJSON, JSON metadata</td><td>Tiles of 50&ndash;300 KB. Never ship raw HDF5 to the browser.</td></tr>
   <tr><td>Backend</td><td>FastAPI, optional</td><td>Only if needed. The demo must work without it.</td></tr>
@@ -370,6 +380,7 @@ processing_timestamp, method, units, sign_convention</pre>
 <h2 id="changelog">14. Changelog</h2>
 <table>
   <tr><th>Version</th><th>Date</th><th>Change</th></tr>
+  <tr><td>1.2</td><td>2026-11-10</td><td>Built the first prototype (<code>apps/web</code>, MapLibre 3D terrain, timeline, inspector, fringes and confidence views) on placeholder grids in a swappable story format. Recorded Gate 0 progress: earthquakes and the June 13/25 provisional GUNW pair confirmed in public catalogs. Renderer set to MapLibre for now.</td></tr>
   <tr><td>1.1</td><td>2026-11-10</td><td>Added the local Seattle/Bellevue story as the preferred second-story direction, with candidates, validation sources, a Gate 0 coverage check, and an updated open question.</td></tr>
   <tr><td>1.0</td><td>2026-11-10</td><td>First master plan. Merged the three source plans, chose the SARs blueprint as the base, added Gate 0, fallback ladder, LOS caveat, hour-12 renderer checkpoint, and static-first deployment.</td></tr>
 </table>
