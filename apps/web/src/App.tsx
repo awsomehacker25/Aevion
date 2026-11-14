@@ -4,9 +4,10 @@ import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms } from './lib/data'
 import { epochLayer, epochStory, isFeatured } from './lib/epochs'
+import { computeVentMotion, sortEpochs } from './lib/periods'
 import { changeProgress } from './lib/progress'
 import { compareToModel } from './lib/physics'
-import { EpochChart } from './Epochs'
+import { EpochChart, PeriodList, PeriodSwitcher } from './Epochs'
 import { ImpactPanel } from './Impact'
 import MapView from './MapView'
 import { Inspector, SidePanel, TopBar } from './Panels'
@@ -98,6 +99,42 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     }
   }, [data, ok, radar, epochId])
 
+  // Switch to another measured period: its grids, its event, and a timeline window around it.
+  const selectEpoch = useCallback((id: string) => {
+    const e = data?.story.epochs?.find((x) => x.id === id)
+    if (!data || !e) return
+    const featured = isFeatured(data.story, e)
+    const st = featured ? data.story : epochStory(data.story, e)
+    setEpochId(featured ? null : id)
+    setCursor(ms(st.timeline.initial))
+    setTour(null)
+    setPicked(null)
+    setProfile({ a: null, b: null })
+    setPicking(false)
+    if (!featured) setMode((m) => (m === 'hh' || m === 'hv' ? 'los' : m))
+  }, [data])
+
+  const selectedEpochId = data?.story.epochs?.find((e) => (epochId ? e.id === epochId : isFeatured(data.story, e)))?.id ?? ''
+  const ventMotion = useMemo(() => (data ? computeVentMotion(data.story, data.epochGrids) : null), [data])
+  const stepEpoch = useCallback((delta: number) => {
+    const rows = data?.story.epochs ? sortEpochs(data.story.epochs) : []
+    const i = rows.findIndex((e) => e.id === selectedEpochId)
+    const next = rows[i + delta]
+    if (i >= 0 && next) selectEpoch(next.id)
+  }, [data, selectedEpochId, selectEpoch])
+
+  // Left and right arrow keys step between periods when nothing else on the page is using them.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+      const el = document.activeElement
+      if (el && el !== document.body && !(el instanceof HTMLButtonElement && el.closest('.pswitch'))) return
+      stepEpoch(e.key === 'ArrowLeft' ? -1 : 1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [stepEpoch])
+
   const fly = useCallback((camera: Camera) => {
     setCameraReq((r) => ({ nonce: (r?.nonce ?? 0) + 1, camera }))
   }, [])
@@ -170,21 +207,6 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     replayRaf.current = requestAnimationFrame(step)
   }
 
-  // Switch to another measured period: its grids, its event, and a timeline window around it.
-  const selectEpoch = (id: string) => {
-    const e = data?.story.epochs?.find((x) => x.id === id)
-    if (!data || !e) return
-    const featured = isFeatured(data.story, e)
-    const st = featured ? data.story : epochStory(data.story, e)
-    setEpochId(featured ? null : id)
-    setCursor(ms(st.timeline.initial))
-    setTour(null)
-    setPicked(null)
-    setProfile({ a: null, b: null })
-    setPicking(false)
-    if (!featured && (mode === 'hh' || mode === 'hv')) setMode('los')
-  }
-
   const onCity = (c: City) => {
     fly({ center: [c.lon, c.lat], zoom: 10.3, pitch: 50, bearing: -10 })
     setPicked([c.lon, c.lat])
@@ -206,11 +228,17 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
       setSwipe(!swipe)
     }}>{swipe ? 'Hide the before/after swipe' : 'Swipe: before / after'}</button>
   )
-  const vent = story.annotations?.find((a) => a.kind === 'vent')
-  const epochChart = data.story.epochs?.length && vent && data.epochGrids ? (
-    <EpochChart epochs={data.story.epochs} grids={data.epochGrids} vent={vent}
-      selected={epochId ?? data.story.epochs.find((e) => isFeatured(data.story, e))?.id ?? ''} onSelect={selectEpoch} />
-  ) : null
+  const epochs = data.story.epochs
+  const periodsTab = epochs?.length ? (
+    <>
+      <EpochChart epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} />
+      <h2>All periods</h2>
+      <PeriodList epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} />
+    </>
+  ) : undefined
+  const periodSwitcher = epochs?.length ? (
+    <PeriodSwitcher epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} onStep={stepEpoch} />
+  ) : undefined
   const timelineData = { ...data, story, flagship: viewPair }
   const impact = context && (
     <ImpactPanel context={context} defo={view.displacement.grid} cov={view.coherence.grid} ui={ui}
@@ -234,7 +262,6 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         slots={sci ? {
           analysis: (
             <>
-              {epochChart}
               <div className="actions">{swipeBtn}{replayBtn}</div>
               <ProfileControls picking={picking} hasLine={!!profileData}
                 onStart={() => { setProfile({ a: null, b: null }); setPicking(true); setPicked(null) }}
@@ -243,18 +270,19 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
             </>
           ),
           impact,
+          periods: periodsTab,
           los: <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />,
         } : {
           actions: (
             <div className="actions">
               <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />
-              {epochChart}
               <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
               {swipeBtn}
               {replayBtn}
             </div>
           ),
           impact,
+          periods: periodsTab,
           why: <WhyCards items={story.why} />,
           los: <LosDiagram sci={false} />,
         }} />
@@ -279,7 +307,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
           onNext={() => goTour(Math.min(story.tour!.length - 1, tour + 1))}
           onExit={() => setTour(null)} />
       )}
-      <Timeline data={timelineData} cursor={cursor} setCursor={setCursor} />
+      <Timeline data={timelineData} cursor={cursor} setCursor={setCursor} headExtra={periodSwitcher} />
     </div>
   )
 }

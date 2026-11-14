@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { BUILD_SECONDS, PLAY_SECONDS } from './config'
 import { fmtDate, ms } from './lib/data'
 import { playhead } from './lib/playhead'
@@ -9,6 +10,8 @@ interface Props {
   data: LoadedStory
   cursor: number
   setCursor: (t: number) => void
+  /** Extra controls shown in the header, next to the play button (the period switcher). */
+  headExtra?: ReactNode
 }
 
 interface Pass { t: number; track: number; dir: string; flagship: boolean }
@@ -24,7 +27,7 @@ const MAX_TICKS = 12
 /** Quake marker diameter in px, scaled by magnitude. */
 const quakeSize = (mag: number) => 4 + (mag - 3.5) * 2.6
 
-export default function Timeline({ data, cursor, setCursor }: Props) {
+export default function Timeline({ data, cursor, setCursor, headExtra }: Props) {
   const { story, pairs, quakes } = data
   const sensor = story.sensor ?? 'NISAR'
   const start = ms(story.timeline.start)
@@ -158,6 +161,7 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
         }} aria-label={playing ? 'Pause' : 'Play'}>
           {playing ? '❚❚ Pause' : '▶ Play'}
         </button>
+        {headExtra}
         <div className="tl-date">{fmtDate(cursor, true)}</div>
         <div className="tl-status">{status}</div>
       </div>

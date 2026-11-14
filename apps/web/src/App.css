@@ -294,3 +294,27 @@
 .ep-bar { cursor: pointer; outline: none; }
 .ep-bar:hover rect:nth-of-type(2), .ep-bar:focus rect:nth-of-type(2) { filter: brightness(1.25); }
 .ep-bar:focus-visible rect:first-of-type { stroke: var(--accent); stroke-width: 2; }
+
+/* period switcher (timeline header) and list */
+.pswitch { position: relative; display: flex; align-items: center; gap: 4px; }
+.pswitch .btn { min-width: 0; }
+.ps-step { padding: 6px 10px; font-size: 18px; line-height: 1; }
+.ps-label { display: flex; align-items: baseline; gap: 8px; padding: 6px 12px; max-width: 46vw; white-space: nowrap; overflow: hidden; }
+.ps-title { font-weight: 700; }
+.ps-dates { color: #cdd8ef; font-variant-numeric: tabular-nums; }
+.ps-count { color: var(--muted); font-size: 11px; }
+.ps-label i { font-style: normal; color: var(--muted); font-size: 10px; }
+.pmenu { position: absolute; left: 0; bottom: calc(100% + 10px); z-index: 8; width: min(380px, 86vw); max-height: 56vh; overflow-y: auto; padding: 6px; border-radius: 12px;
+  background: rgba(10,16,30,.97); border: 1px solid var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,.55); }
+.plist { display: flex; flex-direction: column; gap: 3px; }
+.prow { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 8px 10px; border-radius: 9px; border: 1px solid transparent; background: rgba(255,255,255,.04); color: var(--ink); }
+.prow:hover { background: rgba(255,255,255,.1); }
+.prow.on { border-color: var(--accent); background: rgba(106,165,255,.18); }
+.pdot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #4a5778; }
+.pdot.ev { background: #ff5a4d; }
+.ptext { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13px; }
+.pdates { color: #cdd8ef; font-variant-numeric: tabular-nums; }
+.ptime { flex-basis: 100%; color: var(--muted); font-size: 11.5px; }
+.pmm { flex: none; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--muted); }
+.pmm.pos { color: #ffa65a; } .pmm.neg { color: #6fb3ff; }
+@media (max-width: 760px) { .ps-title, .ps-count { display: none; } .ps-label { max-width: 52vw; } }

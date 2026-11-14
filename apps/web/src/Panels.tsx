@@ -80,6 +80,8 @@ interface SideProps {
     impact?: ReactNode
     why?: ReactNode
     los?: ReactNode
+    /** The period chart and list, shown as its own tab. */
+    periods?: ReactNode
   }
 }
 
@@ -161,6 +163,7 @@ export function SidePanel(p: SideProps) {
             </>
           ),
         },
+        ...(p.slots.periods ? [{ id: 'periods', label: 'Periods', body: p.slots.periods }] : []),
         {
           id: 'evidence', label: 'Evidence', body: (
             <>
@@ -196,6 +199,7 @@ export function SidePanel(p: SideProps) {
             </>
           ),
         },
+        ...(p.slots.periods ? [{ id: 'periods', label: 'Periods', body: p.slots.periods }] : []),
         ...(p.slots.impact ? [{ id: 'impact', label: 'Impact', body: p.slots.impact }] : []),
         ...(why ? [{ id: 'why', label: 'Why', body: why }] : []),
         { id: 'learn', label: 'Learn', body: sources },
