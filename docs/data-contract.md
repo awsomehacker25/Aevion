@@ -35,6 +35,8 @@ When validated products are released, re-run the CMR search with
 
 ## Adding another story
 
+See [adding-a-story.md](adding-a-story.md) for the full walkthrough (layout first, real data later).
+
 1. Copy a story folder, give it a new id, replace the grids and edit `story.json`.
 2. Add it to `stories/index.json`.
 3. Open the app with `?story=<id>`.

@@ -16,6 +16,10 @@ export function WhyCards({ items }: { items?: Story['why'] }) {
 }
 
 /** A simple side-view of how the satellite looks at the ground and what orange and blue mean. */
+const COMPASS = ['north', 'north-northeast', 'northeast', 'east-northeast', 'east', 'east-southeast', 'southeast', 'south-southeast',
+  'south', 'south-southwest', 'southwest', 'west-southwest', 'west', 'west-northwest', 'northwest', 'north-northwest']
+const compass = (deg: number) => COMPASS[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16]
+
 export function LosDiagram({ sci, incidence, azimuth }: { sci: boolean; incidence?: number; azimuth?: number }) {
   return (
     <details className="los">
@@ -41,7 +45,7 @@ export function LosDiagram({ sci, incidence, azimuth }: { sci: boolean; incidenc
       </svg>
       <p>
         {sci
-          ? `The satellite looks left of its path at about ${incidence ?? 40} degrees from vertical, toward ${azimuth ?? 260} degrees (west-southwest). A single pass only measures the part of the motion along this line, so it cannot separate up, down, east and west.`
+          ? `The satellite looks left of its path at about ${incidence ?? 40} degrees from vertical, toward ${azimuth ?? 260} degrees (${compass(azimuth ?? 260)}). A single pass only measures the part of the motion along this line, so it cannot separate up, down, east and west.`
           : 'The satellite sees the ground from the side, not from straight above. It can only tell whether the ground moved closer or farther along that slanted line, which is why one pass cannot say "up" or "down" on its own.'}
       </p>
     </details>
@@ -58,7 +62,7 @@ export function TourButton({ onStart, available }: { onStart: () => void; availa
 export function ReplayButton({ running, onStart, onStop }: { running: boolean; onStart: () => void; onStop: () => void }) {
   return (
     <button className="cta ghost" onClick={running ? onStop : onStart} aria-pressed={running}>
-      {running ? 'Stop replay' : 'Replay the quake (illustrative)'}
+      {running ? 'Stop replay' : 'Replay the change (illustrative)'}
     </button>
   )
 }

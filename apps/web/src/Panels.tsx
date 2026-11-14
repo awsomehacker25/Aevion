@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
-import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, ViewMode } from './types'
+import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
 
@@ -22,18 +22,31 @@ const STATUS_LABEL: Record<DataStatus, string> = {
   validated: 'VALIDATED NISAR DATA',
 }
 
-export function TopBar({ story, ui, setUi }: { story: Story; ui: UiMode; setUi: (m: UiMode) => void }) {
+interface TopBarProps {
+  story: Story
+  ui: UiMode
+  setUi: (m: UiMode) => void
+  stories: StoryIndexEntry[]
+  onSwitchStory: (id: string) => void
+}
+
+export function TopBar({ story, ui, setUi, stories, onSwitchStory }: TopBarProps) {
   const sci = ui === 'scientist'
   return (
     <header className="topbar">
       <div className="brand">Aevion</div>
+      {stories.length > 1 && (
+        <select className="picker" value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label="Choose a story">
+          {stories.map((s) => <option key={s.id} value={s.id}>{s.label ?? s.title}</option>)}
+        </select>
+      )}
       <div className={`status s-${story.dataStatus}`} title={story.dataStatusNote}>
         <span className="dot" />
         {STATUS_LABEL[story.dataStatus]}
         {(story.statusDetail || story.dataStatus === 'placeholder') && (
           <em> &middot; {story.statusDetail
             ? (sci ? story.statusDetail.scientist : story.statusDetail.story)
-            : sci ? 'LOS and coherence grids are synthetic; USGS events and CMR pass dates are real' : 'ground motion is synthetic, earthquakes and pass dates are real'}</em>
+            : sci ? 'LOS and coherence grids are synthetic placeholders' : 'ground motion is a synthetic placeholder'}</em>
         )}
       </div>
       <div className="seg" role="tablist" aria-label="Mode">
@@ -114,7 +127,7 @@ export function SidePanel(p: SideProps) {
 
   const credits = (
     <p className="foot">
-      Imagery &copy; Esri &middot; Terrain: AWS Terrain Tiles &middot; Earthquakes: USGS &middot; NISAR pass dates: NASA CMR
+      {p.story.credits ?? 'Imagery © Esri · Terrain: AWS Terrain Tiles · Earthquakes: USGS · NISAR pass dates: NASA CMR'}
     </p>
   )
   const sources = <><Resources items={p.story.resources} ui={p.ui} />{credits}</>
@@ -147,7 +160,7 @@ export function SidePanel(p: SideProps) {
                   {Object.entries(active.provenance).map(([k, v]) => (
                     <tr key={k}><th>{label(k)}</th><td>{v}</td></tr>
                   ))}
-                  {p.flagship && <tr><th>NISAR pair</th><td className="mono">{p.flagship.granuleId}</td></tr>}
+                  {p.flagship && <tr><th>{p.story.sensor ?? 'NISAR'} pair</th><td className="mono">{p.flagship.granuleId}</td></tr>}
                 </tbody>
               </table>
               <p className="hint">Displacement = unwrapped phase &times; &lambda; / (4&pi;), with &lambda; = {LAMBDA} m for L-band.</p>
@@ -166,7 +179,7 @@ export function SidePanel(p: SideProps) {
               <div className="howto">
                 <h2>How to read this</h2>
                 <ul>
-                  <li>Drag the timeline to the second NISAR pass to see the change appear.</li>
+                  <li>Drag the timeline to the second {p.story.sensor ?? 'NISAR'} pass to see the change appear.</li>
                   <li>Click anywhere on the map to see how far that spot moved.</li>
                   <li>Switch to Scientist mode for exact values and sources.</li>
                 </ul>
@@ -278,10 +291,11 @@ interface InspectProps {
   coherence: { layer: LayerDef; grid: Grid }
   threshold: number
   showChange: boolean
+  sensor?: string
   onClose: () => void
 }
 
-export function Inspector({ point, ui, displacement, coherence, threshold, showChange, onClose }: InspectProps) {
+export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', onClose }: InspectProps) {
   const sci = ui === 'scientist'
   const g = displacement.grid
   const d = sampleGrid(g, point[0], point[1])
@@ -301,7 +315,7 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
       <button className="x" onClick={onClose} aria-label="Close">&times;</button>
       <div className="coords">{point[1].toFixed(sci ? 5 : 2)}&deg;, {point[0].toFixed(sci ? 5 : 2)}&deg;</div>
       {!showChange ? (
-        <p>{sci ? 'No post-event NISAR acquisition at the selected date.' : 'No NISAR change is available at this date. Move the timeline to the post-event pass.'}</p>
+        <p>{sci ? `No second ${sensor} acquisition at the selected date.` : `No ${sensor} change is available at this date. Move the timeline to the second pass.`}</p>
       ) : d == null ? (
         <p>Outside the processed area.</p>
       ) : sci ? (

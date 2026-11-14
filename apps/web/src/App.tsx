@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
-import { loadStory, ms } from './lib/data'
+import { loadIndex, loadStory, ms } from './lib/data'
 import { compareToModel } from './lib/physics'
 import { ImpactPanel } from './Impact'
 import MapView from './MapView'
@@ -11,7 +11,7 @@ import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
-import type { Camera, CameraReq, City, LayerDef, LoadedStory, Overlays, ViewMode } from './types'
+import type { Camera, CameraReq, City, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
 
 function pickLayer(d: LoadedStory, role: LayerDef['role']) {
   const layer = d.story.layers.find((l) => l.role === role)
@@ -22,7 +22,14 @@ function pickLayer(d: LoadedStory, role: LayerDef['role']) {
 type Pt = [number, number]
 const NO_OVERLAYS: Overlays = { fault: false, shaking: false, cities: false, mechanisms: false }
 
-export default function App() {
+interface ViewerProps {
+  id?: string
+  stories: StoryIndexEntry[]
+  onSwitchStory: (id: string) => void
+}
+
+/** One story. It is re-created (with fresh state) whenever the story changes. */
+function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   const [data, setData] = useState<LoadedStory | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
@@ -41,11 +48,10 @@ export default function App() {
   const prevMode = useRef<ViewMode>('los')
 
   useEffect(() => {
-    const id = new URLSearchParams(location.search).get('story') ?? undefined
     loadStory(id)
       .then((d) => { setData(d); setCursor(ms(d.story.timeline.initial)) })
       .catch((e: Error) => setError(e.message))
-  }, [])
+  }, [id])
 
   useEffect(() => () => cancelAnimationFrame(replayRaf.current), [])
 
@@ -154,7 +160,7 @@ export default function App() {
         profile={profile} profileMode={picking}
         onProfilePoint={addProfilePoint}
         replayScale={replay} />
-      <TopBar story={story} ui={ui} setUi={switchUi} />
+      <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} />
       <SidePanel story={story} ui={ui} mode={mode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={ok.displacement.layer} coherence={ok.coherence.layer} flagship={data.flagship}
@@ -182,12 +188,12 @@ export default function App() {
           los: <LosDiagram sci={false} />,
         }} />
       {replay != null && (
-        <div className="replay-chip">Illustrative replay: NISAR measured the final result, not the shaking itself</div>
+        <div className="replay-chip">Illustrative replay: the satellite measured the final result, not the motion as it happened</div>
       )}
       {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={ok.displacement} coherence={ok.coherence}
-          threshold={threshold} showChange={showChange} onClose={() => setPicked(null)} />
+          threshold={threshold} showChange={showChange} sensor={story.sensor} onClose={() => setPicked(null)} />
       )}
       {sci && profileData && profile.a && profile.b && (
         <ProfileCard points={profileData.points} totalKm={profileData.totalKm} offset={offset} threshold={threshold}
@@ -202,4 +208,20 @@ export default function App() {
       <Timeline data={data} cursor={cursor} setCursor={setCursor} />
     </div>
   )
+}
+
+export default function App() {
+  const [stories, setStories] = useState<StoryIndexEntry[]>([])
+  const [id, setId] = useState<string | undefined>(() => new URLSearchParams(location.search).get('story') ?? undefined)
+
+  useEffect(() => { loadIndex().then(setStories).catch(() => setStories([])) }, [])
+
+  const switchStory = (next: string) => {
+    const url = new URL(location.href)
+    url.searchParams.set('story', next)
+    history.replaceState(null, '', url)
+    setId(next)
+  }
+
+  return <Viewer key={id ?? 'default'} id={id} stories={stories} onSwitchStory={switchStory} />
 }

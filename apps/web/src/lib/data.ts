@@ -1,4 +1,4 @@
-import type { AcquisitionPair, Grid, LoadedStory, QuakeCollection, Story, UsgsContext } from '../types'
+import type { AcquisitionPair, Grid, LoadedStory, QuakeCollection, Story, StoryIndexEntry, UsgsContext } from '../types'
 
 const BASE = `${import.meta.env.BASE_URL}stories/`
 
@@ -8,13 +8,18 @@ async function getJson<T>(url: string): Promise<T> {
   return r.json() as Promise<T>
 }
 
+/** The list of available stories, for the story picker. */
+export async function loadIndex(): Promise<StoryIndexEntry[]> {
+  return (await getJson<{ stories: StoryIndexEntry[] }>(`${BASE}index.json`)).stories
+}
+
 /**
  * Loads a story by id. Everything the app shows comes from files under
  * public/stories/<id>/. To use real data, replace the grid files and edit story.json.
  */
 export async function loadStory(id?: string): Promise<LoadedStory> {
-  const index = await getJson<{ stories: { id: string; manifest: string }[] }>(`${BASE}index.json`)
-  const entry = index.stories.find((s) => s.id === id) ?? index.stories[0]
+  const stories = await loadIndex()
+  const entry = stories.find((s) => s.id === id) ?? stories[0]
   const dir = `${BASE}${entry.manifest.split('/')[0]}/`
   const story = await getJson<Story>(`${BASE}${entry.manifest}`)
 

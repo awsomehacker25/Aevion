@@ -21,7 +21,7 @@ def main(folder: str):
         sys.exit(f"missing {sp}")
     s = json.loads(sp.read_text(encoding="utf-8"))
 
-    for k in ("id", "title", "dataStatus", "aoi", "timeline", "event", "flagshipPair", "layers"):
+    for k in ("id", "title", "dataStatus", "aoi", "timeline", "flagshipPair", "layers"):  # "event" is optional
         if k not in s:
             err(f"story.json: missing '{k}'")
     if s.get("dataStatus") not in ("placeholder", "beta", "provisional", "validated"):

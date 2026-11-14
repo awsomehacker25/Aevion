@@ -17,14 +17,14 @@
 .status {
   display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
   padding: 8px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(10px);
-  max-width: 62vw; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  min-width: 0; flex: 0 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
 .status em { font-style: normal; font-weight: 400; color: var(--muted); letter-spacing: 0; }
 .status .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; box-shadow: 0 0 10px currentColor; }
 .s-placeholder { color: var(--warn); border-color: rgba(255, 138, 61, .45); }
 .s-beta, .s-provisional { color: #e9c34a; }
 .s-validated { color: #4ade80; }
-.seg { margin-left: auto; display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; backdrop-filter: blur(10px); }
+.seg { margin-left: auto; flex: none; display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; backdrop-filter: blur(10px); }
 .seg button { background: none; border: 0; padding: 8px 14px; color: var(--muted); }
 .seg button.on { background: rgba(106, 165, 255, .22); color: var(--ink); }
 
@@ -251,3 +251,11 @@
   .replay-chip { left: 50%; white-space: normal; text-align: center; width: calc(100vw - 24px); top: 108px; }
   .profile-card { left: 12px; right: 12px; width: auto; top: auto; bottom: 176px; }
 }
+
+/* story picker */
+.picker {
+  appearance: none; padding: 9px 30px 9px 12px; border-radius: 10px; border: 1px solid var(--line); color: var(--ink); font-size: 12.5px; font-weight: 600;
+  background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2393a3c4'/%3E%3C/svg%3E") no-repeat right 11px center;
+  backdrop-filter: blur(10px); cursor: pointer; max-width: 230px;
+}
+.picker option { background: #0e1626; color: var(--ink); }

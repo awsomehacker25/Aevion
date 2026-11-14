@@ -15,14 +15,16 @@ interface Pass { t: number; track: number; dir: string; flagship: boolean }
 const COMMIT_MS = 120
 const DAY_MS = 86400000
 const HOUR_MS = 3600000
-/** Spacing of the date labels on the axis. */
-const TICK_EVERY_DAYS = 4
+/** Candidate spacings for the axis labels, in days. The smallest one that keeps the axis readable is used. */
+const TICK_STEPS_DAYS = [1, 2, 4, 7, 14]
+const MAX_TICKS = 12
 
 /** Quake marker diameter in px, scaled by magnitude. */
 const quakeSize = (mag: number) => 4 + (mag - 3.5) * 2.6
 
 export default function Timeline({ data, cursor, setCursor }: Props) {
   const { story, pairs, quakes } = data
+  const sensor = story.sensor ?? 'NISAR'
   const start = ms(story.timeline.start)
   const end = ms(story.timeline.end)
   const span = end - start
@@ -83,36 +85,49 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
     return out.sort((a, b) => a.t - b.t)
   }, [pairs, story.flagshipPair, start, end])
 
+  // Ticks: every few days for short windows, month starts for long ones (so labels never overlap).
   const ticks = useMemo(() => {
     const out: number[] = []
-    for (let t = Math.ceil(start / DAY_MS) * DAY_MS; t <= end; t += TICK_EVERY_DAYS * DAY_MS) out.push(t)
-    return out
+    const days = (end - start) / DAY_MS
+    const step = TICK_STEPS_DAYS.find((s) => days / s <= MAX_TICKS)
+    if (step) {
+      for (let t = Math.ceil(start / DAY_MS) * DAY_MS; t <= end; t += step * DAY_MS) out.push(t)
+      return { times: out, monthly: false }
+    }
+    const everyMonths = Math.ceil(days / 30 / MAX_TICKS)
+    const s = new Date(start)
+    for (let m = 0; ; m += everyMonths) {
+      const t = Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + m + (s.getUTCDate() > 1 ? 1 : 0), 1)
+      if (t > end) break
+      out.push(t)
+    }
+    return { times: out, monthly: true }
   }, [start, end])
 
   // Static marks are built once, so the frequent re-renders while playing stay cheap.
   const marks = useMemo(() => (
     <>
-      <div className="tl-row tl-passes">
-        <span className="tl-label">NISAR passes</span>
+      {passes.length > 0 && <div className="tl-row tl-passes">
+        <span className="tl-label">{sensor} passes</span>
         {passes.map((p, i) => (
           <button key={i} className={`pass ${p.flagship ? 'flag' : ''}`} style={{ left: pct(p.t) }}
             title={`${fmtDate(p.t, true)} · track ${p.track} ${p.dir === 'A' ? 'ascending' : 'descending'}${p.flagship ? ' · used in this story' : ''}`}
-            onClick={() => { setPlaying(false); setCursor(p.t) }} aria-label={`NISAR pass ${fmtDate(p.t)}`} />
+            onClick={() => { setPlaying(false); setCursor(p.t) }} aria-label={`${sensor} pass ${fmtDate(p.t)}`} />
         ))}
-      </div>
-      <div className="tl-row tl-quakes">
-        <span className="tl-label">Earthquakes (USGS)</span>
+      </div>}
+      {quakes.features.length > 0 && <div className="tl-row tl-quakes">
+        <span className="tl-label">{story.eventsLabel ?? 'Earthquakes (USGS)'}</span>
         {quakes.features.map((q) => (
           <i key={q.id} className="qdot" style={{ left: pct(q.properties.time), width: quakeSize(q.properties.mag), height: quakeSize(q.properties.mag) }}
             title={`M${q.properties.mag} · ${q.properties.place}`} />
         ))}
-      </div>
+      </div>}
       <div className="tl-axis">
-        {ticks.map((t) => (
-          <span key={t} style={{ left: pct(t) }}>{new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
+        {ticks.times.map((t) => (
+          <span key={t} style={{ left: pct(t) }}>{new Date(t).toLocaleDateString('en-US', ticks.monthly ? { month: 'short', year: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
         ))}
       </div>
-      <div className="tl-event" style={{ left: pct(ms(story.event.datetime)) }}><span>{story.event.shortLabel}</span></div>
+      {story.event && <div className="tl-event" style={{ left: pct(ms(story.event.datetime)) }}><span>{story.event.shortLabel}</span></div>}
     </>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   ), [passes, quakes, ticks, story.event, start, span, setCursor])
@@ -120,9 +135,9 @@ export default function Timeline({ data, cursor, setCursor }: Props) {
   const sec = ms(story.flagshipPair.secondary + 'T00:00:00Z')
   const ref = ms(story.flagshipPair.reference + 'T00:00:00Z')
   const status =
-    cursor < ref ? 'Before the first NISAR pass of the pair. Nothing to compare yet.'
-    : cursor < sec ? 'Reference pass collected. Waiting for the post-event pass.'
-    : `Showing NISAR change between ${fmtDate(ref)} and ${fmtDate(sec)}.`
+    cursor < ref ? `Before the first ${sensor} pass of the pair. Nothing to compare yet.`
+    : cursor < sec ? 'Reference pass collected. Waiting for the second pass.'
+    : `Showing ${sensor} change between ${fmtDate(ref)} and ${fmtDate(sec)}.`
 
   return (
     <div className="timeline" role="group" aria-label="Timeline">

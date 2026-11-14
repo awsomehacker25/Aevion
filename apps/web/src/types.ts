@@ -2,6 +2,19 @@ export type Badge = 'OBSERVED' | 'DERIVED' | 'CONTEXT' | 'WHAT-IF'
 export type DataStatus = 'placeholder' | 'beta' | 'provisional' | 'validated'
 export type ViewMode = 'los' | 'fringes' | 'coherence'
 
+/** What kind of event a story is about. Used for the story picker and for data-source hints. */
+export type StoryType = 'earthquake' | 'volcano' | 'landslide' | 'subsidence'
+
+/** One row of stories/index.json. */
+export interface StoryIndexEntry {
+  id: string
+  title: string
+  manifest: string
+  /** Short name for the story picker. */
+  label?: string
+  type?: StoryType
+}
+
 /** What a layer means to the app. A story needs one 'displacement' and one 'coherence' layer. */
 export type LayerRole = 'displacement' | 'coherence'
 
@@ -39,8 +52,15 @@ export interface Resource {
 
 export interface Story {
   id: string
+  type?: StoryType
   title: string
   subtitle: string
+  /** Name of the radar mission that measured it. Defaults to NISAR. */
+  sensor?: string
+  /** Label for the second timeline row (the event catalog). Defaults to "Earthquakes (USGS)". */
+  eventsLabel?: string
+  /** Footer line crediting data sources. */
+  credits?: string
   dataStatus: DataStatus
   dataStatusNote: string
   /** Short text next to the status pill, per mode. */
@@ -50,7 +70,8 @@ export interface Story {
   technical?: { title: string; subtitle?: string; summary: string; caveats?: string[] }
   aoi: { bbox: [number, number, number, number]; center: [number, number]; zoom: number; pitch: number; bearing: number }
   timeline: { start: string; end: string; initial: string }
-  event: { name: string; shortLabel: string; datetime: string; source: string }
+  /** The moment the timeline marks. Leave out for slow processes with no single event. */
+  event?: { name: string; shortLabel: string; datetime: string; source: string }
   resources?: Resource[]
   /** File with USGS context (mechanisms, PAGER, shaking, fault model). Optional. */
   context?: string

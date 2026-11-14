@@ -1,0 +1,303 @@
+{
+  "id": "seattle-bellevue",
+  "type": "subsidence",
+  "title": "A city on soft ground",
+  "subtitle": "Seattle and Bellevue, Washington",
+  "technical": {
+    "title": "Slow ground settling, Seattle and Bellevue (layout, placeholder data)",
+    "subtitle": "Synthetic millimeter-scale settling in filled ground, NISAR-style L-band geometry",
+    "summary": "Placeholder line-of-sight displacement for slow settling in soft, filled ground (Duwamish/SODO, Kent valley) over about a year. Real urban motion here is millimeters per year, so a real map would be built from a stack of many 12-day passes with a fitted velocity, not one pair. Replace the grids once a coverage check shows a usable NISAR time series.",
+    "caveats": [
+      "All displacement and coherence values are synthetic placeholders.",
+      "Real motion in the urban area is only millimeters per year. One interferogram will not show it; a time series is needed.",
+      "Water bodies are masked roughly in the placeholder. A real map uses the product's own mask.",
+      "A single line of sight cannot separate vertical from horizontal motion."
+    ]
+  },
+  "dataStatus": "placeholder",
+  "dataStatusNote": "Ground motion is a synthetic placeholder. The text, tour and layout are real; the data and dates are not.",
+  "statusDetail": {
+    "story": "layout preview: ground motion and dates are placeholders",
+    "scientist": "synthetic settling grids; dates are placeholders"
+  },
+  "storyText": "Seattle and Bellevue sit on a basin of soft sediment, and parts of the waterfront are built on fill. Soft ground can settle slowly, and it can shake harder in an earthquake. Radar from space can measure millimeters of settling across the whole city.",
+  "sensor": "NISAR",
+  "eventsLabel": "Earthquakes (USGS)",
+  "credits": "Imagery © Esri · Terrain: AWS Terrain Tiles · Layout preview with placeholder data",
+  "aoi": {
+    "bbox": [
+      -122.55,
+      47.35,
+      -122.0,
+      47.8
+    ],
+    "center": [
+      -122.28,
+      47.58
+    ],
+    "zoom": 9.9,
+    "pitch": 50,
+    "bearing": -10
+  },
+  "timeline": {
+    "start": "2025-11-01T00:00:00Z",
+    "end": "2026-11-10T00:00:00Z",
+    "initial": "2026-11-05T00:00:00Z"
+  },
+  "flagshipPair": {
+    "track": 0,
+    "orbitDirection": "D",
+    "reference": "2025-11-05",
+    "secondary": "2026-10-28"
+  },
+  "acquisitions": "acquisitions.json",
+  "events": "events.geojson",
+  "geometry": {
+    "incidenceDeg": 39,
+    "lookAzimuthDeg": 100,
+    "source": "Typical NISAR descending left-looking geometry (placeholder)"
+  },
+  "why": [
+    {
+      "title": "Why would a city sink?",
+      "body": "Ground made of soft clay, silt or human-placed fill compacts over time, and pumping groundwater can speed it up. The waterfront south of downtown and the Kent valley are on this kind of ground. The motion is slow, often just millimeters a year."
+    },
+    {
+      "title": "Why does soft ground matter in an earthquake?",
+      "body": "Soft sediment in a basin can amplify and prolong shaking, and water-saturated fill can lose its strength (liquefaction). Seattle also sits near the Seattle Fault, which has ruptured in the past. Knowing which ground is soft helps decide where to look closely."
+    },
+    {
+      "title": "How can radar see millimeters?",
+      "body": "NISAR measures the distance to the ground using the phase of its L-band radar echo. A shift of a few millimeters per year is tiny, so scientists stack many passes taken every 12 days and fit a trend. That is why this story needs a year of data, not one pair."
+    },
+    {
+      "title": "What can the map not tell us?",
+      "body": "It shows motion along the satellite's slanted line of sight, relative to a reference point, not the cause. Radar also loses signal over water and dense forest, which is why the lakes and the Sound are blank."
+    }
+  ],
+  "tour": [
+    {
+      "title": "Seattle and Bellevue",
+      "text": "Two cities on either side of Lake Washington, built on a sediment-filled basin between the Cascades and Puget Sound.",
+      "date": "2026-11-05T00:00:00Z",
+      "view": "los",
+      "camera": {
+        "center": [
+          -122.28,
+          47.58
+        ],
+        "zoom": 9.9,
+        "pitch": 50,
+        "bearing": -10
+      }
+    },
+    {
+      "title": "NISAR looks once",
+      "text": "NISAR images the area and records exact distances to the ground. This is the 'before' picture. (Placeholder date.)",
+      "date": "2025-11-05T10:00:00Z"
+    },
+    {
+      "title": "A year of passes",
+      "text": "NISAR returns every 12 days. Stacking a year of passes lets scientists pull out very slow motion. (Placeholder dates.)",
+      "date": "2026-06-01T00:00:00Z"
+    },
+    {
+      "title": "The waterfront settles",
+      "text": "Orange areas moved away from the satellite, which here mostly means the ground sank slightly. The soft, filled ground south of downtown shows the most. (Placeholder pattern.)",
+      "date": "2026-10-28T10:00:00Z",
+      "view": "los",
+      "camera": {
+        "center": [
+          -122.33,
+          47.55
+        ],
+        "zoom": 11,
+        "pitch": 55,
+        "bearing": -5
+      }
+    },
+    {
+      "title": "Across the lake",
+      "text": "Bellevue sits on firmer ground, so its pattern is much smaller. (Placeholder pattern.)",
+      "camera": {
+        "center": [
+          -122.2,
+          47.61
+        ],
+        "zoom": 11.2,
+        "pitch": 50,
+        "bearing": -10
+      }
+    },
+    {
+      "title": "How sure are we?",
+      "text": "Water and thick forest scramble the radar, so those areas are blank. We hide what we cannot trust.",
+      "view": "coherence",
+      "camera": {
+        "center": [
+          -122.28,
+          47.58
+        ],
+        "zoom": 9.9,
+        "pitch": 45,
+        "bearing": -10
+      }
+    }
+  ],
+  "resources": [
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR StoryMaps",
+      "url": "https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/",
+      "description": "Interactive stories on floods, wildfires, subsidence, oil slicks and glacier motion."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Synthetic Aperture Radar",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar",
+      "description": "How radar frequency, wavelength and polarization work."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Remote Sensing",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing",
+      "description": "The basics of satellite data and resolution."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NASA ARSET trainings",
+      "url": "https://appliedsciences.nasa.gov/get-involved/training",
+      "description": "Free online courses, including SAR and NISAR (English and Spanish)."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR applications white papers",
+      "url": "https://nisar.jpl.nasa.gov/applications/societal-benefit/",
+      "description": "Two-page overviews of how NISAR data helps society."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "UAVSAR postcards",
+      "url": "https://uavsar.jpl.nasa.gov/education/postcards.html",
+      "description": "Airborne radar images of Earth processes."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NISAR collection (Earthdata Search)",
+      "url": "https://search.earthdata.nasa.gov/search/granules?p=C2854335566-ASF",
+      "description": "NISAR_L2_GUNW_PROVISIONAL_V1, the raw interferograms. Downloading needs a free Earthdata Login."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "ASF Data Search (Vertex)",
+      "url": "https://search.asf.alaska.edu/",
+      "description": "Search and download NISAR granules from the NASA SAR archive."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NISAR Data User Guide",
+      "url": "https://nisar-docs.asf.alaska.edu/",
+      "description": "Product specs, known issues and access methods."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "GUNW product guide",
+      "url": "https://nisar-docs.asf.alaska.edu/gunw/",
+      "description": "Layers and conventions of the interferogram product."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NASA Earthdata Search",
+      "url": "https://search.earthdata.nasa.gov/search",
+      "description": "Discover and compare NASA Earth science datasets."
+    },
+    {
+      "group": "learn",
+      "audience": "both",
+      "title": "Pacific Northwest Seismic Network",
+      "url": "https://pnsn.org/",
+      "description": "Earthquake monitoring, hazard maps and news for Washington and Oregon."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "Washington Geologic Information Portal",
+      "url": "https://geologyportal.dnr.wa.gov/",
+      "description": "State geology, landslide and liquefaction maps from WA DNR."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "ASF Data Search (Vertex)",
+      "url": "https://search.asf.alaska.edu/",
+      "description": "Find NISAR and Sentinel-1 granules over Puget Sound."
+    }
+  ],
+  "layers": [
+    {
+      "id": "deformation",
+      "role": "displacement",
+      "badge": "DERIVED",
+      "grid": "deformation.grid.json",
+      "units": "m",
+      "appearsAfter": "secondary",
+      "synthetic": true,
+      "positiveMeans": "away from the satellite",
+      "negativeMeans": "toward the satellite",
+      "name": "Ground motion (line of sight)",
+      "displayUnits": "mm",
+      "displayScale": 1000,
+      "range": [
+        -0.015,
+        0.015
+      ],
+      "hintStory": "Orange means the ground moved away from the satellite (here, mostly sinking), blue means toward it. These are millimeters over about a year. This is a placeholder pattern.",
+      "hintScientist": "LOS displacement in meters, accumulated over the window. Positive = away from the satellite. Synthetic placeholder.",
+      "provenance": {
+        "product": "Synthetic placeholder. Not a measurement.",
+        "method": "A simple shape placed at the real location so the layout can be built before data arrives.",
+        "maturity": "PLACEHOLDER",
+        "measurement": "Line-of-sight displacement (placeholder)",
+        "signConvention": "Positive = away from the satellite (to confirm for the real product)"
+      }
+    },
+    {
+      "id": "coherence",
+      "role": "coherence",
+      "badge": "DERIVED",
+      "grid": "coherence.grid.json",
+      "units": "1",
+      "displayUnits": "",
+      "displayScale": 1,
+      "range": [
+        0,
+        1
+      ],
+      "appearsAfter": "secondary",
+      "synthetic": true,
+      "label": "Coherence",
+      "name": "Coherence",
+      "titleStory": "How much we can trust it",
+      "titleScientist": "Coherence magnitude (0 to 1)",
+      "hintStory": "Bright means the radar passes matched well, as in the city. Dark means water or thick forest, where we cannot measure.",
+      "hintScientist": "Unitless. Water is near zero. Synthetic placeholder.",
+      "provenance": {
+        "product": "Synthetic placeholder. Not a measurement.",
+        "method": "A simple shape placed at the real location so the layout can be built before data arrives.",
+        "maturity": "PLACEHOLDER",
+        "measurement": "Coherence, 0 (no signal) to 1 (perfect) (placeholder)"
+      }
+    }
+  ]
+}

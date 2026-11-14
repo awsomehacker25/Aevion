@@ -1,0 +1,294 @@
+{
+  "id": "kilauea-hawaii",
+  "type": "volcano",
+  "title": "A volcano that breathes",
+  "subtitle": "Kīlauea, Hawaiʻi",
+  "technical": {
+    "title": "Summit deflation at Kīlauea (layout, placeholder data)",
+    "subtitle": "Synthetic Mogi-type source under Halemaʻumaʻu, NISAR-style L-band geometry",
+    "summary": "Placeholder line-of-sight displacement for a pressure-source deflation under the summit caldera, on the 12-day NISAR repeat. The pattern is a standard point-source (Mogi) model, not a measurement. It is here so the story layout, tour and tools can be built; replace the grids with a real GUNW-derived map.",
+    "caveats": [
+      "All displacement and coherence values are synthetic placeholders.",
+      "Pass dates are placeholders until a real NISAR pair around an eruption is chosen.",
+      "A single line of sight cannot separate vertical from horizontal motion; a real analysis needs an ascending and a descending pair.",
+      "Lava flows and fresh ash decorrelate the radar, so real maps will have gaps near the vent."
+    ]
+  },
+  "dataStatus": "placeholder",
+  "dataStatusNote": "Ground motion is a synthetic placeholder shaped like summit deflation. The text, tour and layout are real; the data and dates are not.",
+  "statusDetail": {
+    "story": "layout preview: ground motion and dates are placeholders",
+    "scientist": "synthetic Mogi-source grids; pass dates are placeholders"
+  },
+  "storyText": "Kīlauea is one of the most active volcanoes on Earth. Before and during an eruption, magma moves under the summit and the ground swells or sinks by centimeters. Radar from NISAR can measure that change over the whole volcano, day or night, even under cloud.",
+  "sensor": "NISAR",
+  "eventsLabel": "Earthquakes (USGS)",
+  "credits": "Imagery © Esri · Terrain: AWS Terrain Tiles · Layout preview with placeholder data",
+  "aoi": {
+    "bbox": [
+      -155.42,
+      19.32,
+      -155.14,
+      19.53
+    ],
+    "center": [
+      -155.2834,
+      19.4069
+    ],
+    "zoom": 11.2,
+    "pitch": 60,
+    "bearing": 20
+  },
+  "timeline": {
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-02-15T00:00:00Z",
+    "initial": "2026-01-20T00:00:00Z"
+  },
+  "event": {
+    "name": "Summit eruption (placeholder date)",
+    "shortLabel": "Eruption",
+    "datetime": "2026-01-12T00:00:00Z",
+    "source": "placeholder"
+  },
+  "flagshipPair": {
+    "track": 0,
+    "orbitDirection": "A",
+    "reference": "2026-01-06",
+    "secondary": "2026-01-18"
+  },
+  "acquisitions": "acquisitions.json",
+  "events": "events.geojson",
+  "geometry": {
+    "incidenceDeg": 39,
+    "lookAzimuthDeg": 260,
+    "source": "Typical NISAR ascending left-looking geometry (placeholder)"
+  },
+  "why": [
+    {
+      "title": "Why does the ground move at a volcano?",
+      "body": "Magma collects in a reservoir a kilometer or two under the summit. As it fills, the ground above bulges outward. When the magma erupts or drains away, the ground sinks back. The changes are small, often a few centimeters, but radar can see them across the whole volcano."
+    },
+    {
+      "title": "How does radar see it?",
+      "body": "NISAR sends L-band radar pulses and records the echo. Comparing two passes 12 days apart, a tiny change in distance to the ground shifts the echo's phase. One full color cycle in the Fringes view is about 12 cm of motion toward or away from the satellite."
+    },
+    {
+      "title": "Why can radar struggle here?",
+      "body": "Fresh lava, ash and dense rainforest scramble the echo, so some areas have no usable data. L-band, which NISAR uses, keeps signal through vegetation better than shorter wavelengths, but the area right around a vent can still drop out."
+    },
+    {
+      "title": "What does this help with?",
+      "body": "Scientists at the USGS Hawaiian Volcano Observatory combine ground measurements like these with gas, seismic and GPS data to judge when magma is on the move. Satellite radar fills the gaps between instruments."
+    }
+  ],
+  "tour": [
+    {
+      "title": "Kīlauea",
+      "text": "This is the summit of Kīlauea on the Island of Hawaiʻi. The crater in the middle is Halemaʻumaʻu.",
+      "date": "2026-01-05T00:00:00Z",
+      "view": "los",
+      "camera": {
+        "center": [
+          -155.2834,
+          19.4069
+        ],
+        "zoom": 11.2,
+        "pitch": 60,
+        "bearing": 20
+      }
+    },
+    {
+      "title": "NISAR looks once",
+      "text": "NISAR passes over and records the ground. This is the 'before' picture. (Placeholder date.)",
+      "date": "2026-01-06T10:00:00Z"
+    },
+    {
+      "title": "The volcano erupts",
+      "text": "Magma leaves the shallow reservoir. As it does, the ground above starts to sink. (Placeholder date.)",
+      "date": "2026-01-12T00:00:00Z",
+      "camera": {
+        "center": [
+          -155.2834,
+          19.4069
+        ],
+        "zoom": 12,
+        "pitch": 55,
+        "bearing": 10
+      }
+    },
+    {
+      "title": "NISAR looks again",
+      "text": "On the next pass, comparing the two images shows how much the ground moved. Orange means away from the satellite, blue means toward it.",
+      "date": "2026-01-18T10:00:00Z",
+      "view": "los"
+    },
+    {
+      "title": "Counting the waves",
+      "text": "Each color band is about 12 cm of motion. Tight rings around the summit mean the ground changed a lot there.",
+      "view": "fringes",
+      "camera": {
+        "center": [
+          -155.2834,
+          19.4069
+        ],
+        "zoom": 11.6,
+        "pitch": 45,
+        "bearing": 0
+      }
+    },
+    {
+      "title": "How sure are we?",
+      "text": "Dark areas have gaps in the data, often right at the vent where fresh rock and ash scramble the radar. We hide what we cannot trust.",
+      "view": "coherence"
+    }
+  ],
+  "resources": [
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR StoryMaps",
+      "url": "https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/",
+      "description": "Interactive stories on floods, wildfires, subsidence, oil slicks and glacier motion."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Synthetic Aperture Radar",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar",
+      "description": "How radar frequency, wavelength and polarization work."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "Intro to Remote Sensing",
+      "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing",
+      "description": "The basics of satellite data and resolution."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NASA ARSET trainings",
+      "url": "https://appliedsciences.nasa.gov/get-involved/training",
+      "description": "Free online courses, including SAR and NISAR (English and Spanish)."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "NISAR applications white papers",
+      "url": "https://nisar.jpl.nasa.gov/applications/societal-benefit/",
+      "description": "Two-page overviews of how NISAR data helps society."
+    },
+    {
+      "group": "learn",
+      "audience": "story",
+      "title": "UAVSAR postcards",
+      "url": "https://uavsar.jpl.nasa.gov/education/postcards.html",
+      "description": "Airborne radar images of Earth processes."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NISAR collection (Earthdata Search)",
+      "url": "https://search.earthdata.nasa.gov/search/granules?p=C2854335566-ASF",
+      "description": "NISAR_L2_GUNW_PROVISIONAL_V1, the raw interferograms. Downloading needs a free Earthdata Login."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "ASF Data Search (Vertex)",
+      "url": "https://search.asf.alaska.edu/",
+      "description": "Search and download NISAR granules from the NASA SAR archive."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NISAR Data User Guide",
+      "url": "https://nisar-docs.asf.alaska.edu/",
+      "description": "Product specs, known issues and access methods."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "GUNW product guide",
+      "url": "https://nisar-docs.asf.alaska.edu/gunw/",
+      "description": "Layers and conventions of the interferogram product."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "NASA Earthdata Search",
+      "url": "https://search.earthdata.nasa.gov/search",
+      "description": "Discover and compare NASA Earth science datasets."
+    },
+    {
+      "group": "learn",
+      "audience": "both",
+      "title": "USGS Hawaiian Volcano Observatory",
+      "url": "https://www.usgs.gov/observatories/hvo",
+      "description": "Daily updates, maps and monitoring data for Kīlauea and the other Hawaiian volcanoes."
+    },
+    {
+      "group": "data",
+      "audience": "scientist",
+      "title": "ASF Data Search (Vertex)",
+      "url": "https://search.asf.alaska.edu/",
+      "description": "Find NISAR and other SAR granules over Hawaiʻi."
+    }
+  ],
+  "layers": [
+    {
+      "id": "deformation",
+      "role": "displacement",
+      "badge": "DERIVED",
+      "grid": "deformation.grid.json",
+      "units": "m",
+      "appearsAfter": "secondary",
+      "synthetic": true,
+      "positiveMeans": "away from the satellite",
+      "negativeMeans": "toward the satellite",
+      "name": "Ground motion (line of sight)",
+      "displayUnits": "cm",
+      "displayScale": 100,
+      "range": [
+        -0.35,
+        0.35
+      ],
+      "hintStory": "Orange means the ground moved away from the satellite, blue means toward it. A sinking summit looks orange. This is a placeholder pattern.",
+      "hintScientist": "LOS displacement in meters from a synthetic point-source deflation. Positive = away from the satellite.",
+      "provenance": {
+        "product": "Synthetic placeholder. Not a measurement.",
+        "method": "A simple shape placed at the real location so the layout can be built before data arrives.",
+        "maturity": "PLACEHOLDER",
+        "measurement": "Line-of-sight displacement (placeholder)",
+        "signConvention": "Positive = away from the satellite (to confirm for the real product)"
+      }
+    },
+    {
+      "id": "coherence",
+      "role": "coherence",
+      "badge": "DERIVED",
+      "grid": "coherence.grid.json",
+      "units": "1",
+      "displayUnits": "",
+      "displayScale": 1,
+      "range": [
+        0,
+        1
+      ],
+      "appearsAfter": "secondary",
+      "synthetic": true,
+      "label": "Coherence",
+      "name": "Coherence",
+      "titleStory": "How much we can trust it",
+      "titleScientist": "Coherence magnitude (0 to 1)",
+      "hintStory": "Bright means the two radar passes matched well. Dark means the ground changed too much to trust the measurement.",
+      "hintScientist": "Unitless. Cells below the threshold are faded and hatched when masking is on. Synthetic placeholder.",
+      "provenance": {
+        "product": "Synthetic placeholder. Not a measurement.",
+        "method": "A simple shape placed at the real location so the layout can be built before data arrives.",
+        "maturity": "PLACEHOLDER",
+        "measurement": "Coherence, 0 (no signal) to 1 (perfect) (placeholder)"
+      }
+    }
+  ]
+}
