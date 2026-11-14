@@ -151,7 +151,7 @@ export default function MapView(p: Props) {
     map.once('style.load', () => {
       if (cancelled) return
       // keep the focus area clear of the side panel and timeline
-      if (window.innerWidth > 760) map.setPadding({ left: 360, bottom: 150, top: 0, right: 0 })
+      if (window.innerWidth > 760) map.setPadding({ left: 360, bottom: 120, top: 0, right: 0 })
       map.addSource('overlay', { type: 'image', url: TRANSPARENT, coordinates: corners(aoi.bbox) })
       map.addLayer({ id: 'overlay', type: 'raster', source: 'overlay', paint: {
         'raster-opacity': 0, 'raster-fade-duration': 0, 'raster-resampling': 'linear',

@@ -52,6 +52,16 @@ export interface Resource {
   description: string
 }
 
+/** An eruption episode or similar event, drawn as a dot on the timeline. */
+export interface EventMark {
+  name: string
+  shortLabel: string
+  datetime: string
+  /** How long it lasted, in hours. */
+  hours?: number
+  source: string
+}
+
 /** One measured 12-day period of a story (a pair of NISAR passes), with its own displacement grids. */
 export interface Epoch {
   id: string
@@ -103,6 +113,8 @@ export interface Story {
   layers: LayerDef[]
   /** Other measured periods the viewer can switch to. The top-level pair is the featured one. */
   epochs?: Epoch[]
+  /** Every known event (for example all eruption episodes), shown as a row of dots on the timeline. */
+  episodes?: EventMark[]
 }
 
 /** "aevion-grid-v1": see docs/data-contract.md */

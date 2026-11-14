@@ -4,7 +4,7 @@ import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms } from './lib/data'
 import { epochLayer, epochStory, isFeatured } from './lib/epochs'
-import { computeVentMotion, sortEpochs } from './lib/periods'
+import { computeVentMotion, epochFor, sortEpochs } from './lib/periods'
 import { changeProgress } from './lib/progress'
 import { compareToModel } from './lib/physics'
 import { EpochChart, PeriodList, PeriodSwitcher } from './Epochs'
@@ -15,7 +15,7 @@ import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
-import type { Camera, CameraReq, City, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
+import type { Camera, CameraReq, City, EventMark, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
 
 function pickLayer(d: LoadedStory, role: LayerDef['role']) {
   const layer = d.story.layers.find((l) => l.role === role)
@@ -55,6 +55,8 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   const [picking, setPicking] = useState(false)
   const [replay, setReplay] = useState<number | null>(null)
   const [swipe, setSwipe] = useState(false)
+  const [note, setNote] = useState<string | null>(null) // a short message that fades out by itself
+  const noteTimer = useRef(0)
   const [epochId, setEpochId] = useState<string | null>(null) // null = the featured period
   const replayRaf = useRef(0)
   const prevMode = useRef<ViewMode>('los')
@@ -114,8 +116,22 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     if (!featured) setMode((m) => (m === 'hh' || m === 'hv' ? 'los' : m))
   }, [data])
 
+  const flashNote = useCallback((msg: string) => {
+    setNote(msg)
+    window.clearTimeout(noteTimer.current)
+    noteTimer.current = window.setTimeout(() => setNote(null), 5000)
+  }, [])
+  useEffect(() => () => window.clearTimeout(noteTimer.current), [])
+
   const selectedEpochId = data?.story.epochs?.find((e) => (epochId ? e.id === epochId : isFeatured(data.story, e)))?.id ?? ''
   const ventMotion = useMemo(() => (data ? computeVentMotion(data.story, data.epochGrids) : null), [data])
+  // A click on an eruption dot: go to its NISAR period if one was processed, otherwise just go to the date and say so.
+  const onEpisode = useCallback((e: EventMark, t: number) => {
+    const ep = data ? epochFor(data.story, t) : undefined
+    if (ep) selectEpoch(ep.id)
+    setCursor(t)
+    if (!ep) flashNote(`No NISAR period has been processed for ${e.name}, so there is no measured change to show for it.`)
+  }, [data, selectEpoch, flashNote])
   const stepEpoch = useCallback((delta: number) => {
     const rows = data?.story.epochs ? sortEpochs(data.story.epochs) : []
     const i = rows.findIndex((e) => e.id === selectedEpochId)
@@ -292,6 +308,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
       <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
         Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between
       </div>
+      <div className={`replay-chip fade note ${note ? 'on' : ''}`} role="status" aria-hidden={!note}>{note}</div>
       {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={view.displacement} coherence={view.coherence}
@@ -307,7 +324,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
           onNext={() => goTour(Math.min(story.tour!.length - 1, tour + 1))}
           onExit={() => setTour(null)} />
       )}
-      <Timeline data={timelineData} cursor={cursor} setCursor={setCursor} headExtra={periodSwitcher} />
+      <Timeline data={timelineData} cursor={cursor} setCursor={setCursor} headExtra={periodSwitcher} onEpisode={onEpisode} />
     </div>
   )
 }

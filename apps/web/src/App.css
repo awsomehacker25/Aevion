@@ -30,7 +30,7 @@
 
 /* side panel */
 .side {
-  position: absolute; z-index: 4; top: 62px; left: 12px; bottom: 168px; width: 340px;
+  position: absolute; z-index: 4; top: 58px; left: 12px; bottom: calc(var(--tl-h, 124px) + 24px); width: 340px;
   display: flex; flex-direction: column; overflow: hidden;
   border-radius: 14px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px);
 }
@@ -108,19 +108,29 @@
 
 /* timeline */
 .timeline {
-  position: absolute; z-index: 4; left: 12px; right: 12px; bottom: 12px; padding: 12px 18px 10px;
+  position: absolute; z-index: 4; left: 12px; right: 12px; bottom: 12px; padding: 8px 16px 6px;
   border-radius: 14px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px);
 }
-.tl-head { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+.tl-head { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
 .btn { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.06); min-width: 82px; }
 .btn:hover { background: rgba(255,255,255,.12); }
 .tl-date { font-weight: 600; font-variant-numeric: tabular-nums; min-width: 190px; white-space: nowrap; }
 .tl-status { color: var(--muted); font-size: 12.5px; margin-left: auto; text-align: right; }
-.tl-track { position: relative; height: 92px; margin: 0 4px 0 118px; }
-.tl-row { position: absolute; left: 0; right: 0; height: 26px; }
-.tl-passes { top: 4px; border-bottom: 1px dashed var(--line); }
-.tl-quakes { top: 36px; }
-.tl-label { position: absolute; right: calc(100% + 12px); top: 4px; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.tl-track { position: relative; height: 70px; margin: 0 4px 0 118px; }
+.tl-track.rows-0 { height: 44px; }
+.tl-track.rows-0 .tl-axis { top: 26px; }
+.tl-track.rows-0 .tl-event { bottom: 18px; }
+.tl-track.rows-2 { height: 94px; }
+.tl-track.rows-2 .tl-axis { top: 74px; }
+.tl-eps { top: 26px; }
+.tl-track.rows-2 .tl-eps { top: 50px; }
+.edot { position: absolute; top: 11px; width: 10px; height: 10px; padding: 0; transform: translate(-50%, -50%); border-radius: 50%; background: #ff5a4d; border: 1px solid #fff; opacity: .92; cursor: pointer; }
+.edot.alt { background: #ffb066; width: 12px; height: 12px; }
+.edot:hover { opacity: 1; box-shadow: 0 0 0 3px rgba(255, 90, 77, .35); }
+.tl-row { position: absolute; left: 0; right: 0; height: 22px; }
+.tl-passes { top: 2px; border-bottom: 1px dashed var(--line); }
+.tl-quakes { top: 26px; }
+.tl-label { position: absolute; right: calc(100% + 12px); top: 2px; font-size: 11px; color: var(--muted); white-space: nowrap; }
 .pass {
   position: absolute; top: 5px; width: 10px; height: 10px; padding: 0; transform: translateX(-50%) rotate(45deg);
   background: #5b6f9a; border: 0; border-radius: 2px;
@@ -128,16 +138,16 @@
 .pass:hover { background: #9fb4d9; }
 .pass.flag { background: var(--accent); box-shadow: 0 0 0 2px rgba(106,165,255,.35), 0 0 12px var(--accent); width: 13px; height: 13px; top: 3px; }
 .qdot { position: absolute; top: 12px; transform: translate(-50%, -50%); border-radius: 50%; background: #ff8a3d; opacity: .85; border: 1px solid #fff; }
-.tl-axis { position: absolute; left: 0; right: 0; top: 68px; height: 18px; font-size: 11px; color: var(--muted); }
+.tl-axis { position: absolute; left: 0; right: 0; top: 50px; height: 18px; font-size: 11px; color: var(--muted); }
 .tl-axis span { position: absolute; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
-.tl-event { position: absolute; top: 0; bottom: 20px; width: 0; border-left: 1px dashed #ff5a4d; }
+.tl-event { position: absolute; top: 0; bottom: 22px; width: 0; border-left: 1px dashed #ff5a4d; }
 .tl-event span { position: absolute; top: -2px; left: 4px; font-size: 10px; color: #ff7a6d; font-weight: 700; }
 .tl-cursor { position: absolute; top: -4px; bottom: 16px; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 12px rgba(255,255,255,.7); border-radius: 1px; pointer-events: none; }
-.tl-range { position: absolute; left: -8px; right: -8px; top: -6px; width: calc(100% + 16px); height: 82px; margin: 0; opacity: 0; cursor: ew-resize; }
+.tl-range { position: absolute; left: -8px; right: -8px; top: -6px; width: calc(100% + 16px); height: calc(100% + 6px); margin: 0; opacity: 0; cursor: ew-resize; }
 
 /* inspector */
 .inspector {
-  position: absolute; z-index: 4; right: 12px; bottom: 168px; width: 250px; padding: 14px;
+  position: absolute; z-index: 4; right: 12px; bottom: calc(var(--tl-h, 124px) + 24px); width: 250px; padding: 14px;
   border-radius: 14px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px);
 }
 .inspector .x { position: absolute; top: 6px; right: 8px; background: none; border: 0; font-size: 20px; color: var(--muted); }
@@ -155,13 +165,20 @@
 .quake-pop .maplibregl-popup-tip { border-top-color: #0e1626 !important; border-bottom-color: #0e1626 !important; }
 .quake-pop a { color: var(--accent); }
 .maplibregl-ctrl-attrib { font-size: 10px; }
+/* The required map credit: dark to match the app, and sitting just above the timeline instead of half hidden under it.
+   Prefixed with .app so these win over the map library's own stylesheet. */
+.app .maplibregl-ctrl-bottom-right { bottom: calc(var(--tl-h, 124px) + 20px); right: 4px; }
+.app .maplibregl-ctrl-attrib, .app .maplibregl-ctrl-attrib.maplibregl-compact { background: rgba(10, 16, 30, .78); color: #93a3c4; border-radius: 8px; }
+.app .maplibregl-ctrl-attrib a { color: #b9c7e4; }
+.app .maplibregl-ctrl-attrib.maplibregl-compact { border: 1px solid var(--line); }
+.app .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button { filter: invert(1) brightness(1.4); }
 .maplibregl-ctrl-top-right { top: 6px; }
 
 @media (max-width: 760px) {
   .topbar { right: 12px; flex-wrap: wrap; gap: 8px; }
   .status em { display: none; }
-  .side { top: auto; bottom: 176px; width: auto; right: 12px; max-height: 34vh; }
-  .inspector { bottom: 176px; right: 12px; left: 12px; width: auto; }
+  .side { top: auto; bottom: calc(var(--tl-h, 124px) + 32px); width: auto; right: 12px; max-height: 34vh; }
+  .inspector { bottom: calc(var(--tl-h, 124px) + 32px); right: 12px; left: 12px; width: auto; }
   .tl-track { margin-left: 8px; }
   .tl-label { display: none; }
   .tl-status { display: none; }
@@ -214,7 +231,7 @@
 
 /* tour card */
 .tour {
-  position: absolute; z-index: 6; left: calc(50% + 180px); bottom: 172px; transform: translateX(-50%); width: min(440px, calc(100vw - 420px));
+  position: absolute; z-index: 6; left: calc(50% + 180px); bottom: calc(var(--tl-h, 124px) + 28px); transform: translateX(-50%); width: min(440px, calc(100vw - 420px));
   padding: 14px 16px 12px; border-radius: 14px; background: rgba(10,16,30,.92); border: 1px solid var(--accent); backdrop-filter: blur(14px);
   box-shadow: 0 8px 40px rgba(0,0,0,.5);
 }
@@ -247,9 +264,9 @@
 .beach { width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(255,255,255,.85), 0 2px 10px rgba(0,0,0,.6); pointer-events: auto; }
 
 @media (max-width: 760px) {
-  .tour { left: 50%; width: calc(100vw - 24px); bottom: 176px; }
+  .tour { left: 50%; width: calc(100vw - 24px); bottom: calc(var(--tl-h, 124px) + 32px); }
   .replay-chip { left: 50%; white-space: normal; text-align: center; width: calc(100vw - 24px); top: 108px; }
-  .profile-card { left: 12px; right: 12px; width: auto; top: auto; bottom: 176px; }
+  .profile-card { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(var(--tl-h, 124px) + 32px); }
 }
 
 /* story picker */
@@ -318,3 +335,14 @@
 .pmm { flex: none; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--muted); }
 .pmm.pos { color: #ffa65a; } .pmm.neg { color: #6fb3ff; }
 @media (max-width: 760px) { .ps-title, .ps-count { display: none; } .ps-label { max-width: 52vw; } }
+
+/* eruption dots with no processed NISAR period are a dim red (dim orange for the unnumbered events) */
+.edot.none { background: #7a3a3f; border: 1px solid rgba(255, 255, 255, .3); opacity: .85; }
+.edot.alt.none { background: #8a6a4a; }
+.edot.none:hover { opacity: 1; box-shadow: 0 0 0 3px rgba(255, 255, 255, .18); }
+.replay-chip.note { top: 108px; max-width: min(560px, calc(100vw - 420px)); white-space: normal; text-align: center; }
+
+/* The invisible date slider covers the whole track. The marker rows sit above it but let the pointer through,
+   except for the markers themselves, so dots and diamonds can be hovered and clicked while the rest still scrubs. */
+.tl-row { z-index: 3; pointer-events: none; }
+.tl-row .pass, .tl-row .edot, .tl-row .qdot { pointer-events: auto; }

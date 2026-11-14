@@ -3,8 +3,9 @@ import type { ReactNode } from 'react'
 import { BUILD_SECONDS, PLAY_SECONDS } from './config'
 import { fmtDate, ms } from './lib/data'
 import { playhead } from './lib/playhead'
+import { epochFor, periodDates } from './lib/periods'
 import { buildWindow, playClock } from './lib/progress'
-import type { AcquisitionPair, LoadedStory } from './types'
+import type { AcquisitionPair, EventMark, LoadedStory } from './types'
 
 interface Props {
   data: LoadedStory
@@ -12,6 +13,8 @@ interface Props {
   setCursor: (t: number) => void
   /** Extra controls shown in the header, next to the play button (the period switcher). */
   headExtra?: ReactNode
+  /** Called when an eruption dot is clicked, with the moment it refers to. */
+  onEpisode?: (e: EventMark, t: number) => void
 }
 
 interface Pass { t: number; track: number; dir: string; flagship: boolean }
@@ -27,7 +30,7 @@ const MAX_TICKS = 12
 /** Quake marker diameter in px, scaled by magnitude. */
 const quakeSize = (mag: number) => 4 + (mag - 3.5) * 2.6
 
-export default function Timeline({ data, cursor, setCursor, headExtra }: Props) {
+export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode }: Props) {
   const { story, pairs, quakes } = data
   const sensor = story.sensor ?? 'NISAR'
   const start = ms(story.timeline.start)
@@ -39,6 +42,19 @@ export default function Timeline({ data, cursor, setCursor, headExtra }: Props) 
   const cursorRef = useRef(cursor)
   const lineRef = useRef<HTMLDivElement>(null)
   const latestRef = useRef(cursor) // where the animation currently is
+  const boxRef = useRef<HTMLDivElement>(null)
+
+  // Tell the rest of the page how tall the timeline is, so the side panel and cards sit right above it.
+  useLayoutEffect(() => {
+    const el = boxRef.current
+    if (!el) return
+    const set = () => document.documentElement.style.setProperty('--tl-h', `${Math.round(el.getBoundingClientRect().height)}px`)
+    set()
+    const ro = new ResizeObserver(set)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   const clock = useMemo(
     () => playClock(start, end, span / PLAY_SECONDS, buildWindow(story, data.flagship?.secondary), BUILD_SECONDS),
     [start, end, span, story, data.flagship?.secondary],
@@ -117,6 +133,14 @@ export default function Timeline({ data, cursor, setCursor, headExtra }: Props) 
   }, [start, end])
 
   // Static marks are built once, so the frequent re-renders while playing stay cheap.
+  // Eruption episodes (or similar events) that fall inside the visible window.
+  const episodes = useMemo(
+    () => (story.episodes ?? []).map((e) => ({ e, t: ms(e.datetime) })).filter((x) => x.t >= start && x.t <= end),
+    [story.episodes, start, end],
+  )
+  const hasEpisodes = (story.episodes?.length ?? 0) > 0
+  const extraRows = (quakes.features.length > 0 ? 1 : 0) + (hasEpisodes ? 1 : 0)
+
   const marks = useMemo(() => (
     <>
       {passes.length > 0 && <div className="tl-row tl-passes">
@@ -134,6 +158,18 @@ export default function Timeline({ data, cursor, setCursor, headExtra }: Props) 
             title={`M${q.properties.mag} · ${q.properties.place}`} />
         ))}
       </div>}
+      {hasEpisodes && <div className="tl-row tl-eps">
+        <span className="tl-label">Eruptions (HVO)</span>
+        {episodes.map(({ e, t }) => {
+          const ep = epochFor(story, t) // the processed NISAR period this event falls in, if any
+          return (
+            <button key={e.datetime} className={`edot ${e.name.startsWith('Episode') ? '' : 'alt'} ${ep ? '' : 'none'}`} style={{ left: pct(t) }}
+              title={`${e.name} · ${new Date(t).toLocaleString('en-US', { timeZone: 'Pacific/Honolulu', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} HST${e.hours ? ` · about ${e.hours} hours` : ''} · ${e.source}${ep ? ` · NISAR period ${periodDates(ep)} (click to view)` : ' · no NISAR period processed for this one'}`}
+              onClick={() => { setPlaying(false); if (onEpisode) onEpisode(e, t); else setCursor(t) }}
+              aria-label={`${e.name}, ${fmtDate(t)}${ep ? '' : ', no NISAR period processed'}`} />
+          )
+        })}
+      </div>}
       <div className="tl-axis">
         {ticks.times.map((t) => (
           <span key={t} style={{ left: pct(t) }}>{new Date(t).toLocaleDateString('en-US', ticks.monthly ? { month: 'short', year: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
@@ -142,7 +178,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra }: Props) 
       {story.event && <div className="tl-event" style={{ left: pct(ms(story.event.datetime)) }}><span>{story.event.shortLabel}</span></div>}
     </>
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [passes, quakes, ticks, story.event, start, span, setCursor])
+  ), [passes, quakes, episodes, hasEpisodes, story, ticks, start, span, setCursor, onEpisode])
 
   const sec = ms(story.flagshipPair.secondary + 'T00:00:00Z')
   const ref = ms(story.flagshipPair.reference + 'T00:00:00Z')
@@ -152,7 +188,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra }: Props) 
     : `Showing ${sensor} change between ${fmtDate(ref)} and ${fmtDate(sec)}.`
 
   return (
-    <div className="timeline" role="group" aria-label="Timeline">
+    <div className="timeline" role="group" aria-label="Timeline" ref={boxRef}>
       <div className="tl-head">
         <button className="btn" onClick={() => {
           if (playing) { setCursor(latestRef.current); setPlaying(false); return } // keep the exact paused time
@@ -166,7 +202,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra }: Props) 
         <div className="tl-status">{status}</div>
       </div>
 
-      <div className="tl-track">
+      <div className={`tl-track rows-${extraRows}`}>
         {marks}
         <div className="tl-cursor" ref={lineRef} />
         <input className="tl-range" type="range" min={start} max={end} step={HOUR_MS} value={cursor}

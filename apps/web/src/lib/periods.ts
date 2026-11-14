@@ -25,6 +25,11 @@ export function computeVentMotion(story: Story, grids?: Record<string, { deforma
 export const periodTitle = (e: Epoch) =>
   e.event ? (e.event.name.startsWith('Episode') ? e.event.name : e.event.shortLabel) : 'Quiet'
 
+/** The processed period whose two NISAR passes surround a moment, if there is one. */
+export function epochFor(story: Story, t: number): Epoch | undefined {
+  return story.epochs?.find((e) => t >= Date.parse(`${e.pair.reference}T00:00:00Z`) && t <= Date.parse(`${e.pair.secondary}T00:00:00Z`))
+}
+
 /** "Aug 18 – Aug 30" */
 export const periodDates = (e: Epoch) => e.label.replace(' to ', ' \u2013 ')
 

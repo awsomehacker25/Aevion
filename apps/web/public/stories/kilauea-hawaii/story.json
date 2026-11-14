@@ -529,5 +529,161 @@
       "deformation": "epochs/ep-2026-10-05.deformation.grid.json",
       "coherence": "epochs/ep-2026-10-05.coherence.grid.json"
     }
+  ],
+  "episodes": [
+    {
+      "name": "Episode 36",
+      "shortLabel": "Ep. 36",
+      "datetime": "2025-11-09T21:15:00Z",
+      "hours": 5,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 37",
+      "shortLabel": "Ep. 37",
+      "datetime": "2025-11-26T00:30:00Z",
+      "hours": 9,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 38",
+      "shortLabel": "Ep. 38",
+      "datetime": "2025-12-06T18:45:00Z",
+      "hours": 12,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 39",
+      "shortLabel": "Ep. 39",
+      "datetime": "2025-12-24T06:10:00Z",
+      "hours": 6,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 40",
+      "shortLabel": "Ep. 40",
+      "datetime": "2026-01-12T18:22:00Z",
+      "hours": 10,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 41",
+      "shortLabel": "Ep. 41",
+      "datetime": "2026-01-24T21:10:00Z",
+      "hours": 8,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 42",
+      "shortLabel": "Ep. 42",
+      "datetime": "2026-02-15T23:50:00Z",
+      "hours": 10,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 43",
+      "shortLabel": "Ep. 43",
+      "datetime": "2026-03-10T19:17:00Z",
+      "hours": 9,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 44",
+      "shortLabel": "Ep. 44",
+      "datetime": "2026-04-09T21:10:00Z",
+      "hours": 8.5,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 45",
+      "shortLabel": "Ep. 45",
+      "datetime": "2026-04-23T11:34:00Z",
+      "hours": 8.5,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 46",
+      "shortLabel": "Ep. 46",
+      "datetime": "2026-05-05T18:17:00Z",
+      "hours": 9,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 47",
+      "shortLabel": "Ep. 47",
+      "datetime": "2026-05-15T01:27:00Z",
+      "hours": 9,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 48",
+      "shortLabel": "Ep. 48",
+      "datetime": "2026-06-01T14:40:00Z",
+      "hours": 9,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 49",
+      "shortLabel": "Ep. 49",
+      "datetime": "2026-06-14T19:36:00Z",
+      "hours": 7.5,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 50",
+      "shortLabel": "Ep. 50",
+      "datetime": "2026-06-27T20:10:00Z",
+      "hours": 7,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 51",
+      "shortLabel": "Ep. 51",
+      "datetime": "2026-07-15T18:30:00Z",
+      "hours": 8,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 52",
+      "shortLabel": "Ep. 52",
+      "datetime": "2026-07-29T05:10:00Z",
+      "hours": 7,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 53",
+      "shortLabel": "Ep. 53",
+      "datetime": "2026-08-13T01:45:00Z",
+      "hours": 10,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 54",
+      "shortLabel": "Ep. 54",
+      "datetime": "2026-08-25T20:30:00Z",
+      "hours": 9,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Unnumbered new-vents event",
+      "shortLabel": "New vents",
+      "datetime": "2026-09-15T06:36:00Z",
+      "hours": 48,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Unnumbered caldera intrusion",
+      "shortLabel": "Intrusion",
+      "datetime": "2026-10-01T00:00:00Z",
+      "hours": 14,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    },
+    {
+      "name": "Episode 55",
+      "shortLabel": "Ep. 55",
+      "datetime": "2026-10-17T13:19:00Z",
+      "hours": 6,
+      "source": "USGS HVO eruption timeline (to be verified)"
+    }
   ]
 }
