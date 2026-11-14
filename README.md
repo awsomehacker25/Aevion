@@ -1,2 +1,3 @@
-# Ignis
-A NISAR-powered wildfire digital twin (NASA Space Apps 2026: Dancing with the SARs)
+# Aevion
+
+A NISAR-powered Earth change twin. Built for NASA Space Apps 2026: Dancing with the SARs.
