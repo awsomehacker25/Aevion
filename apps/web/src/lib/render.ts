@@ -71,6 +71,7 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
   const img = ctx.createImageData(W, H)
   const [lo, hi] = o.range
   const half = Math.max(Math.abs(lo), Math.abs(hi))
+  const feather = Math.max(4, Math.round(Math.min(W, H) * 0.05))
 
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
@@ -85,7 +86,8 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
       if (o.mode === 'los') {
         const t = d / half // -1..1
         rgb = ramp(DIVERGING, (t + 1) / 2)
-        a = 0.22 + 0.7 * Math.pow(Math.min(1, Math.abs(t)), 0.55)
+        // Near-zero motion is fully transparent so the imagery shows through; only real motion gets color.
+        a = 0.92 * Math.pow(smooth(0.03, 0.25, Math.abs(t)), 0.7)
       } else if (o.mode === 'fringes') {
         const phase = (((d / (LAMBDA / 2)) % 1) + 1) % 1
         rgb = hsl(phase * 360, 0.85, 0.52)
@@ -95,12 +97,15 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
         a = 0.85
       }
       if (o.fadeLow && o.mode !== 'coherence') {
+        // Very low coverage is speckle: hide it. Moderately low coverage is faded and hatched.
+        if (c < o.threshold * 0.5) continue
         a *= smooth(o.threshold - 0.12, o.threshold + 0.04, c)
-        if (c < o.threshold && (x + y) % 10 < 2) { // hatching over unreliable areas
+        if (c < o.threshold && (x + y) % 10 < 2) {
           rgb = [235, 235, 235]
-          a = Math.max(a, 0.32)
+          a = Math.max(a, 0.22)
         }
       }
+      a *= smooth(0, feather, Math.min(x, y, W - 1 - x, H - 1 - y)) // soft edges, no visible box
       const i = (y * W + x) * 4
       img.data[i] = rgb[0]
       img.data[i + 1] = rgb[1]
