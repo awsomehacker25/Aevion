@@ -14,7 +14,9 @@ $browser = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $browser) { throw "Edge or Chrome not found." }
 
 $uri = ([System.Uri]$html).AbsoluteUri
-& $browser --headless=new --disable-gpu --no-pdf-header-footer "--print-to-pdf=$pdf" $uri | Out-Null
+$ErrorActionPreference = "Continue"  # Edge/Chrome write harmless warnings to stderr
+& $browser --headless=new --disable-gpu --no-pdf-header-footer "--print-to-pdf=$pdf" $uri 2>&1 | Out-Null
+$ErrorActionPreference = "Stop"
 Start-Sleep -Seconds 2
 if (-not (Test-Path $pdf)) { throw "PDF was not created." }
 Write-Host "Wrote $pdf"

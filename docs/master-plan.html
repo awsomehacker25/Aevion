@@ -72,7 +72,7 @@
 <p class="sub">A NISAR-powered Earth change twin for NASA Space Apps 2026, challenge: Dancing with the SARs.</p>
 
 <div class="meta">
-  <span><b>Version</b> 1.0</span>
+  <span><b>Version</b> 1.1</span>
   <span><b>Last updated</b> 2026-11-10</span>
   <span><b>Event</b> Nov 14&ndash;15, 2026 (confirm on the official site)</span>
   <span><b>Repo</b> github.com/awsomehacker25/Aevion (private)</span>
@@ -150,6 +150,7 @@
   <li>We can actually download a small subset of one granule and read it (earthaccess or asf_search plus xarray/h5netcdf/rasterio).</li>
   <li>Space Apps 2026 dates and rules confirmed, including what work is allowed before the event starts.</li>
   <li>A GCOV area of interest identified for the second story, with at least two usable acquisitions.</li>
+  <li>Search NISAR coverage over Washington State (Seattle/Bellevue region and the Cascades) for the local story, and shortlist one event with usable pre and post passes (see <a href="#local">Local story</a>).</li>
   <li>Fallback decided (see below) in case the Venezuela pair is not usable.</li>
 </ul>
 <h3>Fallback ladder</h3>
@@ -174,11 +175,27 @@
   <tr><td>Static fallback bundle and backup demo video</td><td><span class="tag t-must">MUST</span></td></tr>
   <tr><td>Satellite line-of-sight explainer widget</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
   <tr><td>Optional exaggerated 3D mode (labeled illustrative)</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
-  <tr><td>Second story: GCOV change (wetland, or fire disturbance)</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
+  <tr><td>Second story: local Seattle/Bellevue GCOV change (see Local story)</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
   <tr><td>Globe landing page with story markers</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
   <tr><td>Glacier vectors, volcano time-lapse</td><td><span class="tag t-stretch">STRETCH</span></td></tr>
   <tr><td>User-selected area, live global processing, S-band comparison, what-if scenario engine, fire-spread simulation</td><td><span class="tag t-cut">CUT</span></td></tr>
 </table>
+
+<h3 id="local">Local story: Seattle / Bellevue, WA (second story candidate)</h3>
+<p>The challenge encourages using a familiar study area and personal context. Our team community is in the Seattle/Bellevue area, so the second story should be local if NISAR data supports it. It stays a <span class="tag t-stretch">STRETCH</span> and never delays the flagship.</p>
+<table>
+  <tr><th>Candidate</th><th>NISAR product</th><th>Validate against</th><th>Notes</th></tr>
+  <tr><td>Wildfire burn scar east of the Cascades</td><td>GCOV backscatter</td><td>Official fire perimeters, FIRMS, optical burn imagery</td><td>Label as &ldquo;radar-observed disturbance likelihood&rdquo;.</td></tr>
+  <tr><td>River flooding and wetlands (Skagit, Snohomish valleys)</td><td>GCOV backscatter</td><td>Optical water observations when cloud-free, official flood extents</td><td>Easiest to implement. Needs an event that NISAR actually covered.</td></tr>
+  <tr><td>Glacier or volcano change (Rainier, North Cascades)</td><td>GCOV, or GOFF/GUNW if coherent</td><td>Published velocity or elevation products</td><td>Snow and steep terrain reduce coherence. Check feasibility first.</td></tr>
+  <tr><td>Landslide-prone slopes and Puget Sound bluffs</td><td>GCOV or GUNW</td><td>WA DNR / USGS landslide inventories</td><td>Small, fast changes are hard for SAR to see. Lowest confidence.</td></tr>
+</table>
+<ul>
+  <li><b>Choose by data, not preference.</b> Pick whichever candidate has the best NISAR pre/event/post coverage at Gate 0.</li>
+  <li><b>Be realistic about Seattle itself.</b> Slow tectonic motion in the urban area is only millimeters per year and won&rsquo;t make a good demo.</li>
+  <li><b>Use local knowledge for validation and context:</b> regional GNSS stations, state and county hazard maps, and place-based storytelling in the pitch.</li>
+  <li>The same badges, provenance and uncertainty treatment apply as in the flagship.</li>
+</ul>
 
 <h2 id="science">5. Science rules</h2>
 <h3>Layer badges</h3>
@@ -346,13 +363,14 @@ processing_timestamp, method, units, sign_convention</pre>
   <li>Does the Venezuela pair pass Gate 0? If not, which fallback?</li>
   <li>Is pre-event coding allowed under the 2026 rules?</li>
   <li>Cesium ion token or self-hosted terrain? (Check free-tier limits.)</li>
-  <li>Second story: wetland flood or wildfire disturbance?</li>
+  <li>Second story: which local (Seattle/Bellevue region) candidate has real NISAR coverage? Wetland flood, wildfire, glacier or landslide?</li>
   <li>Where do we host the live demo, and who owns the backup machine?</li>
 </ul>
 
 <h2 id="changelog">14. Changelog</h2>
 <table>
   <tr><th>Version</th><th>Date</th><th>Change</th></tr>
+  <tr><td>1.1</td><td>2026-11-10</td><td>Added the local Seattle/Bellevue story as the preferred second-story direction, with candidates, validation sources, a Gate 0 coverage check, and an updated open question.</td></tr>
   <tr><td>1.0</td><td>2026-11-10</td><td>First master plan. Merged the three source plans, chose the SARs blueprint as the base, added Gate 0, fallback ladder, LOS caveat, hour-12 renderer checkpoint, and static-first deployment.</td></tr>
 </table>
 
