@@ -18,6 +18,23 @@ export interface LayerDef {
   appearsAfter?: 'secondary'
   synthetic: boolean
   provenance: Record<string, string>
+  /** Optional wording overrides, so a layer that is not interferometric coherence can say what it is. */
+  label?: string
+  /** What positive and negative values mean physically (used in the inspector sentence). */
+  positiveMeans?: string
+  negativeMeans?: string
+  titleStory?: string
+  titleScientist?: string
+  hintStory?: string
+  hintScientist?: string
+}
+
+export interface Resource {
+  group: 'learn' | 'data' | 'partner'
+  audience: 'story' | 'scientist' | 'both'
+  title: string
+  url: string
+  description: string
 }
 
 export interface Story {
@@ -26,12 +43,15 @@ export interface Story {
   subtitle: string
   dataStatus: DataStatus
   dataStatusNote: string
+  /** Short text next to the status pill, per mode. */
+  statusDetail?: { story: string; scientist: string }
   storyText: string
   /** Optional text shown in Scientist mode instead of the plain-language story. */
   technical?: { title: string; subtitle?: string; summary: string; caveats?: string[] }
   aoi: { bbox: [number, number, number, number]; center: [number, number]; zoom: number; pitch: number; bearing: number }
   timeline: { start: string; end: string; initial: string }
   event: { name: string; shortLabel: string; datetime: string; source: string }
+  resources?: Resource[]
   flagshipPair: { track: number; orbitDirection: string; reference: string; secondary: string }
   acquisitions: string
   events: string
@@ -48,7 +68,8 @@ export interface Grid {
   bbox: [number, number, number, number]
   rowOrder: 'north-up'
   nodata: number | null
-  values: number[]
+  /** null (or the nodata value) marks cells with no valid measurement. */
+  values: (number | null)[]
 }
 
 export interface AcquisitionPair {

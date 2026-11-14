@@ -4,30 +4,26 @@
   "subtitle": "Venezuela earthquakes, June 2026",
   "technical": {
     "title": "Coseismic LOS displacement, northern Venezuela",
-    "subtitle": "NISAR L-band repeat-pass InSAR, 2026-06-24 M7.2 and M7.5",
-    "summary": "Coseismic LOS displacement from a NISAR L-band (λ ≈ 23.8 cm) interferogram, 12-day baseline (2026-06-13 to 06-25) spanning the M7.2 and M7.5 events (USGS). Unwrapped phase is converted to meters (d = φλ/4π) and masked by coherence. LOS is a projection of 3D motion, so one geometry cannot separate vertical from horizontal.",
+    "subtitle": "ARIA map from NISAR L-band InSAR, 2026-06-24 M7.2 and M7.5",
+    "summary": "Coseismic LOS displacement from NASA JPL's ARIA map of a NISAR L-band (λ = 24.2 cm) interferogram, 12-day baseline (2026-06-13 to 06-25) spanning the M7.2 and M7.5 events (USGS). Unwrapped, ionosphere-corrected, deramped and water-masked; shown in meters (source in cm). LOS is relative to an unknown reference, so one geometry cannot separate vertical from horizontal.",
     "caveats": [
-      "Layers are synthetic placeholders (four-lobe pattern at the USGS epicenters), not measured deformation.",
-      "Phase is relative to an arbitrary reference point until a stable area is chosen.",
-      "Near-rupture gradients can cause unwrapping errors and decorrelation. Mask, do not interpret.",
-      "Ionospheric and tropospheric phase are not removed.",
-      "Polarization (HH) and sign convention need confirming on the real granule."
+      "The ARIA map is not yet validated by NASA and is guidance only. It may be less reliable over snow and vegetation.",
+      "LOS values are relative to an unknown reference level, so absolute offsets are not meaningful.",
+      "Left-looking ascending geometry, about 40 degrees from vertical toward the west-southwest. Positive = away from the satellite is inferred from NASA's description. NASA notes the motion was mostly horizontal.",
+      "Measurement coverage is derived by Aevion (share of valid cells in a 7 by 7 window). It is not interferometric coherence.",
+      "Exported at about 590 m per cell from a 30 m source, so fine detail is lost."
     ]
   },
-  "dataStatus": "placeholder",
-  "dataStatusNote": "Deformation and coherence layers are synthetic placeholders in the final data format. Earthquake locations and NISAR acquisition dates are real. Replace the grid files and set dataStatus to \"provisional\" or \"validated\" when real NISAR products are processed.",
-  "storyText": "On June 24, 2026, a magnitude 7.2 and a magnitude 7.5 earthquake struck northern Venezuela within a minute of each other. NISAR flew over this area on June 13 and again on June 25. Comparing those two radar passes shows how far the ground moved along the satellite's line of sight.",
+  "dataStatus": "provisional",
+  "dataStatusNote": "Ground motion is NASA JPL's ARIA line-of-sight displacement map made from the NISAR pair (not yet validated by NASA, relative to an unknown reference). The coverage layer is derived by Aevion from where that map has valid data. Earthquakes are from USGS and NISAR pass dates from NASA CMR.",
+  "statusDetail": {
+    "story": "NASA JPL ground-motion map from NISAR, not yet validated",
+    "scientist": "ARIA LOS map (NISAR GUNW pair), not yet validated; coverage derived by Aevion"
+  },
+  "storyText": "On June 24, 2026, a magnitude 7.2 and a magnitude 7.5 earthquake struck northern Venezuela within a minute of each other. NISAR flew over on June 13 and again on June 25. NASA's JPL compared those two radar passes to measure how far the ground moved along the satellite's line of sight, and this is their map.",
   "aoi": {
-    "bbox": [
-      -69.4,
-      9.6,
-      -66.4,
-      11.3
-    ],
-    "center": [
-      -67.9,
-      10.45
-    ],
+    "bbox": [-69.4, 9.6, -66.4, 11.3],
+    "center": [-67.9, 10.45],
     "zoom": 8.3,
     "pitch": 62,
     "bearing": -18
@@ -51,64 +47,83 @@
   },
   "acquisitions": "acquisitions.json",
   "events": "usgs-events.geojson",
+  "resources": [
+    { "group": "learn", "audience": "story", "title": "NISAR StoryMaps", "url": "https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/", "description": "Interactive stories on floods, wildfires, subsidence, oil slicks and glacier motion." },
+    { "group": "learn", "audience": "story", "title": "Intro to Synthetic Aperture Radar", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar", "description": "How radar frequency, wavelength and polarization work." },
+    { "group": "learn", "audience": "story", "title": "Intro to Remote Sensing", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing", "description": "The basics of satellite data and resolution." },
+    { "group": "learn", "audience": "story", "title": "NASA ARSET trainings", "url": "https://appliedsciences.nasa.gov/get-involved/training", "description": "Free online courses, including SAR and NISAR (English and Spanish)." },
+    { "group": "learn", "audience": "story", "title": "NISAR applications white papers", "url": "https://nisar.jpl.nasa.gov/applications/societal-benefit/", "description": "Two-page overviews of how NISAR data helps society." },
+    { "group": "learn", "audience": "story", "title": "UAVSAR postcards", "url": "https://uavsar.jpl.nasa.gov/education/postcards.html", "description": "Airborne radar images of Earth processes." },
+    { "group": "data", "audience": "scientist", "title": "Source: ARIA displacement maps (NASA Disasters portal)", "url": "https://gis.earthdata.nasa.gov/portal/home/item.html?id=1d972eab2bbd4098af71c0c61db083fc", "description": "The public image service this story's ground motion comes from. Credit: NASA-JPL/Caltech, NISAR Operations Science Team." },
+    { "group": "data", "audience": "scientist", "title": "NISAR collection (Earthdata Search)", "url": "https://search.earthdata.nasa.gov/search/granules?p=C2854335566-ASF", "description": "NISAR_L2_GUNW_PROVISIONAL_V1, the raw interferograms. Downloading needs a free Earthdata Login." },
+    { "group": "data", "audience": "scientist", "title": "ASF Data Search (Vertex)", "url": "https://search.asf.alaska.edu/", "description": "Search and download NISAR granules from the NASA SAR archive." },
+    { "group": "data", "audience": "scientist", "title": "NISAR Data User Guide", "url": "https://nisar-docs.asf.alaska.edu/", "description": "Product specs, known issues and access methods." },
+    { "group": "data", "audience": "scientist", "title": "GUNW product guide", "url": "https://nisar-docs.asf.alaska.edu/gunw/", "description": "Layers and conventions of the interferogram product." },
+    { "group": "data", "audience": "scientist", "title": "NASA Earthdata Search", "url": "https://search.earthdata.nasa.gov/search", "description": "Discover and compare NASA Earth science datasets." },
+    { "group": "partner", "audience": "scientist", "title": "RADARSAT Constellation Mission data (CSA)", "url": "https://donnees-data.asc-csa.gc.ca/en/dataset/rcm", "description": "Canadian C-band SAR, open data for comparison." },
+    { "group": "partner", "audience": "scientist", "title": "SAR Python tutorial (CSA)", "url": "https://github.com/asc-csa/Synthetic_Aperture_Radar_Tutorial", "description": "Working with SAR imagery in Python and QGIS." },
+    { "group": "partner", "audience": "scientist", "title": "RADARSAT-1 data (CSA)", "url": "https://donnees-data.asc-csa.gc.ca/en/dataset/radarsat1", "description": "1995 onward archive under an open license." },
+    { "group": "partner", "audience": "scientist", "title": "SAOCOM catalogue (CONAE)", "url": "https://catalogos.conae.gov.ar/catalogo/catalogoSatSaocomInfo.html", "description": "Argentine L-band SAR catalogue. Registration required." },
+    { "group": "partner", "audience": "scientist", "title": "SAOCOM registration", "url": "https://www.argentina.gob.ar/noticias/la-informacion-saocom-cada-vez-mas-accesible", "description": "How to register for SAOCOM data access." }
+  ],
   "layers": [
     {
       "id": "deformation",
       "role": "displacement",
       "name": "Ground motion (line of sight)",
-      "badge": "OBSERVED",
+      "badge": "DERIVED",
       "grid": "deformation.grid.json",
       "units": "m",
       "displayUnits": "cm",
       "displayScale": 100,
-      "range": [
-        -0.5,
-        0.5
-      ],
+      "range": [-0.3, 0.3],
       "appearsAfter": "secondary",
-      "synthetic": true,
+      "synthetic": false,
+      "positiveMeans": "away from the satellite",
+      "negativeMeans": "toward the satellite",
+      "hintStory": "Orange means the ground moved away from the satellite, blue means toward it. The satellite looks west-southwest, so orange is roughly westward motion.",
+      "hintScientist": "LOS displacement in meters. Positive = range increase (away from the satellite), per NASA's description and the left-looking ascending geometry. Relative to an unknown reference.",
       "provenance": {
         "mission": "NISAR (NASA-ISRO)",
         "band": "L-band",
-        "product": "L2 GUNW (geocoded unwrapped interferogram)",
-        "shortName": "NISAR_L2_GUNW_PROVISIONAL_V1",
-        "maturity": "PROVISIONAL",
-        "polarization": "HH",
+        "product": "ARIA line-of-sight displacement map, derived from a NISAR L2 GUNW interferogram",
+        "producedBy": "NASA JPL / Caltech ARIA team, NISAR Operations Science Team",
+        "rasterName": "NISAR_GUNW_20260613_20260625_unw_deIon_deRamp_maskWater_cm-crop2",
+        "service": "NASA Disasters Mapping Portal image service (public)",
+        "maturity": "PROVISIONAL (source GUNW); the map itself is not yet validated",
         "referenceDate": "2026-06-13",
         "secondaryDate": "2026-06-25",
-        "measurement": "Radar line-of-sight displacement",
-        "signConvention": "Positive = toward the satellite (to be verified against the real product)",
-        "method": "Unwrapped phase x wavelength / (4 pi), reference point removed",
-        "note": "Currently a synthetic placeholder."
+        "measurement": "Radar line-of-sight displacement, relative to an unknown reference level",
+        "signConvention": "Positive = away from the satellite. NASA: red = toward the west, blue = toward the east. The satellite looks west-southwest (ascending, left-looking), so westward is away. Inferred; not independently verified.",
+        "geometry": "Track 162 ascending, left-looking, frame 006 (and 007), HH, about 40 degrees from vertical, 80 m posting, EPSG:32619 (verified in the downloaded granule)",
+        "wavelength": "0.242 m (center frequency 1.239 GHz, read from the granule)",
+        "rawGranuleCheck": "The raw granule (frame 006, about 7.6 to 10.2 N) was downloaded and opens correctly. It lies mostly south of the ruptures, where the ARIA signal is only a few cm, so it could not validate the map's amplitude or sign.",
+        "method": "Unwrapped, ionosphere removed, deramped, water masked (per product name). Aevion exports about 590 m cells with nearest-neighbor sampling, drops cells outside the service's published range, converts cm to m.",
+        "license": "NASA data, free to use. Research-grade, not for operational use."
       }
     },
     {
-      "id": "coherence",
+      "id": "coverage",
       "role": "coherence",
-      "name": "Measurement confidence (coherence)",
-      "badge": "OBSERVED",
-      "grid": "coherence.grid.json",
+      "name": "Measurement coverage",
+      "label": "Coverage",
+      "badge": "DERIVED",
+      "grid": "coverage.grid.json",
       "units": "1",
       "displayUnits": "",
       "displayScale": 1,
-      "range": [
-        0,
-        1
-      ],
+      "range": [0, 1],
       "appearsAfter": "secondary",
-      "synthetic": true,
+      "synthetic": false,
+      "titleStory": "How complete the measurement is",
+      "titleScientist": "Valid-data coverage (0 to 1)",
+      "hintStory": "Bright means the map has solid data around this spot. Dark means there are gaps nearby, so be careful.",
+      "hintScientist": "Share of valid cells in a 7 by 7 window (about 4 km). Derived by Aevion from the map's gaps. It is not interferometric coherence, which this public map does not include.",
       "provenance": {
-        "mission": "NISAR (NASA-ISRO)",
-        "band": "L-band",
-        "product": "L2 GUNW coherence magnitude",
-        "shortName": "NISAR_L2_GUNW_PROVISIONAL_V1",
-        "maturity": "PROVISIONAL",
-        "polarization": "HH",
-        "referenceDate": "2026-06-13",
-        "secondaryDate": "2026-06-25",
-        "measurement": "Interferometric coherence, 0 (unreliable) to 1 (reliable)",
-        "method": "Product layer, used as the confidence mask",
-        "note": "Currently a synthetic placeholder."
+        "product": "Derived by Aevion from the displacement map's valid cells",
+        "method": "Mean of the valid-cell mask over a 7 by 7 window",
+        "measurement": "Local data completeness, 0 (no valid data nearby) to 1 (fully covered)",
+        "maturity": "DERIVED from a provisional product"
       }
     }
   ]

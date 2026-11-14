@@ -72,7 +72,7 @@
 <p class="sub">A NISAR-powered Earth change twin for NASA Space Apps 2026, challenge: Dancing with the SARs.</p>
 
 <div class="meta">
-  <span><b>Version</b> 1.2</span>
+  <span><b>Version</b> 1.5</span>
   <span><b>Last updated</b> 2026-11-10</span>
   <span><b>Event</b> Nov 14&ndash;15, 2026 (confirm on the official site)</span>
   <span><b>Repo</b> github.com/awsomehacker25/Aevion (private)</span>
@@ -160,7 +160,8 @@
   <tr><td>NISAR products exist in the catalog</td><td><span class="tag t-must">CONFIRMED</span> NASA CMR lists BETA, PROVISIONAL and VALIDATED collections, including <code>NISAR_L2_GUNW_PROVISIONAL_V1</code>.</td></tr>
   <tr><td>The June 13 to June 25 pair exists</td><td><span class="tag t-must">CONFIRMED</span> Provisional GUNW granules for track 162 ascending, reference 2026-06-13, secondary 2026-06-25. The GUNW product naming also shows a descending track 155 acquisition at 2026-06-24 23:10 UTC, about an hour after the quake (reference only; no coseismic pair yet).</td></tr>
   <tr><td>Validated GUNW over the area</td><td><span class="tag t-cut">NONE YET</span> Zero granules for <code>NISAR_L2_GUNW_V1</code> and <code>_BETA_V1</code> over the area in that window.</td></tr>
-  <tr><td>Download and read a real granule</td><td><span class="tag t-stretch">OPEN</span> Needs Earthdata Login. Not done.</td></tr>
+  <tr><td>Real ground-motion data in the app</td><td><span class="tag t-must">DONE</span> Using NASA JPL's ARIA LOS displacement map (public image service), which NASA describes as derived from the NISAR 2026-06-13 to 06-25 pair, not yet validated and relative to an unknown reference.</td></tr>
+  <tr><td>Download and read a real granule</td><td><span class="tag t-must">DONE</span> The frame 006 granule (2.2 GB) was downloaded with an Earthdata account and opens correctly. It lies south of the ruptures; frame 007 (north) was not downloaded. See <code>docs/data-sources.md</code>.</td></tr>
   <tr><td>Event rules on pre-event work</td><td><span class="tag t-stretch">OPEN</span> The prototype in <code>apps/web</code> was built with synthetic placeholder data. Confirm that is acceptable before the event.</td></tr>
 </table>
 <h3>Fallback ladder</h3>
@@ -380,6 +381,9 @@ processing_timestamp, method, units, sign_convention</pre>
 <h2 id="changelog">14. Changelog</h2>
 <table>
   <tr><th>Version</th><th>Date</th><th>Change</th></tr>
+  <tr><td>1.5</td><td>2026-11-13</td><td>Downloaded and inspected the raw GUNW granule (frame 006). Confirmed geometry (ascending, left-looking, HH, 80 m) and corrected the wavelength to 24.2 cm from the file. Corrected the sign convention to positive = away from the satellite (inferred from NASA's description and the geometry). Found that frame 006 lies south of the ruptures, so it could not validate the ARIA map; frame 007 would be needed.</td></tr>
+  <tr><td>1.4</td><td>2026-11-13</td><td>Switched the app's ground motion from placeholder to real data: NASA JPL's public ARIA displacement map for the NISAR 2026-06-13 to 06-25 pair (no login, under 1 MB for our area instead of the 2.2 GB granule). Added <code>fetch_aria_displacement.py</code>. Coherence is replaced by an Aevion-derived measurement coverage layer because the public map has no coherence. Badges and provenance updated; data status is provisional.</td></tr>
+  <tr><td>1.3</td><td>2026-11-13</td><td>Added the official challenge resource list to the app (Learn more in Story mode, Data and documentation plus other SAR missions in Scientist mode), a data sources doc, and an untested granule download script. Confirmed all NISAR files require Earthdata Login.</td></tr>
   <tr><td>1.2</td><td>2026-11-10</td><td>Built the first prototype (<code>apps/web</code>, MapLibre 3D terrain, timeline, inspector, fringes and confidence views) on placeholder grids in a swappable story format. Recorded Gate 0 progress: earthquakes and the June 13/25 provisional GUNW pair confirmed in public catalogs. Renderer set to MapLibre for now.</td></tr>
   <tr><td>1.1</td><td>2026-11-10</td><td>Added the local Seattle/Bellevue story as the preferred second-story direction, with candidates, validation sources, a Gate 0 coverage check, and an updated open question.</td></tr>
   <tr><td>1.0</td><td>2026-11-10</td><td>First master plan. Merged the three source plans, chose the SARs blueprint as the base, added Gate 0, fallback ladder, LOS caveat, hour-12 renderer checkpoint, and static-first deployment.</td></tr>

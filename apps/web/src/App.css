@@ -76,6 +76,15 @@
 .inspector.sci .prov th { width: 38%; }
 .inspector.sci .big, .side.sci .mono, .inspector.sci .coords { font-family: Consolas, 'SF Mono', Menlo, monospace; }
 
+/* resource links */
+.res { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 6px; }
+.res summary { cursor: pointer; padding: 8px 0; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.res ul { list-style: none; margin: 0 0 6px; padding: 0; }
+.res li { display: flex; flex-direction: column; gap: 1px; padding: 5px 0; font-size: 13px; }
+.res a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.res a:hover { text-decoration: underline; }
+.res li span { color: var(--muted); font-size: 12px; line-height: 1.35; }
+
 /* badges */
 .badges { display: inline-flex; gap: 5px; flex-wrap: wrap; }
 .badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; color: #fff; white-space: nowrap; }

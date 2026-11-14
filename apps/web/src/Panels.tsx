@@ -1,6 +1,6 @@
 import { LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
-import type { AcquisitionPair, DataStatus, Grid, LayerDef, Story, ViewMode } from './types'
+import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
 
@@ -28,8 +28,10 @@ export function TopBar({ story, ui, setUi }: { story: Story; ui: UiMode; setUi: 
       <div className={`status s-${story.dataStatus}`} title={story.dataStatusNote}>
         <span className="dot" />
         {STATUS_LABEL[story.dataStatus]}
-        {story.dataStatus === 'placeholder' && (
-          <em> &middot; {sci ? 'LOS and coherence grids are synthetic; USGS events and CMR pass dates are real' : 'ground motion is synthetic, earthquakes and pass dates are real'}</em>
+        {(story.statusDetail || story.dataStatus === 'placeholder') && (
+          <em> &middot; {story.statusDetail
+            ? (sci ? story.statusDetail.scientist : story.statusDetail.story)
+            : sci ? 'LOS and coherence grids are synthetic; USGS events and CMR pass dates are real' : 'ground motion is synthetic, earthquakes and pass dates are real'}</em>
         )}
       </div>
       <div className="seg" role="tablist" aria-label="Mode">
@@ -67,27 +69,29 @@ export function SidePanel(p: SideProps) {
       ? {
           left: '0',
           right: sci ? `1 fringe = ${half.toFixed(3)} m` : '1 color cycle',
-          title: sci ? 'Wrapped interferometric phase' : 'Interferogram fringes',
+          title: sci ? 'Wrapped phase (re-wrapped from displacement)' : 'Interferogram fringes',
           hint: sci
-            ? `One full color cycle is a phase change of 2π, which is λ/2 = ${half.toFixed(4)} m of line-of-sight motion (λ = ${LAMBDA} m, L-band).`
+            ? `Derived by wrapping the displacement map. One full color cycle is a phase change of 2π, which is λ/2 = ${half.toFixed(4)} m of line-of-sight motion (λ = ${LAMBDA} m, L-band).`
             : 'Each full color cycle is about 12 cm of motion toward or away from the satellite. More bands packed together means more motion.',
         }
       : p.mode === 'coherence'
         ? {
             left: '0',
             right: '1',
-            title: sci ? 'Coherence magnitude (0 to 1)' : 'How much we can trust it',
+            title: sci
+              ? (p.coherence.titleScientist ?? 'Coherence magnitude (0 to 1)')
+              : (p.coherence.titleStory ?? 'How much we can trust it'),
             hint: sci
-              ? `Unitless. Cells below the threshold (${p.threshold.toFixed(2)}) are faded and hatched when masking is on.`
-              : 'Bright means the two radar passes matched well. Dark means the ground changed too much to trust the measurement.',
+              ? (p.coherence.hintScientist ?? `Unitless. Cells below the threshold (${p.threshold.toFixed(2)}) are faded and hatched when masking is on.`)
+              : (p.coherence.hintStory ?? 'Bright means the two radar passes matched well. Dark means the ground changed too much to trust the measurement.'),
           }
         : {
             left: sci ? fmtNum(lo) : fmtNum(lo * active.displayScale),
             right: sci ? fmtNum(hi) : fmtNum(hi * active.displayScale),
             title: sci ? `LOS displacement (${active.units})` : `How far the ground moved (${active.displayUnits})`,
             hint: sci
-              ? 'Line-of-sight displacement in meters. Sign convention and reference point are listed under Evidence.'
-              : 'Blue and orange show the ground moving toward or away from the satellite, not up or down.',
+              ? (p.displacement.hintScientist ?? 'Line-of-sight displacement in meters. Sign convention and reference point are listed under Evidence.')
+              : (p.displacement.hintStory ?? 'Blue and orange show the ground moving toward or away from the satellite, not up or down.'),
           }
 
   const pairLine = p.flagship
@@ -112,7 +116,7 @@ export function SidePanel(p: SideProps) {
         <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
           title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />
         <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
-          title={sci ? 'Coherence' : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />
+          title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />
       </div>
 
       <div className="legend">
@@ -124,11 +128,11 @@ export function SidePanel(p: SideProps) {
 
       <label className="check">
         <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
-        <span>{sci ? 'Mask cells below the coherence threshold' : 'Fade and hatch areas where the measurement is unreliable'}</span>
+        <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : 'Fade and hatch areas where the measurement is unreliable'}</span>
       </label>
       {sci && p.fadeLow && (
         <label className="slider">
-          Coherence threshold: <b>{p.threshold.toFixed(2)}</b>
+          {p.coherence.label ?? 'Coherence'} threshold: <b>{p.threshold.toFixed(2)}</b>
           <input type="range" min={0.1} max={0.9} step={0.05} value={p.threshold} onChange={(e) => p.setThreshold(Number(e.target.value))} />
         </label>
       )}
@@ -152,7 +156,7 @@ export function SidePanel(p: SideProps) {
               {Object.entries(active.provenance).map(([k, v]) => (
                 <tr key={k}><th>{label(k)}</th><td>{v}</td></tr>
               ))}
-              {p.flagship && <tr><th>Granule</th><td className="mono">{p.flagship.granuleId}</td></tr>}
+              {p.flagship && <tr><th>NISAR pair</th><td className="mono">{p.flagship.granuleId}</td></tr>}
             </tbody>
           </table>
           <p className="hint">Displacement = unwrapped phase &times; &lambda; / (4&pi;), with &lambda; = {LAMBDA} m for L-band.</p>
@@ -167,10 +171,42 @@ export function SidePanel(p: SideProps) {
         </>
       )}
 
+      <Resources items={p.story.resources} ui={p.ui} />
+
       <p className="foot">
         Imagery &copy; Esri &middot; Terrain: AWS Terrain Tiles &middot; Earthquakes: USGS &middot; NISAR pass dates: NASA CMR
       </p>
     </aside>
+  )
+}
+
+const GROUP_TITLE: Record<Resource['group'], string> = {
+  learn: 'Learn more',
+  data: 'Data and documentation',
+  partner: 'Other SAR missions',
+}
+
+/** Links from the challenge resource list. Story mode shows learning links; Scientist mode shows data links. */
+function Resources({ items, ui }: { items?: Resource[]; ui: UiMode }) {
+  if (!items?.length) return null
+  const shown = items.filter((r) => r.audience === 'both' || r.audience === ui)
+  const groups = (['learn', 'data', 'partner'] as const).filter((g) => shown.some((r) => r.group === g))
+  return (
+    <div className="res">
+      {groups.map((g, i) => (
+        <details key={g} open={i === 0 && ui === 'story'}>
+          <summary>{GROUP_TITLE[g]}</summary>
+          <ul>
+            {shown.filter((r) => r.group === g).map((r) => (
+              <li key={r.url}>
+                <a href={r.url} target="_blank" rel="noreferrer noopener">{r.title}</a>
+                <span>{r.description}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </div>
   )
 }
 
@@ -203,7 +239,9 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
   const c = sampleGrid(coherence.grid, point[0], point[1])
   const cm = d == null ? null : d * displacement.layer.displayScale
   const conf = c == null ? null : c >= 0.7 ? 'High' : c >= threshold ? 'Medium' : 'Low'
-  const dir = cm == null ? '' : Math.abs(cm) < 1 ? 'barely moved' : cm > 0 ? 'toward the satellite' : 'away from the satellite'
+  const pos = displacement.layer.positiveMeans ?? 'toward the satellite'
+  const neg = displacement.layer.negativeMeans ?? 'away from the satellite'
+  const dir = cm == null ? '' : cm > 0 ? pos : neg
   const [w, s, e, n] = g.bbox
   const col = Math.min(g.width - 1, Math.floor(((point[0] - w) / (e - w)) * g.width))
   const row = Math.min(g.height - 1, Math.floor(((n - point[1]) / (n - s)) * g.height))
@@ -223,7 +261,7 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
           <table className="prov">
             <tbody>
               <tr><th>LOS (display)</th><td>{cm! > 0 ? '+' : ''}{cm!.toFixed(2)} {displacement.layer.displayUnits}</td></tr>
-              <tr><th>Coherence</th><td>{c!.toFixed(3)} ({conf}{c! < threshold ? ', masked' : ''})</td></tr>
+              <tr><th>{coherence.layer.label ?? 'Coherence'}</th><td>{c!.toFixed(3)} ({conf}{c! < threshold ? ', masked' : ''})</td></tr>
               <tr><th>Grid cell</th><td>col {col}, row {row} of {g.width} &times; {g.height}</td></tr>
               {sign && <tr><th>Sign</th><td>{sign}</td></tr>}
             </tbody>
@@ -233,7 +271,7 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
       ) : (
         <>
           <div className="big">{cm! > 0 ? '+' : ''}{cm!.toFixed(0)} <small>{displacement.layer.displayUnits}</small></div>
-          <p>The ground here moved {dir}. {conf === 'Low' ? 'We are not very sure about this spot.' : conf === 'High' ? 'We are confident in this measurement.' : 'This measurement is fairly reliable.'}</p>
+          <p>{Math.abs(cm!) < 1 ? 'The ground here barely moved.' : `The ground here moved ${dir}.`} {conf === 'Low' ? 'We are not very sure about this spot.' : conf === 'High' ? 'We are confident in this measurement.' : 'This measurement is fairly reliable.'}</p>
           <Badge kind={displacement.layer.badge} synthetic={displacement.layer.synthetic} />
         </>
       )}

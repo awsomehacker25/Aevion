@@ -1,7 +1,10 @@
 import type { Grid, ViewMode } from '../types'
 
-/** L-band wavelength in meters (about 24 cm). One fringe = half a wavelength of LOS motion. */
-export const LAMBDA = 0.2384
+/**
+ * L-band wavelength in meters: c / 1.239 GHz, the centerFrequency stored in the NISAR GUNW granule.
+ * One fringe = half a wavelength (about 12 cm) of line-of-sight motion.
+ */
+export const LAMBDA = 0.24196
 
 type RGB = [number, number, number]
 const hex = (h: string): RGB => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as RGB
@@ -44,7 +47,9 @@ function bilinear(g: Grid, fx: number, fy: number): number {
   const tx = fx - x0
   const ty = fy - y0
   const v = (x: number, y: number) => g.values[y * g.width + x]
-  return (v(x0, y0) * (1 - tx) + v(x1, y0) * tx) * (1 - ty) + (v(x0, y1) * (1 - tx) + v(x1, y1) * tx) * ty
+  const a = v(x0, y0), b = v(x1, y0), c = v(x0, y1), d = v(x1, y1)
+  if (a == null || b == null || c == null || d == null) return NaN // gap in the data
+  return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty
 }
 
 function hsl(h: number, s: number, l: number): RGB {
@@ -56,7 +61,7 @@ function hsl(h: number, s: number, l: number): RGB {
 
 /** Draws the selected view to a PNG data URL, upsampled 2x with bilinear interpolation. */
 export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
-  const S = 2
+  const S = defo.width >= 400 ? 1 : 2 // big grids are already detailed; keep redraws fast
   const W = defo.width * S
   const H = defo.height * S
   const cv = document.createElement('canvas')
@@ -72,7 +77,9 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): string {
       const fx = (x + 0.5) / S - 0.5
       const fy = (y + 0.5) / S - 0.5
       const d = bilinear(defo, fx, fy)
-      const c = bilinear(coh, fx, fy)
+      let c = bilinear(coh, fx, fy)
+      if (Number.isNaN(d) || (o.mode === 'coherence' && Number.isNaN(c))) continue // no data: stay transparent
+      if (Number.isNaN(c)) c = 0
       let rgb: RGB
       let a: number
       if (o.mode === 'los') {
