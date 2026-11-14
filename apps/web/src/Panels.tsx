@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
@@ -55,10 +56,16 @@ interface SideProps {
   displacement: LayerDef
   coherence: LayerDef
   flagship?: AcquisitionPair
-  /** Rendered right after the intro text (tour and replay buttons). */
-  top?: ReactNode
-  /** Rendered after the main controls, before the resource links. */
-  children?: ReactNode
+  /** Content blocks the app supplies; the panel decides which tab each one lives in. */
+  slots: {
+    /** Story: tour and replay buttons. */
+    actions?: ReactNode
+    /** Scientist: cross-section and physics check. */
+    analysis?: ReactNode
+    impact?: ReactNode
+    why?: ReactNode
+    los?: ReactNode
+  }
 }
 
 export function SidePanel(p: SideProps) {
@@ -103,87 +110,121 @@ export function SidePanel(p: SideProps) {
     ? `Track ${p.flagship.track} ${p.flagship.orbitDirection === 'A' ? 'ascending' : 'descending'} · ${p.story.flagshipPair.reference} → ${p.story.flagshipPair.secondary}`
     : ''
 
+  const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: 'overview', scientist: 'analysis' })
+
+  const credits = (
+    <p className="foot">
+      Imagery &copy; Esri &middot; Terrain: AWS Terrain Tiles &middot; Earthquakes: USGS &middot; NISAR pass dates: NASA CMR
+    </p>
+  )
+  const sources = <><Resources items={p.story.resources} ui={p.ui} />{credits}</>
+  const caveats = tech?.caveats && tech.caveats.length > 0 && (
+    <>
+      <h2>Limitations</h2>
+      <ul className="caveats">
+        {tech.caveats.map((c) => <li key={c}>{c}</li>)}
+      </ul>
+    </>
+  )
+  const why = p.slots.why || p.slots.los ? <>{p.slots.why}{p.slots.los}</> : null
+
+  const all: { id: string; label: string; body: ReactNode }[] = sci
+    ? [
+        {
+          id: 'analysis', label: 'Analysis', body: (
+            <>
+              <p className="pair mono">{pairLine}</p>
+              {tech && <p className="lead tech">{tech.summary}</p>}
+              {p.slots.analysis}
+            </>
+          ),
+        },
+        {
+          id: 'evidence', label: 'Evidence', body: (
+            <>
+              <table className="prov">
+                <tbody>
+                  {Object.entries(active.provenance).map(([k, v]) => (
+                    <tr key={k}><th>{label(k)}</th><td>{v}</td></tr>
+                  ))}
+                  {p.flagship && <tr><th>NISAR pair</th><td className="mono">{p.flagship.granuleId}</td></tr>}
+                </tbody>
+              </table>
+              <p className="hint">Displacement = unwrapped phase &times; &lambda; / (4&pi;), with &lambda; = {LAMBDA} m for L-band.</p>
+            </>
+          ),
+        },
+        { id: 'context', label: 'Context', body: <>{caveats}{p.slots.impact}{p.slots.los}</> },
+        { id: 'sources', label: 'Sources', body: sources },
+      ]
+    : [
+        {
+          id: 'overview', label: 'Overview', body: (
+            <>
+              <p className="lead">{p.story.storyText}</p>
+              {p.slots.actions}
+              <div className="howto">
+                <h2>How to read this</h2>
+                <ul>
+                  <li>Drag the timeline to the second NISAR pass to see the change appear.</li>
+                  <li>Click anywhere on the map to see how far that spot moved.</li>
+                  <li>Switch to Scientist mode for exact values and sources.</li>
+                </ul>
+              </div>
+            </>
+          ),
+        },
+        ...(p.slots.impact ? [{ id: 'impact', label: 'Impact', body: p.slots.impact }] : []),
+        ...(why ? [{ id: 'why', label: 'Why', body: why }] : []),
+        { id: 'learn', label: 'Learn', body: sources },
+      ]
+  const current = all.find((t) => t.id === tabs[p.ui]) ?? all[0]
+
   return (
     <aside className={`side ${sci ? 'sci' : ''}`}>
-      <h1>{sci && tech ? tech.title : p.story.title}</h1>
-      <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
-      {sci ? (
-        <>
-          <p className="pair mono">{pairLine}</p>
-          {tech && <p className="lead tech">{tech.summary}</p>}
-        </>
-      ) : <p className="lead">{p.story.storyText}</p>}
-      {p.top}
+      <div className="side-head">
+        <h1>{sci && tech ? tech.title : p.story.title}</h1>
+        <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
 
-      <h2>{sci ? 'Layer' : 'What do you want to see?'}</h2>
-      <div className="views">
-        <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
-          title={sci ? 'LOS displacement' : 'Ground motion'} sub={sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
-        <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
-          title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />
-        <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
-          title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />
-      </div>
-
-      <div className="legend">
-        <div className="legend-title">{legend.title} <Badge kind={active.badge} synthetic={active.synthetic} /></div>
-        <div className="bar" style={{ background: LEGEND_GRADIENTS[p.mode] }} />
-        <div className="ends"><span>{legend.left}</span><span>{legend.right}</span></div>
-        <p className="hint">{legend.hint}</p>
-      </div>
-
-      <label className="check">
-        <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
-        <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : 'Fade and hatch areas where the measurement is unreliable'}</span>
-      </label>
-      {sci && p.fadeLow && (
-        <label className="slider">
-          {p.coherence.label ?? 'Coherence'} threshold: <b>{p.threshold.toFixed(2)}</b>
-          <input type="range" min={0.1} max={0.9} step={0.05} value={p.threshold} onChange={(e) => p.setThreshold(Number(e.target.value))} />
-        </label>
-      )}
-
-      {!sci && (
-        <div className="howto">
-          <h2>How to read this</h2>
-          <ul>
-            <li>Drag the timeline to the second NISAR pass to see the change appear.</li>
-            <li>Click anywhere on the map to see how far that spot moved.</li>
-            <li>Switch to Scientist mode for exact values and sources.</li>
-          </ul>
+        <div className="views">
+          <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
+            title={sci ? 'LOS displacement' : 'Ground motion'} sub={sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
+          <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
+            title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />
+          <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
+            title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />
         </div>
-      )}
 
-      {sci && (
-        <>
-          <h2>Evidence</h2>
-          <table className="prov">
-            <tbody>
-              {Object.entries(active.provenance).map(([k, v]) => (
-                <tr key={k}><th>{label(k)}</th><td>{v}</td></tr>
-              ))}
-              {p.flagship && <tr><th>NISAR pair</th><td className="mono">{p.flagship.granuleId}</td></tr>}
-            </tbody>
-          </table>
-          <p className="hint">Displacement = unwrapped phase &times; &lambda; / (4&pi;), with &lambda; = {LAMBDA} m for L-band.</p>
-          {tech?.caveats && tech.caveats.length > 0 && (
-            <>
-              <h2>Limitations</h2>
-              <ul className="caveats">
-                {tech.caveats.map((c) => <li key={c}>{c}</li>)}
-              </ul>
-            </>
+        <div className="legend">
+          <div className="legend-title">{legend.title} <Badge kind={active.badge} synthetic={active.synthetic} /></div>
+          <div className="bar" style={{ background: LEGEND_GRADIENTS[p.mode] }} />
+          <div className="ends"><span>{legend.left}</span><span>{legend.right}</span></div>
+        </div>
+
+        <details className="settings">
+          <summary>About this layer and display settings</summary>
+          <p className="hint">{legend.hint}</p>
+          <label className="check">
+            <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
+            <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : 'Fade and hatch areas where the measurement is unreliable'}</span>
+          </label>
+          {sci && p.fadeLow && (
+            <label className="slider">
+              {p.coherence.label ?? 'Coherence'} threshold: <b>{p.threshold.toFixed(2)}</b>
+              <input type="range" min={0.1} max={0.9} step={0.05} value={p.threshold} onChange={(e) => p.setThreshold(Number(e.target.value))} />
+            </label>
           )}
-        </>
-      )}
+        </details>
 
-      {p.children}
+        <div className="tabs" role="tablist" aria-label="Panel sections">
+          {all.map((t) => (
+            <button key={t.id} role="tab" aria-selected={t.id === current.id} className={t.id === current.id ? 'on' : ''}
+              onClick={() => setTabs((s) => ({ ...s, [p.ui]: t.id }))}>{t.label}</button>
+          ))}
+        </div>
+      </div>
 
-      <Resources items={p.story.resources} ui={p.ui} />
-
-      <p className="foot">
-        Imagery &copy; Esri &middot; Terrain: AWS Terrain Tiles &middot; Earthquakes: USGS &middot; NISAR pass dates: NASA CMR
-      </p>
+      <div className="side-body" role="tabpanel">{current.body}</div>
     </aside>
   )
 }
@@ -201,8 +242,8 @@ function Resources({ items, ui }: { items?: Resource[]; ui: UiMode }) {
   const groups = (['learn', 'data', 'partner'] as const).filter((g) => shown.some((r) => r.group === g))
   return (
     <div className="res">
-      {groups.map((g, i) => (
-        <details key={g} open={i === 0 && ui === 'story'}>
+      {groups.map((g) => (
+        <details key={g}>
           <summary>{GROUP_TITLE[g]}</summary>
           <ul>
             {shown.filter((r) => r.group === g).map((r) => (
@@ -220,8 +261,8 @@ function Resources({ items, ui }: { items?: Resource[]; ui: UiMode }) {
 
 function ViewBtn(p: { on: boolean; onClick: () => void; title: string; sub: string }) {
   return (
-    <button className={`view ${p.on ? 'on' : ''}`} onClick={p.onClick} aria-pressed={p.on}>
-      <b>{p.title}</b><span>{p.sub}</span>
+    <button className={`view ${p.on ? 'on' : ''}`} onClick={p.onClick} aria-pressed={p.on} title={p.sub}>
+      <b>{p.title}</b>
     </button>
   )
 }

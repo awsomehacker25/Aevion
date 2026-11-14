@@ -5,8 +5,8 @@ export function WhyCards({ items }: { items?: Story['why'] }) {
   return (
     <div className="why">
       <h2>Why did this happen?</h2>
-      {items.map((c, i) => (
-        <details key={c.title} open={i === 0}>
+      {items.map((c) => (
+        <details key={c.title}>
           <summary>{c.title}</summary>
           <p>{c.body}</p>
         </details>

@@ -29,7 +29,7 @@ export function ImpactPanel({ context, defo, cov, ui, overlays, setOverlays, onC
   const maxExp = Math.max(1, ...Object.values(exposure))
 
   return (
-    <details className="impact" open={!sci}>
+    <details className="impact">
       <summary>{sci ? 'Impact data (USGS)' : 'Who was affected?'}</summary>
 
       <div className="impact-top">

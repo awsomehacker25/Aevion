@@ -158,29 +158,29 @@ export default function App() {
       <SidePanel story={story} ui={ui} mode={mode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={ok.displacement.layer} coherence={ok.coherence.layer} flagship={data.flagship}
-        top={
-          <div className="actions">
-            {!sci && <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />}
-            {replayBtn}
-          </div>
-        }>
-        {sci ? (
-          <>
-            <ProfileControls picking={picking} hasLine={!!profileData}
-              onStart={() => { setProfile({ a: null, b: null }); setPicking(true); setPicked(null) }}
-              onClear={() => { setProfile({ a: null, b: null }); setPicking(false) }} />
-            <PhysicsCheck context={context} result={physics} geometry={story.geometry} overlays={overlays} setOverlays={setOverlays} />
-            {impact}
-            <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />
-          </>
-        ) : (
-          <>
-            {impact}
-            <WhyCards items={story.why} />
-            <LosDiagram sci={false} />
-          </>
-        )}
-      </SidePanel>
+        slots={sci ? {
+          analysis: (
+            <>
+              <div className="actions">{replayBtn}</div>
+              <ProfileControls picking={picking} hasLine={!!profileData}
+                onStart={() => { setProfile({ a: null, b: null }); setPicking(true); setPicked(null) }}
+                onClear={() => { setProfile({ a: null, b: null }); setPicking(false) }} />
+              <PhysicsCheck context={context} result={physics} geometry={story.geometry} overlays={overlays} setOverlays={setOverlays} />
+            </>
+          ),
+          impact,
+          los: <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />,
+        } : {
+          actions: (
+            <div className="actions">
+              <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
+              {replayBtn}
+            </div>
+          ),
+          impact,
+          why: <WhyCards items={story.why} />,
+          los: <LosDiagram sci={false} />,
+        }} />
       {replay != null && (
         <div className="replay-chip">Illustrative replay: NISAR measured the final result, not the shaking itself</div>
       )}
