@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 560" role="img" aria-label="Aevion">
+  <title>Aevion</title>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="75%">
+      <stop offset="0" stop-color="#0f3262"/>
+      <stop offset="0.55" stop-color="#081c3b"/>
+      <stop offset="1" stop-color="#040b1c"/>
+    </radialGradient>
+    <linearGradient id="blue" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#2f6fe0"/>
+      <stop offset="1" stop-color="#5eb0ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="560" fill="url(#bg)"/>
+
+  <!-- mark: two radar arcs and a peak, forming an A -->
+  <g transform="translate(373 36) scale(1.3)">
+    <path d="M 26 186 A 128 128 0 0 1 84 70" fill="none" stroke="url(#blue)" stroke-width="13"/>
+    <path d="M 66 186 A 88 88 0 0 1 100 108" fill="none" stroke="#ffffff" stroke-width="13"/>
+    <polygon points="100,10 194,186 152,186 100,86" fill="#ffffff"/>
+    <polygon points="118,186 152,186 135,150" fill="url(#blue)"/>
+  </g>
+
+  <!-- wordmark: AEVION, drawn as strokes so it looks the same everywhere -->
+  <g fill="none" stroke="#ffffff" stroke-width="13" stroke-linejoin="miter" stroke-miterlimit="10">
+    <path d="M251,480 L290,406 L329,480 M266,458 H314"/>
+    <path d="M415,412.5 H367.5 V473.5 H415 M367.5,443 H408"/>
+    <path d="M447,406 L486,480 L525,406"/>
+    <path d="M563.5,406 V480"/>
+    <ellipse cx="641" cy="443" rx="32.5" ry="30.5"/>
+  </g>
+  <polygon points="712,406 727,406 761,458 761,406 774,406 774,480 759,480 725,428 725,480 712,480" fill="#ffffff"/>
+</svg>

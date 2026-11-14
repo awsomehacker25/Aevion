@@ -1,3 +1,5 @@
+<p align="center"><img src="public/logo.svg" alt="Aevion" width="520"></p>
+
 # Aevion web app
 
 Interactive 3D viewer for NISAR ground-motion data. React + TypeScript + Vite, with MapLibre GL for the map.

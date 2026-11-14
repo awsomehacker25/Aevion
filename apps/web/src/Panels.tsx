@@ -34,7 +34,7 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory }: TopBarProps
   const sci = ui === 'scientist'
   return (
     <header className="topbar">
-      <div className="brand">Aevion</div>
+      <div className="brand"><img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="Aevion" /></div>
       {stories.length > 1 && (
         <select className="picker" value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label="Choose a story">
           {stories.map((s) => <option key={s.id} value={s.id}>{s.label ?? s.title}</option>)}

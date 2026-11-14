@@ -230,7 +230,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
 
   if (error) return <div className="splash"><b>Could not load the story.</b><span>{error}</span></div>
   if (layers && 'error' in layers) return <div className="splash"><b>Story is not valid.</b><span>{layers.error}</span></div>
-  if (!data || !ok || !view) return <div className="splash"><b>Aevion</b><span>Loading story&hellip;</span></div>
+  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>Loading story&hellip;</span></div>
 
   const { story, flagship: viewPair } = view
   const { context } = data
