@@ -394,6 +394,11 @@ const en: Record<string, string> = {
   's.mix.change.k2': 'Red and pink: mainly HH got brighter',
   's.mix.change.k3': 'Green: mainly HV got brighter',
   's.mix.change.k4': 'Blue: both got darker',
+  'f.howto.1': 'Drag the white divider to compare the two dates, or switch it off to see one full map.',
+  'f.howto.2': 'Click a bar on the timeline (or press play) to change the right-hand date.',
+  'f.howto.3': 'Click anywhere on the map to chart how that spot changed over the season.',
+  'f.legend.HH': 'How strongly the ground echoes the radar (water view)',
+  'f.legend.HV': 'How strongly plants and rough ground echo the radar (plant view)',
 }
 
 export default en

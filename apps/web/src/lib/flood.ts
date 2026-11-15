@@ -1,8 +1,8 @@
 import type { FloodLayers } from '../FloodMap'
 import type { FloodManifest, FloodSeries, FloodView } from '../types'
 
-export type FloodTab = 'story' | 'layers' | 'charts' | 'evidence'
-export const FLOOD_TABS: FloodTab[] = ['story', 'layers', 'charts', 'evidence']
+export type FloodTab = 'overview' | 'layers' | 'charts' | 'impact' | 'learn'
+export const FLOOD_TABS: FloodTab[] = ['overview', 'layers', 'charts', 'impact', 'learn']
 
 /** Everything the viewer shows that can go into a shared link. */
 export interface FloodState {
@@ -26,7 +26,7 @@ export const DEFAULT_LAYERS: FloodLayers = { districts: true, permwater: true, a
 export function initialFloodState(f: FloodManifest): FloodState {
   const ref = Math.max(0, f.dates.findIndex((d) => d.date === f.reference))
   const peak = f.dates.reduce((best, d, i) => ((d.new_water_km2 ?? 0) > (f.dates[best].new_water_km2 ?? 0) ? i : best), 0)
-  return { a: ref, b: peak, view: 'HH', water: true, swipeOn: true, tab: 'story', expert: false, layers: { ...DEFAULT_LAYERS }, cam: null }
+  return { a: ref, b: peak, view: 'HH', water: true, swipeOn: true, tab: 'overview', expert: false, layers: { ...DEFAULT_LAYERS }, cam: null }
 }
 
 /** d = right date, c = compare date, v = radar view, tab, mode, swipe, at = lng,lat,zoom */
@@ -39,7 +39,8 @@ export function readHash(f: FloodManifest, s: FloodState): { state: FloodState; 
   if (idx(h.c) >= 0) next.a = idx(h.c)
   if (h.v === 'HH' || h.v === 'HV' || (h.v === 'RGB' && f.dates.every((d) => d.layers.RGB))) next.view = h.v
   if (h.mode === 'plain' || h.mode === 'expert') next.expert = h.mode === 'expert'
-  if (FLOOD_TABS.includes(h.tab as FloodTab)) next.tab = h.tab as FloodTab
+  const tab = h.tab === 'story' ? 'overview' : h.tab === 'evidence' ? 'impact' : h.tab
+  if (FLOOD_TABS.includes(tab as FloodTab)) next.tab = tab as FloodTab
   if (h.swipe === '0' || h.swipe === '1') next.swipeOn = h.swipe === '1'
   const at = (h.at || '').split(',').map(Number)
   next.cam = at.length === 3 && at.every(Number.isFinite) ? { lng: at[0], lat: at[1], zoom: at[2] } : null

@@ -20,7 +20,7 @@ interface Props {
 }
 
 /** Flood timeline: daily rain on top, new water per NISAR pass below, both on one true-date axis. */
-export default function FloodTimeline({ data, story, a, b, setA, setB, playing, onPlay, expert }: Props) {
+export default function FloodTimeline({ data, story, a, b, setA, setB, playing, onPlay }: Props) {
   const { t, num, date } = useI18n()
   const { flood, rain } = data
   const dates = flood.dates
@@ -59,19 +59,22 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
 
   return (
     <section ref={box} className="timeline ftl" aria-label={t('timeline.region')}>
-      <div className="ftl-head">
-        <b>{expert ? t('area.title.expert') : t('area.title.plain')}</b>
-        <span className="ftl-key"><i className="k-rain" />{t('timeline.rain')}</span>
-        <span className="ftl-key"><i className="k-water" />{t('timeline.water')}</span>
-        <span className="ftl-key"><i className="k-cmp" />{t('timeline.compare')}</span>
+      <div className="tl-head">
+        <button className="btn" onClick={onPlay} aria-pressed={playing} aria-label={playing ? t('controls.pause') : t('controls.animate')}>
+          {playing ? `❚❚ ${t('controls.pause')}` : `▶ ${t('s.tl.play')}`}
+        </button>
+        <div className="tl-date" title={t('timeline.label')}>{date(dates[b].date)}</div>
+        <div className="ftl-keys">
+          <span className="ftl-key"><i className="k-rain" />{t('timeline.rain')}</span>
+          <span className="ftl-key"><i className="k-water" />{t('timeline.water')}</span>
+          <span className="ftl-key"><i className="k-cmp" />{t('timeline.compare')}</span>
+        </div>
+        <div className="tl-status" role="status" aria-live="polite">{summary}</div>
       </div>
       <div className="ftl-body">
-        <button className="btn ftl-play" onClick={onPlay} aria-pressed={playing} aria-label={playing ? t('controls.pause') : t('controls.animate')}>
-          {playing ? '❚❚' : '▶'}
-        </button>
         <div className="ftl-charts" tabIndex={0} role="group" aria-label={t('timeline.label')} aria-describedby="ftl-keys" onKeyDown={onKey}>
           {rain && (
-            <Chart label={t('timeline.rain')} height={narrow ? 46 : 58} hideY left={6} xDomain={[lo, hi]} xTicks={[]} xPad={14}
+            <Chart label={t('timeline.rain')} height={narrow ? 40 : 50} hideY left={6} xDomain={[lo, hi]} xTicks={[]} xPad={14}
               series={[{ id: 'rain', kind: 'bar', color: 'var(--d-rain)', points: rainPts, barUnit: 0.8 * DAY }]}
               markers={passMarkers}
               barLabels={(p) => {
@@ -79,7 +82,7 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
                 return pk ? `${short(p.x)}: ${num(p.y ?? 0)} mm` : null
               }} />
           )}
-          <Chart label={t('timeline.water')} height={narrow ? 86 : 104} hideY left={6} xDomain={[lo, hi]} xPad={14}
+          <Chart label={t('timeline.water')} height={narrow ? 62 : 70} hideY left={6} xDomain={[lo, hi]} xPad={14}
             xTicks={times.map((x, i) => ({ x, label: i === b || i === a || window.innerWidth > 700 ? short(x) : '' }))}
             series={[{
               id: 'water', kind: 'bar', color: 'var(--d-water)', barUnit: 6 * DAY,
@@ -90,7 +93,7 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
             onSelect={(x) => { const i = times.indexOf(x); if (i >= 0) setB(i) }} />
         </div>
       </div>
-      <p className="ftl-note" id="ftl-keys" role="status" aria-live="polite">{summary}. {t('timeline.keys')}</p>
+      <p className="sr-only" id="ftl-keys">{t('timeline.keys')}</p>
     </section>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Chart from './charts/Chart'
 import type { FloodLayers } from './FloodMap'
-import { EXCLUSIVE, dayMs, pointValues } from './lib/flood'
+import { dayMs, pointValues } from './lib/flood'
 import type { FloodState } from './lib/flood'
 import { Paras } from './lib/rich'
 import { useI18n } from './i18n'
@@ -15,17 +15,52 @@ interface TabProps {
   state: FloodState
 }
 
-/** What happened / what radar sees / why / what's next, as an accordion. */
-export function StoryTab({ story }: { story: FloodStory }) {
+/** The first story section, as plain paragraphs (Overview tab). */
+export function OverviewText({ story }: { story: FloodStory }) {
+  return <Paras items={story.sections[0]?.body ?? []} className="lead" />
+}
+
+/** The rest of the story as cards (Learn tab), like the other stories. */
+export function LearnTab({ story, onMethods }: { story: FloodStory; onMethods: () => void }) {
+  const { t } = useI18n()
   return (
-    <div className="fstory">
-      {story.sections.map((s, i) => (
-        <details key={s.id} open={i === 0}>
-          <summary>{s.title}</summary>
-          <Paras items={s.body} className="lead" />
-        </details>
-      ))}
-    </div>
+    <>
+      <div className="why">
+        <h2>{t('s.why')}</h2>
+        {story.sections.slice(1).map((s) => (
+          <details key={s.id}>
+            <summary>{s.title}</summary>
+            <Paras items={s.body} />
+          </details>
+        ))}
+      </div>
+      <button className="cta ghost" onClick={onMethods}>{t('methods.button')}</button>
+      <p className="foot">{story.credits}</p>
+    </>
+  )
+}
+
+/** What each colour on the map means, for the layers that are switched on. */
+export function LegendKey({ data, state }: { data: LoadedFlood; state: FloodState }) {
+  const { t, date } = useI18n()
+  const { flood } = data
+  const ctx = flood.context
+  const L = state.layers
+  const sw = flood.rgb?.swatches
+  const rgb = (c?: [number, number, number]) => (c ? `rgb(${c[0]},${c[1]},${c[2]})` : 'transparent')
+  return (
+    <>
+      <ul className="key">
+        {state.view === 'RGB' && (['water', 'floodveg', 'forest', 'built'] as const).map((k) => <li key={k}><i style={{ background: rgb(sw?.[k]) }} />{t(`legend.rgb.${k}`)}</li>)}
+        {state.water && <li><i style={{ background: 'var(--d-water)' }} />{t('legend.new')}</li>}
+        {L.permwater && ctx.permanent_water && <li><i className="stripes" />{t('legend.permwater')}</li>}
+        {L.districts && data.districts && <li><i className="dash" />{t('legend.districts')}</li>}
+        {L.pins && data.pins && <li><i className="ring" />{t('legend.pins')}</li>}
+        {L.aftermath && ctx.aftermath && <><li><i style={{ background: '#e8a33d' }} />{t('legend.aftermath.up')}</li><li><i style={{ background: '#4aa3d8' }} />{t('legend.aftermath.down')}</li></>}
+        {L.population && ctx.population && <li><i style={{ background: 'linear-gradient(90deg,#fde8c8,#c2410c)' }} />{t('legend.population')}</li>}
+      </ul>
+      {state.view === 'RGB' && <p className="hint">{t('legend.rgb.note', { date: date(flood.rgb?.swatch_date ?? flood.peak_date) })}</p>}
+    </>
   )
 }
 
@@ -35,12 +70,7 @@ const GROUPS: { id: string; layers: { id: Layer; expertOnly?: boolean }[] }[] = 
   { id: 'sat', layers: [{ id: 'optical' }, { id: 'sentinel1', expertOnly: true }] },
 ]
 
-export function LayersTab({ data, state, setLayer, setView, setWater, rgbRange }: TabProps & {
-  setLayer: (l: Layer, on: boolean) => void
-  setView: (v: 'HH' | 'HV' | 'RGB') => void
-  setWater: (on: boolean) => void
-  rgbRange?: boolean
-}) {
+export function LayersTab({ data, state, setLayer }: TabProps & { setLayer: (l: Layer, on: boolean) => void }) {
   const { t, num, date } = useI18n()
   const { flood } = data
   const ctx = flood.context
@@ -52,8 +82,6 @@ export function LayersTab({ data, state, setLayer, setView, setWater, rgbRange }
   const people = (n: number) => (n >= 1e6 ? t('num.million', { n: num(n / 1e6, 1) }) : num(Math.round(n / 1000) * 1000))
   const popDate = flood.dates[state.b].date
   const pd = ctx.population?.by_date[popDate]
-  const sw = flood.rgb?.swatches
-  const rgb = (c?: [number, number, number]) => (c ? `rgb(${c[0]},${c[1]},${c[2]})` : 'transparent')
 
   const summaries: string[] = []
   if (L.aftermath && ctx.aftermath) {
@@ -71,46 +99,6 @@ export function LayersTab({ data, state, setLayer, setView, setWater, rgbRange }
 
   return (
     <div className="flayers">
-      <section className="flegend" aria-label={t('legend.label')}>
-        <h3>{t('legend.label')}</h3>
-        {state.view === 'RGB' ? (
-          <>
-            <p className="hint">{state.expert
-              ? t('legend.rgb.expert', { r: fmtRange(flood.rgb?.range_db.R), g: fmtRange(flood.rgb?.range_db.G), b: fmtRange(flood.rgb?.range_db.B) })
-              : t('legend.rgb.plain')}</p>
-            <ul className="key">
-              {(['water', 'floodveg', 'forest', 'built'] as const).map((k) => <li key={k}><i style={{ background: rgb(sw?.[k]) }} />{t(`legend.rgb.${k}`)}</li>)}
-            </ul>
-            <p className="hint">{t('legend.rgb.note', { date: date(flood.rgb?.swatch_date ?? popDate) })}</p>
-          </>
-        ) : (
-          <>
-            <div className="bar fgray" />
-            <div className="ends"><span>{state.expert ? t('legend.dark.expert') : t('legend.dark.plain')}</span><span>{state.expert ? t('legend.bright.expert') : t('legend.bright.plain')}</span></div>
-          </>
-        )}
-        <ul className="key">
-          {state.water && <li><i style={{ background: 'var(--d-water)' }} />{t('legend.new')}</li>}
-          {L.permwater && ctx.permanent_water && <li><i className="stripes" />{t('legend.permwater')}</li>}
-          {L.districts && data.districts && <li><i className="dash" />{t('legend.districts')}</li>}
-          {L.pins && data.pins && <li><i className="ring" />{t('legend.pins')}</li>}
-          {L.aftermath && ctx.aftermath && <><li><i style={{ background: '#e8a33d' }} />{t('legend.aftermath.up')}</li><li><i style={{ background: '#4aa3d8' }} />{t('legend.aftermath.down')}</li></>}
-          {L.population && ctx.population && <li><i style={{ background: 'linear-gradient(90deg,#fde8c8,#c2410c)' }} />{t('legend.population')}</li>}
-        </ul>
-      </section>
-
-      <section>
-        <h3>{t('layers.radar')}</h3>
-        <label className="chk"><input type="checkbox" checked={state.water} onChange={(e) => setWater(e.target.checked)} />{t('controls.water')}</label>
-        {state.expert && rgbRange !== false && (
-          <div className="fview">
-            {(['HH', 'HV', 'RGB'] as const).filter((v) => v !== 'RGB' || flood.dates.every((d) => d.layers.RGB)).map((v) => (
-              <button key={v} className={state.view === v ? 'on' : ''} aria-pressed={state.view === v} onClick={() => setView(v)} title={t(`pol.${v}.title`)}>{t(`pol.${v}.expert`)}</button>
-            ))}
-          </div>
-        )}
-      </section>
-
       {GROUPS.map((g) => (
         <section key={g.id}>
           <h3>{t(`layers.group.${g.id}`)}</h3>
@@ -124,12 +112,9 @@ export function LayersTab({ data, state, setLayer, setView, setWater, rgbRange }
       ))}
       <p className="hint">{t('layers.exclusive')}</p>
       {summaries.length > 0 && <p className="fsum">{summaries.join(' ')}</p>}
-      <p className="hint" style={{ display: 'none' }}>{EXCLUSIVE.length}</p>
     </div>
   )
 }
-
-const fmtRange = (r?: [number, number]) => (r ? `${r[0]} to ${r[1]}` : '')
 
 export function ChartsTab({ data, story, state, point, onPreset, activePreset }: TabProps & {
   point: [number, number] | null

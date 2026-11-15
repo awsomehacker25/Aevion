@@ -2,15 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import FloodMap, { swipeAngle, swipeSlope } from './FloodMap'
 import type { FloodLayers, FloodMapHandle } from './FloodMap'
 import FloodTimeline from './FloodTimeline'
-import { ChartsTab, EvidenceTab, LayersTab, MethodsDialog, StoryTab } from './FloodPanels'
+import { ChartsTab, EvidenceTab, LayersTab, LearnTab, LegendKey, MethodsDialog, OverviewText } from './FloodPanels'
 import { EXCLUSIVE, FLOOD_TABS, initialFloodState, readHash, writeHash } from './lib/flood'
 import type { FloodState, FloodTab } from './lib/flood'
 import { loadFlood } from './lib/data'
 import { useLocalizedStory } from './lib/localize'
 import { useI18n } from './i18n'
 import { TopBar } from './Panels'
+import { GRAY_GRADIENT } from './lib/render'
 import type { UiMode } from './Panels'
-import type { LoadedFlood, StoryIndexEntry } from './types'
+import type { FloodView, LoadedFlood, StoryIndexEntry } from './types'
 
 interface Props {
   id: string
@@ -135,30 +136,56 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
     map.current?.flyTo(lng, lat, 12)
   }
 
-  const tag = (i: number, leftSide: boolean) => {
-    const s1 = leftSide && st.layers.sentinel1 && flood.context.sentinel1
-    const d = s1 ? flood.context.sentinel1!.date : dates[i].date
-    const sub = s1 ? t('ctx.sentinel1.tag') : [story.dateLabels[dates[i].date], expert ? t(`pol.${st.view}.expert`) : ''].filter(Boolean).join(', ')
-    return <div className={`ftag ${leftSide ? 'left' : 'right'}`}><b>{date(d, { year: undefined })}</b><span>{sub}</span></div>
-  }
+  // the dates on either side of the divider, shown on its handle like Before / After in the other stories
+  const s1 = st.layers.sentinel1 && flood.context.sentinel1
+  const leftDate = date(s1 ? flood.context.sentinel1!.date : dates[st.a].date, { year: undefined })
+  const rightDate = date(dates[st.b].date, { year: undefined })
+
+  const TAB_LABEL: Record<FloodTab, string> = { overview: 's.tab.overview', layers: 'panel.layers', charts: 'panel.charts', impact: 's.tab.impact', learn: 's.tab.learn' }
+  const hasMix = dates.every((d) => d.layers.RGB)
+  const views: { id: FloodView; label: string; title: string }[] = [
+    { id: 'HH', label: expert ? 'HH' : t('pol.HH.plain'), title: t('pol.HH.title') },
+    { id: 'HV', label: expert ? 'HV' : t('pol.HV.plain'), title: t('pol.HV.title') },
+    ...(expert && hasMix ? [{ id: 'RGB' as FloodView, label: t('pol.RGB.expert'), title: t('pol.RGB.title') }] : []),
+  ]
 
   const bodies: Record<FloodTab, React.ReactNode> = {
-    story: <StoryTab story={story} />,
-    layers: <LayersTab data={data} story={story} state={st} setLayer={setLayer} setView={(v) => update({ view: v })} setWater={(w) => update({ water: w })} />,
+    overview: (
+      <>
+        <p className="fsummary" role="status">{summary}</p>
+        <OverviewText story={story} />
+        <div className="actions">
+          <label className="field">
+            <span>{t('controls.compare')}</span>
+            <select value={st.a} onChange={(e) => update({ a: Number(e.target.value) })}>
+              {dates.map((d, i) => <option key={d.date} value={i}>{lab(i)}</option>)}
+            </select>
+          </label>
+          <div className="row-btns">
+            <button className="cta ghost" aria-pressed={st.swipeOn} title={t('map.swipeTitle')} onClick={() => update({ swipeOn: !st.swipeOn })}>{st.swipeOn ? t('s.swipe.hide') : t('s.swipe.show')}</button>
+            <button className="cta ghost" aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? t('controls.pause') : t('controls.animate')}</button>
+          </div>
+        </div>
+        <details className="howto">
+          <summary>{t('s.howto')}</summary>
+          <ul><li>{t('f.howto.1')}</li><li>{t('f.howto.2')}</li><li>{t('f.howto.3')}</li></ul>
+        </details>
+      </>
+    ),
+    layers: <LayersTab data={data} story={story} state={st} setLayer={setLayer} />,
     charts: <ChartsTab data={data} story={story} state={st} point={point} onPreset={onPreset} activePreset={preset} />,
-    evidence: <EvidenceTab data={data} story={story} state={st} onShow={onShowPin} selectedPin={pin} />,
+    impact: <EvidenceTab data={data} story={story} state={st} onShow={onShowPin} selectedPin={pin} />,
+    learn: <LearnTab story={story} onMethods={() => setMethods(true)} />,
   }
 
   const nSwipePct = Math.round(swipe * 100)
   return (
     <div className="app flood" ref={wrap}>
       <FloodMap ref={map} data={data} a={st.a} b={st.b} view={st.view} water={st.water} swipeOn={st.swipeOn} terrain={terrain} swipe={swipe} layers={st.layers}
-        point={point} startCamera={startCam} onPick={onPick} onPin={(p) => { setPin(p); setTab('evidence') }}
+        point={point} startCamera={startCam} onPick={onPick} onPin={(p) => { setPin(p); setTab('impact') }}
         onLoading={setBusy} onMissing={(w) => flash(t('error.layer', { name: w }))} onMoveEnd={syncHash} />
       {busy && <div className="floadbar" aria-hidden="true" />}
-      {tag(st.a, true)}
-      {tag(st.b, false)}
-      {st.swipeOn && (
+            {st.swipeOn && (
         <div className="fdivider" role="slider" tabIndex={0} aria-orientation="horizontal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={nSwipePct}
           aria-label={t('divider.label')} aria-valuetext={t('divider.value', { pct: nSwipePct, left: lab(st.a), right: lab(st.b) })}
           style={{ left: `${swipe * 100}%`, top: '-20%', height: '140%', transform: `rotate(${swipeAngle(terrain)}deg)` }}
@@ -183,7 +210,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
             else return
             e.preventDefault()
           }}>
-          <span className="grip" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+          <span className="swipe-handle" style={{ transform: `rotate(${-swipeAngle(terrain)}deg)` }} aria-hidden="true"><span>{leftDate}</span><b>&lsaquo; &rsaquo;</b><span>{rightDate}</span></span>
         </div>
       )}
 
@@ -212,9 +239,30 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
           <p className="subtitle">{story.subtitle}</p>
           {!collapsed && (
             <>
+              <div className="views" role="radiogroup" aria-label={t('controls.polGroup')} data-n={views.length}>
+                {views.map((v) => (
+                  <button key={v.id} className={`view ${st.view === v.id ? 'on' : ''}`} role="radio" aria-checked={st.view === v.id} title={v.title} onClick={() => update({ view: v.id })}><b>{v.label}</b></button>
+                ))}
+              </div>
+
+              <div className="legend">
+                <div className="legend-title">{st.view === 'RGB' ? (expert ? t('pol.RGB.title') : t('legend.rgb.plain')) : t(`f.legend.${st.view}`)}</div>
+                <div className="bar" style={{ background: st.view === 'RGB' ? 'linear-gradient(90deg,#211a4c,#f1afd5,#bbd334)' : GRAY_GRADIENT }} />
+                {st.view !== 'RGB' && <div className="ends"><span>{expert ? t('legend.dark.expert') : t('legend.dark.plain')}</span><span>{expert ? t('legend.bright.expert') : t('legend.bright.plain')}</span></div>}
+              </div>
+
+              <details className="settings">
+                <summary>{t('s.colors')}</summary>
+                <LegendKey data={data} state={st} />
+                <label className="check">
+                  <input type="checkbox" checked={st.water} onChange={(e) => update({ water: e.target.checked })} />
+                  <span>{t('controls.water')}</span>
+                </label>
+              </details>
+
               <div className="tabs" role="tablist" aria-label={t('panel.tabs')}>
                 {FLOOD_TABS.map((k) => (
-                  <button key={k} role="tab" id={`ft-${k}`} aria-selected={st.tab === k} aria-controls="ft-panel" className={st.tab === k ? 'on' : ''} onClick={() => update({ tab: k })}>{t(`panel.${k}`)}</button>
+                  <button key={k} role="tab" id={`ft-${k}`} aria-selected={st.tab === k} aria-controls="ft-panel" className={st.tab === k ? 'on' : ''} onClick={() => update({ tab: k })}>{t(TAB_LABEL[k])}</button>
                 ))}
               </div>
             </>
@@ -222,29 +270,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
         </div>
         {!collapsed && (
           <div className="side-body" role="tabpanel" id="ft-panel" aria-labelledby={`ft-${st.tab}`}>
-            <p className="fsummary" role="status">{summary}</p>
-            <div className="fcontrols">
-              <label className="fcompare">
-                <span>{t('controls.compare')}</span>
-                <select value={st.a} onChange={(e) => update({ a: Number(e.target.value) })}>
-                  {dates.map((d, i) => <option key={d.date} value={i}>{lab(i)}</option>)}
-                </select>
-              </label>
-              <div className="fview2" role="radiogroup" aria-label={t('controls.polGroup')}>
-                {(['HH', 'HV'] as const).map((v) => (
-                  <button key={v} role="radio" aria-checked={st.view === v} className={st.view === v ? 'on' : ''} onClick={() => update({ view: v })} title={t(`pol.${v}.title`)}>
-                    {expert ? v : t(`pol.${v}.plain`)}
-                  </button>
-                ))}
-                {expert && dates.every((d) => d.layers.RGB) && (
-                  <button role="radio" aria-checked={st.view === 'RGB'} className={st.view === 'RGB' ? 'on' : ''} onClick={() => update({ view: 'RGB' })} title={t('pol.RGB.title')}>{t('pol.RGB.expert')}</button>
-                )}
-              </div>
-              <label className="chk"><input type="checkbox" checked={st.water} onChange={(e) => update({ water: e.target.checked })} />{t('controls.water')}</label>
-            </div>
             {bodies[st.tab]}
-            <p className="foot">{story.credits}</p>
-            <button className="cta ghost" onClick={() => setMethods(true)}>{t('methods.button')}</button>
           </div>
         )}
       </aside>
