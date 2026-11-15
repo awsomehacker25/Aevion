@@ -86,7 +86,7 @@ def earthdata_token():
 # ---- rainfall (rainfall_imerg.py) ----
 # Naga Hills catchment upstream of the study area
 RAIN_BOX = (93.5, 25.5, 96.0, 27.5)
-RAIN_START, RAIN_END = "2026-06-10", "2026-08-10"
+RAIN_START, RAIN_END = "2026-06-10", "2026-10-26"   # the whole NISAR season, to the last pass
 
 # False-colour HH/HV composite (false_colour.py): stretch per channel, in dB
 RGB_RANGE = {"R": (-22.0, 0.0), "G": (-27.0, -7.0), "B": (2.0, 14.0)}

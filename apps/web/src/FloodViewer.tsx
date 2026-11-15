@@ -80,13 +80,24 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
   }, [data, st])
   useEffect(syncHash, [syncHash])
 
-  // Animate: step the right-hand date through the season
+  // Play steps the right-hand date through the season once and stops on the last date, holding a little longer on the flood peak
   useEffect(() => {
-    if (!playing || !data) return
-    const n = data.flood.dates.length
-    const h = window.setInterval(() => setSt((s) => (s ? { ...s, b: (s.b + 1) % n } : s)), 1500)
-    return () => window.clearInterval(h)
-  }, [playing, data])
+    if (!playing || !data || !st) return
+    const last = data.flood.dates.length - 1
+    const hold = data.flood.dates[st.b].date === data.flood.peak_date ? 2400 : 1500
+    const h = window.setTimeout(() => {
+      if (st.b >= last) setPlaying(false)
+      else setSt((s) => (s ? { ...s, b: Math.min(last, s.b + 1) } : s))
+    }, hold)
+    return () => window.clearTimeout(h)
+  }, [playing, data, st])
+
+  // Play from the first date; pressing it on the last date starts over
+  const togglePlay = () => {
+    if (playing) { setPlaying(false); return }
+    if (data && st && st.b >= data.flood.dates.length - 1) setSt({ ...st, b: 0 })
+    setPlaying(true)
+  }
 
   if (error) return <div className="splash"><b>{t('error.data')}</b><span>{error}</span></div>
   if (!data || !st || !story) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>{t('loading')}</span></div>
@@ -162,7 +173,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
           </label>
           <div className="row-btns">
             <button className="cta ghost" aria-pressed={st.swipeOn} title={t('map.swipeTitle')} onClick={() => update({ swipeOn: !st.swipeOn })}>{st.swipeOn ? t('s.swipe.hide') : t('s.swipe.show')}</button>
-            <button className="cta ghost" aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? t('controls.pause') : t('controls.animate')}</button>
+            <button className="cta ghost" aria-pressed={playing} onClick={togglePlay}>{playing ? t('controls.pause') : t('controls.animate')}</button>
           </div>
         </div>
         <details className="howto">
@@ -278,7 +289,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
       </aside>
 
       <div className={`replay-chip fade note ${note ? 'on' : ''}`} role="status" aria-hidden={!note}>{note}</div>
-      <FloodTimeline data={data} story={story} a={st.a} b={st.b} setA={(i) => update({ a: i })} setB={(i) => update({ b: i })} playing={playing} onPlay={() => setPlaying(!playing)} expert={expert} />
+      <FloodTimeline data={data} story={story} a={st.a} b={st.b} setA={(i) => update({ a: i })} setB={(i) => update({ b: i })} playing={playing} onPlay={togglePlay} expert={expert} />
       {methods && <MethodsDialog data={data} onClose={() => setMethods(false)} />}
     </div>
   )
