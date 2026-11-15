@@ -90,6 +90,8 @@ interface SideProps {
     los?: ReactNode
     /** The period chart and list, shown as its own tab. */
     periods?: ReactNode
+    /** Charts of the data, shown as their own tab. */
+    charts?: ReactNode
   }
 }
 
@@ -201,6 +203,7 @@ export function SidePanel(p: SideProps) {
           ),
         },
         ...(p.slots.periods ? [{ id: 'periods', label: t('s.tab.periods'), body: p.slots.periods }] : []),
+        ...(p.slots.charts ? [{ id: 'charts', label: t('s.tab.charts'), body: p.slots.charts }] : []),
         {
           id: 'data', label: t('s.tab.data'), body: (
             <>
@@ -241,6 +244,7 @@ export function SidePanel(p: SideProps) {
           ),
         },
         ...(p.slots.periods ? [{ id: 'periods', label: t('s.tab.periods'), body: p.slots.periods }] : []),
+        ...(p.slots.charts ? [{ id: 'charts', label: t('s.tab.charts'), body: p.slots.charts }] : []),
         ...(p.slots.impact ? [{ id: 'impact', label: t('s.tab.impact'), body: p.slots.impact }] : []),
         { id: 'learn', label: t('s.tab.learn'), body: <>{why}{sources}</> },
       ]

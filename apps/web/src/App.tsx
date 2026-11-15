@@ -16,6 +16,7 @@ import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
+import StoryCharts from './StoryCharts'
 import FloodViewer from './FloodViewer'
 import { I18nProvider, initialLang, useI18n } from './i18n'
 import type { Lang } from './i18n'
@@ -300,6 +301,10 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const periodSwitcher = epochs?.length ? (
     <PeriodSwitcher epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} onStep={stepEpoch} chart={story.copy?.chart} />
   ) : undefined
+  const charts = (
+    <StoryCharts data={data} displacement={view.displacement.grid} coherence={view.coherence.grid} scale={view.displacement.layer.displayScale}
+      unit={view.displacement.layer.displayUnits} threshold={threshold} picked={picked} sci={sci} />
+  )
   const timelineData = { ...data, story, flagship: viewPair }
   const impact = context && (
     <ImpactPanel context={context} defo={view.displacement.grid} cov={view.coherence.grid} ui={ui}
@@ -337,6 +342,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
           ),
           impact,
           periods: periodsTab,
+          charts,
           los: bs ? undefined : <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />,
         } : {
           actions: (
@@ -348,6 +354,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
           ),
           impact,
           periods: periodsTab,
+          charts,
           why: <WhyCards items={story.why} />,
           los: bs ? undefined : <LosDiagram sci={false} />,
         }} />

@@ -349,6 +349,30 @@ const en: Record<string, string> = {
   's.tl.forward': 'Move forward to see the change.',
   's.tl.waiting': 'Waiting for the second pass.',
   's.tl.shows': 'Map shows the change measured from {a} to {b}.',
+
+  // ---- charts for the interferometry and radar-picture stories ----
+  's.tab.charts': 'Charts',
+  'c.none': 'There is not enough data on screen to chart yet.',
+  'c.dist.title': 'How much of the map moved how far',
+  'c.dist.hint': 'Share of the {n} reliable cells at each amount of motion ({unit}). Orange is away from the satellite, blue is toward it.',
+  'c.quakes.title': 'Earthquakes through time',
+  'c.quakes.hint': '{n} USGS earthquakes in the period. Dashed lines are the two NISAR passes the map compares.',
+  'c.exposure.title': 'People by shaking level',
+  'c.exposure.hint': 'Millions of people exposed to each level of shaking (Modified Mercalli intensity, USGS estimate).',
+  'c.peak.title': 'Strongest motion, period by period',
+  'c.peak.hint': 'The largest motion away from the satellite (orange) and toward it (blue) in each period, in {unit}. The most extreme 1% of cells are left out as possible errors.',
+  'c.area.title': 'Area moving away by more than 2 cm',
+  'c.area.hint': 'Square kilometres where the ground moved away from the satellite by more than 2 cm in each period.',
+  'c.spot.title': 'Motion at the clicked spot',
+  'c.spot.hint': 'Motion in {unit} at {lat}°, {lng}° in each period. Click another spot on the map to change it.',
+  'c.bright.title': 'Bright ground (strong radar echo)',
+  'c.bright.hint': 'Square kilometres with a strong echo on each pass, the signature of rough, fresh surfaces such as new lava.',
+  'c.change.title': 'Area that changed since the previous pass',
+  'c.change.hint': 'Square kilometres whose echo changed by more than 3 dB since the pass before. Snow, wet ground and plants change it too, not only lava.',
+  'c.change.up': 'Brighter',
+  'c.change.down': 'Darker',
+  'c.echo.title': 'Average echo on each pass',
+  'c.echo.hint': 'Mean HH and HV echo over the whole area, in decibels.',
 }
 
 export default en
