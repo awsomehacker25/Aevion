@@ -42,6 +42,9 @@ export const eventReached = (story: Story, cursor: number) => !story.event || cu
  * slow speed through the build-up, and eases back up to the normal rate over `releaseSeconds` after it ends.
  * `toPlay` maps a timeline position to seconds of playback, `toTime` maps back.
  */
+/** How much faster the stretches with nothing to show play, compared with the normal rate. */
+const QUIET_SPEEDUP = 2
+
 export function playClock(
   start: number, end: number, rate: number, win: { from: number; to: number } | null, buildSeconds: number,
   brakeSeconds = 0.5, releaseSeconds = 0.9,
@@ -51,13 +54,16 @@ export function playClock(
   const a = Math.min(Math.max(win.from, start), end)
   const b = Math.min(Math.max(win.to, a), end)
   const L = b - a
-  if (L <= 0 || L / rate >= buildSeconds) return linear // already slow enough
+  if (L <= 0) return linear
 
-  const vSlow = L / buildSeconds // timeline ms per second of playback during the build-up
+  // Quiet stretches (before the event, after the second pass) go by quickly; the build-up itself runs at the normal rate,
+  // or slower when it is short, so that it lasts `buildSeconds`.
+  const fast = rate * QUIET_SPEEDUP
+  const vSlow = Math.min(rate, L / buildSeconds) // timeline ms per second of playback during the build-up
   const ease = (x: number) => { const c = Math.min(1, Math.max(0, x)); return c * c * (3 - 2 * c) }
   const DT = 0.01 // seconds of playback per table step
   const brakeSteps = Math.round(brakeSeconds / DT)
-  const speedAt = (u: number) => rate - (rate - vSlow) * ease(u) // u: 0 = normal speed, 1 = slow
+  const speedAt = (u: number) => fast - (fast - vSlow) * ease(u) // u: 0 = quick, 1 = build-up speed
   let brakeDistance = 0
   for (let i = 0; i < brakeSteps; i++) brakeDistance += speedAt((i + 0.5) / brakeSteps) * DT
   const brakeFrom = Math.max(start, a - brakeDistance) // where the brake begins
@@ -65,10 +71,10 @@ export function playClock(
   // Table of timeline position against playback time, marched forward in small steps.
   const pos: number[] = [start]
   let x = start
-  let phase = 0 // 0 normal, 1 braking, 2 building up, 3 releasing
+  let phase = 0 // 0 quick, 1 braking, 2 building up, 3 releasing
   let into = 0
   for (let k = 0; x < end && k < 20000; k++) {
-    let v = rate
+    let v = fast
     if (phase === 0 && x >= brakeFrom) { phase = 1; into = 0 }
     if (phase === 1) {
       v = speedAt((into + DT / 2) / brakeSeconds)
@@ -77,7 +83,7 @@ export function playClock(
       v = vSlow
       if (x + v * DT >= b) { phase = 3; into = -DT }
     } else if (phase === 3) {
-      v = vSlow + (rate - vSlow) * ease((into + DT / 2) / releaseSeconds)
+      v = vSlow + (fast - vSlow) * ease((into + DT / 2) / releaseSeconds)
     }
     x = Math.min(end, x + v * DT)
     into += DT
