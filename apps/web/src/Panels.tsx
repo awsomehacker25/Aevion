@@ -183,9 +183,12 @@ export function SidePanel(p: SideProps) {
   const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760)
 
   const credits = (
-    <p className="foot">
-      {p.story.credits ?? t('s.credits')}
-    </p>
+    <>
+      <p className="foot">
+        {p.story.credits ?? t('s.credits')}
+      </p>
+      <p className="foot">{t('s.si')}</p>
+    </>
   )
   const team = (
     <p className="foot team">

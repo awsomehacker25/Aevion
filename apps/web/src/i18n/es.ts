@@ -225,6 +225,7 @@ const d: Dict = {
   's.mix.change.k3': 'Verde: sobre todo HV se aclaró',
   's.mix.change.k4': 'Azul: ambos se oscurecieron',
   'top.featured': 'Destacada',
+  's.si': 'Creado con ayuda de un asistente de programación con IA (Claude Code). Las traducciones son automáticas.',
 }
 
 export default d

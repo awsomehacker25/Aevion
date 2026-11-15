@@ -415,6 +415,7 @@ const en: Record<string, string> = {
   'f.insp.near': 'Near {name}: {text}',
   'top.featured': 'Featured',
   'f.dedication': 'For the families of Upper Assam.',
+  's.si': 'Built with help from an AI coding assistant (Claude Code). Translations are machine generated.',
 }
 
 export default en

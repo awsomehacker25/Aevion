@@ -46,6 +46,7 @@ export function LearnTab({ story, onMethods }: { story: FloodStory; onMethods: (
       </div>
       <button className="cta ghost" onClick={onMethods}>{t('methods.button')}</button>
       <p className="foot">{story.credits}</p>
+      <p className="foot">{t('s.si')}</p>
     </>
   )
 }

@@ -1,11 +1,21 @@
 {
-  "_meta": { "lang": "es", "machine_translated": true, "reviewed_by_native_speaker": false },
+  "_meta": {
+    "lang": "es",
+    "machine_translated": true,
+    "reviewed_by_native_speaker": false,
+    "generated_by": "SI (Claude Code): machine translation, not reviewed by a native speaker"
+  },
   "title": "La ciudad que se hunde",
   "subtitle": "Ciudad de México, de octubre de 2025 a enero de 2026",
   "storyText": "La Ciudad de México está construida sobre el lecho de un antiguo lago y, desde hace más de un siglo, se hunde porque se extrae agua subterránea de la arcilla que tiene debajo. NISAR sobrevoló la zona cada 12 días desde el 25 de octubre de 2025. Al juntar los pasos, se ve una amplia zona del antiguo lecho del lago alejándose del satélite a unos 2 centímetros al mes, hasta unos 7 centímetros en menos de tres meses, según esta medición.",
-  "statusDetail": { "story": "Medición de NISAR, aún sin validar" },
+  "statusDetail": {
+    "story": "Medición de NISAR, aún sin validar"
+  },
   "copy": {
-    "mainView": ["Movimiento del suelo", "Desplazamiento LOS"],
+    "mainView": [
+      "Movimiento del suelo",
+      "Desplazamiento LOS"
+    ],
     "periodsHeading": "Movimiento por fecha de paso",
     "howTo": [
       "Arrastra la línea de tiempo (o pulsa reproducir) para recorrer los pasos de NISAR. El mapa muestra cuánto se ha movido el suelo desde el 25 de octubre al ritmo constante que midió NISAR.",
@@ -55,19 +65,50 @@
     }
   ],
   "annotations": [
-    { "label": "Mayor hundimiento en esta vista" },
-    { "label": "Sin datos: el lecho del lago y la arcilla húmeda alteran el radar" }
+    {
+      "label": "Mayor hundimiento en esta vista"
+    },
+    {
+      "label": "Sin datos: el lecho del lago y la arcilla húmeda alteran el radar"
+    }
   ],
   "tour": [
-    { "title": "Ciudad de México", "text": "Este es el valle de la Ciudad de México. La ciudad está construida sobre el lecho del lago de Texcoco y de los otros lagos que los aztecas y luego los españoles drenaron. El suelo debajo es arcilla blanda llena de agua." },
-    { "title": "NISAR mira una vez", "text": "El 25 de octubre de 2025, NISAR sobrevoló la zona y registró el suelo. Todavía no hay nada coloreado, porque para ver un cambio hace falta una segunda imagen con la que comparar." },
-    { "title": "Doce días después", "text": "El 6 de noviembre NISAR volvió. Doce días son muy pocos para ver mucho: a unos 2 cm al mes el suelo se ha movido menos de 1 cm, que es el tamaño del ruido de la atmósfera. Solo se asoma una pista muy tenue de un patrón." },
-    { "title": "Por qué las fechas sueltas tienen ruido", "text": "El total sin procesar del 18 de noviembre marca unos 6 cm en el punto más fuerte y vuelve a menos de 2 cm el 12 de diciembre. El suelo no subió: el clima de ese solo día desvió el radar. Ajustar un ritmo constante a todos los pasos lo promedia." },
-    { "title": "Semana a semana se acumula", "text": "A medida que llegan más pasos, el total crece. A finales de diciembre se ve claramente una mancha naranja, al noreste del aeropuerto, sobre el antiguo lecho del lago. Pulsa reproducir para ver llegar los pasos." },
-    { "title": "Tres meses después", "text": "Para el 17 de enero de 2026, el ritmo constante da unos 7 cm alejándose del satélite en el punto más fuerte, unos 2,4 cm al mes, al noreste del aeropuerto. Si el suelo bajó en vertical, el hundimiento es unas 1,27 veces eso." },
-    { "title": "Contando las ondas", "text": "Cada banda de color equivale a unos 12 cm de movimiento. Esto son unos 7 cm en el punto más fuerte, así que allí solo se ve poco más de media banda. Las franjas aquí son una visualización basada en un modelo, así que tómalas como una forma de ver el patrón." },
-    { "title": "¿Qué tan seguros estamos?", "text": "Las zonas oscuras tienen poca señal: el agua abierta y la arcilla húmeda del antiguo lago alteran el radar, y los edificios densos y las plantas también pueden hacerlo. Esas celdas se dejan vacías." },
-    { "title": "Qué nos dice esto", "text": "Una ciudad puede hundirse centímetros al mes sin que nada parezca moverse. Un satélite que mira cada 12 días puede mapear dónde, manzana por manzana, y el mismo método sirve para cualquier ciudad sobre un lecho de lago o un acuífero. Son datos beta y tempranos de tres meses secos, así que las cifras son un punto de partida, no una respuesta final." }
+    {
+      "title": "Ciudad de México",
+      "text": "Este es el valle de la Ciudad de México. La ciudad está construida sobre el lecho del lago de Texcoco y de los otros lagos que los aztecas y luego los españoles drenaron. El suelo debajo es arcilla blanda llena de agua."
+    },
+    {
+      "title": "NISAR mira una vez",
+      "text": "El 25 de octubre de 2025, NISAR sobrevoló la zona y registró el suelo. Todavía no hay nada coloreado, porque para ver un cambio hace falta una segunda imagen con la que comparar."
+    },
+    {
+      "title": "Doce días después",
+      "text": "El 6 de noviembre NISAR volvió. Doce días son muy pocos para ver mucho: a unos 2 cm al mes el suelo se ha movido menos de 1 cm, que es el tamaño del ruido de la atmósfera. Solo se asoma una pista muy tenue de un patrón."
+    },
+    {
+      "title": "Por qué las fechas sueltas tienen ruido",
+      "text": "El total sin procesar del 18 de noviembre marca unos 6 cm en el punto más fuerte y vuelve a menos de 2 cm el 12 de diciembre. El suelo no subió: el clima de ese solo día desvió el radar. Ajustar un ritmo constante a todos los pasos lo promedia."
+    },
+    {
+      "title": "Semana a semana se acumula",
+      "text": "A medida que llegan más pasos, el total crece. A finales de diciembre se ve claramente una mancha naranja, al noreste del aeropuerto, sobre el antiguo lecho del lago. Pulsa reproducir para ver llegar los pasos."
+    },
+    {
+      "title": "Tres meses después",
+      "text": "Para el 17 de enero de 2026, el ritmo constante da unos 7 cm alejándose del satélite en el punto más fuerte, unos 2,4 cm al mes, al noreste del aeropuerto. Si el suelo bajó en vertical, el hundimiento es unas 1,27 veces eso."
+    },
+    {
+      "title": "Contando las ondas",
+      "text": "Cada banda de color equivale a unos 12 cm de movimiento. Esto son unos 7 cm en el punto más fuerte, así que allí solo se ve poco más de media banda. Las franjas aquí son una visualización basada en un modelo, así que tómalas como una forma de ver el patrón."
+    },
+    {
+      "title": "¿Qué tan seguros estamos?",
+      "text": "Las zonas oscuras tienen poca señal: el agua abierta y la arcilla húmeda del antiguo lago alteran el radar, y los edificios densos y las plantas también pueden hacerlo. Esas celdas se dejan vacías."
+    },
+    {
+      "title": "Qué nos dice esto",
+      "text": "Una ciudad puede hundirse centímetros al mes sin que nada parezca moverse. Un satélite que mira cada 12 días puede mapear dónde, manzana por manzana, y el mismo método sirve para cualquier ciudad sobre un lecho de lago o un acuífero. Son datos beta y tempranos de tres meses secos, así que las cifras son un punto de partida, no una respuesta final."
+    }
   ],
   "layers": [
     {
@@ -84,11 +125,29 @@
     }
   ],
   "epochs": [
-    { "label": "25 oct – 6 nov", "title": "+12 días" },
-    { "label": "25 oct – 18 nov", "title": "+24 días" },
-    { "label": "25 oct – 12 dic", "title": "+48 días" },
-    { "label": "25 oct – 24 dic", "title": "+60 días" },
-    { "label": "25 oct – 5 ene", "title": "+72 días" },
-    { "label": "25 oct – 17 ene", "title": "+84 días" }
+    {
+      "label": "25 oct – 6 nov",
+      "title": "+12 días"
+    },
+    {
+      "label": "25 oct – 18 nov",
+      "title": "+24 días"
+    },
+    {
+      "label": "25 oct – 12 dic",
+      "title": "+48 días"
+    },
+    {
+      "label": "25 oct – 24 dic",
+      "title": "+60 días"
+    },
+    {
+      "label": "25 oct – 5 ene",
+      "title": "+72 días"
+    },
+    {
+      "label": "25 oct – 17 ene",
+      "title": "+84 días"
+    }
   ]
 }

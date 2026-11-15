@@ -1,10 +1,19 @@
 {
-  "_meta": { "lang": "es", "machine_translated": true, "reviewed_by_native_speaker": false },
+  "_meta": {
+    "lang": "es",
+    "machine_translated": true,
+    "reviewed_by_native_speaker": false,
+    "generated_by": "SI (Claude Code): machine translation, not reviewed by a native speaker"
+  },
   "title": "Dos sismos en un minuto",
   "subtitle": "Terremotos de Venezuela, junio de 2026",
   "storyText": "El 24 de junio de 2026, un terremoto de magnitud 7,2 y otro de magnitud 7,5 sacudieron el norte de Venezuela con menos de un minuto de diferencia. NISAR sobrevoló la zona el 13 de junio y otra vez el 25 de junio. El JPL de la NASA comparó esos dos pasos de radar para medir cuánto se movió el suelo a lo largo de la línea de visión del satélite, y este es su mapa.",
-  "statusDetail": { "story": "Mapa de movimiento del suelo del JPL de la NASA a partir de NISAR, aún sin validar" },
-  "event": { "name": "Terremotos de M7,2 y M7,5" },
+  "statusDetail": {
+    "story": "Mapa de movimiento del suelo del JPL de la NASA a partir de NISAR, aún sin validar"
+  },
+  "event": {
+    "name": "Terremotos de M7,2 y M7,5"
+  },
   "why": [
     {
       "title": "¿Por qué se movió el suelo?",
@@ -28,14 +37,38 @@
     }
   ],
   "tour": [
-    { "title": "El norte de Venezuela", "text": "Esta es la costa del norte de Venezuela, hogar de millones de personas. El radar desde el espacio puede medir cómo se mueve el suelo aquí, incluso a través de las nubes." },
-    { "title": "NISAR mira una vez", "text": "El 13 de junio, NISAR, un satélite de radar de la NASA y la ISRO, pasó por encima y registró el suelo. Esta es la imagen de «antes»." },
-    { "title": "Dos grandes terremotos", "text": "El 24 de junio, un terremoto de magnitud 7,2 y otro de magnitud 7,5 ocurrieron con menos de un minuto de diferencia. Las pelotas de playa muestran cómo se deslizó la roca: de lado, a lo largo de fallas este-oeste." },
-    { "title": "NISAR mira otra vez", "text": "El 25 de junio, NISAR sobrevoló de nuevo. Comparar los dos pasos muestra cómo se movió el suelo. El naranja significa que se alejó del satélite, el azul que se acercó a él." },
-    { "title": "El suelo se deslizó de lado", "text": "Al sur de la falla el suelo se movió en un sentido; al norte, en el otro. Así se ve un deslizamiento lateral. Las manchas moradas son el modelo del USGS de dónde se deslizó la falla." },
-    { "title": "Contando las ondas", "text": "Cada banda de color equivale a unos 12 cm de movimiento hacia el satélite o alejándose de él. Muchas bandas juntas significan mucho movimiento." },
-    { "title": "¿Qué tan seguros estamos?", "text": "Las zonas oscuras tienen huecos en los datos, a menudo donde las sacudidas o la vegetación alteraron el radar. Ocultamos lo que no podemos creer." },
-    { "title": "Quiénes lo sintieron", "text": "Las ciudades de la costa sintieron sacudidas violentas. El USGS estima que millones de personas estuvieron expuestas a sacudidas muy fuertes." }
+    {
+      "title": "El norte de Venezuela",
+      "text": "Esta es la costa del norte de Venezuela, hogar de millones de personas. El radar desde el espacio puede medir cómo se mueve el suelo aquí, incluso a través de las nubes."
+    },
+    {
+      "title": "NISAR mira una vez",
+      "text": "El 13 de junio, NISAR, un satélite de radar de la NASA y la ISRO, pasó por encima y registró el suelo. Esta es la imagen de «antes»."
+    },
+    {
+      "title": "Dos grandes terremotos",
+      "text": "El 24 de junio, un terremoto de magnitud 7,2 y otro de magnitud 7,5 ocurrieron con menos de un minuto de diferencia. Las pelotas de playa muestran cómo se deslizó la roca: de lado, a lo largo de fallas este-oeste."
+    },
+    {
+      "title": "NISAR mira otra vez",
+      "text": "El 25 de junio, NISAR sobrevoló de nuevo. Comparar los dos pasos muestra cómo se movió el suelo. El naranja significa que se alejó del satélite, el azul que se acercó a él."
+    },
+    {
+      "title": "El suelo se deslizó de lado",
+      "text": "Al sur de la falla el suelo se movió en un sentido; al norte, en el otro. Así se ve un deslizamiento lateral. Las manchas moradas son el modelo del USGS de dónde se deslizó la falla."
+    },
+    {
+      "title": "Contando las ondas",
+      "text": "Cada banda de color equivale a unos 12 cm de movimiento hacia el satélite o alejándose de él. Muchas bandas juntas significan mucho movimiento."
+    },
+    {
+      "title": "¿Qué tan seguros estamos?",
+      "text": "Las zonas oscuras tienen huecos en los datos, a menudo donde las sacudidas o la vegetación alteraron el radar. Ocultamos lo que no podemos creer."
+    },
+    {
+      "title": "Quiénes lo sintieron",
+      "text": "Las ciudades de la costa sintieron sacudidas violentas. El USGS estima que millones de personas estuvieron expuestas a sacudidas muy fuertes."
+    }
   ],
   "layers": [
     {

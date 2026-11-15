@@ -23,7 +23,9 @@ Live: https://tryaevion.vercel.app
 7. [Project structure](#project-structure)
 8. [Adding a story](#adding-a-story)
 9. [Design principles](#design-principles)
-10. [Data sources and credits](#data-sources-and-credits)
+10. [Use of Super Intelligence (SI)](#use-of-super-intelligence-si)
+11. [Citations](#citations)
+12. [Data sources and credits](#data-sources-and-credits)
 
 ## What it is
 
@@ -258,6 +260,33 @@ From [PRODUCT.md](PRODUCT.md):
 4. **Science colours are data,** never decoration.
 
 The interface uses solid dark panels, one blue accent, and keeps the data colours (orange, blue and radar greys) fixed so they always mean the same thing.
+
+## Use of Super Intelligence (SI)
+
+NASA Space Apps permits SI tools and asks teams to say where and how they were used. The full statement is in [docs/super-intelligence.md](docs/super-intelligence.md). In short:
+
+- **Tool:** Claude Code, an AI coding assistant built on a Claude large language model.
+- **Used for:** writing and debugging code (the web app and the Python data scripts), helping with data analysis, helping find and summarize sources, drafting README, documentation and story text, and machine translating the interface and stories into Spanish, Russian, Hawaiian, Hindi and Assamese.
+- **Not used for:** photographs, video or audio. No NASA logos or branding are used or changed. SI did not invent any data values.
+- **Machine translations are unreviewed.** Every translation file is marked `"machine_translated": true` with a `generated_by` field. The English text is the reference.
+- The team chose the stories and data, ran and tested the app, made the design decisions, and wrote the project summary in their own words.
+
+## Citations
+
+Please cite the data when you reuse any of it. Check each provider's page for the current form of the citation.
+
+- **NISAR.** NISAR L2 GCOV and GUNW products. NASA/JPL-Caltech and ISRO. Distributed by the Alaska Satellite Facility (ASF) DAAC. https://search.asf.alaska.edu/ . Mission: https://nisar.jpl.nasa.gov/
+- **ARIA displacement maps** (Venezuela). NASA JPL ARIA team, via the NASA Disasters Mapping Portal. https://gis.earthdata.nasa.gov/portal/home/item.html?id=1d972eab2bbd4098af71c0c61db083fc
+- **GPM IMERG.** Huffman, G.J., E.F. Stocker, D.T. Bolvin, E.J. Nelkin, J. Tan. GPM IMERG Late Precipitation L3 1 day 0.1 degree x 0.1 degree V07 (GPM_3IMERGDL). Goddard Earth Sciences Data and Information Services Center (GES DISC), NASA. https://gpm.nasa.gov/data/imerg
+- **OPERA RTC-S1.** NASA JPL OPERA project, from Copernicus Sentinel-1 data, distributed by the ASF DAAC. https://www.jpl.nasa.gov/go/opera
+- **Copernicus Sentinel-1 and Sentinel-2.** Contains modified Copernicus Sentinel data (2026), processed by ESA. https://sentinels.copernicus.eu/
+- **JRC Global Surface Water.** Pekel, J.-F., Cottam, A., Gorelick, N., Belward, A.S. (2016). High-resolution mapping of global surface water and its long-term changes. *Nature* 540, 418-422. https://doi.org/10.1038/nature20584
+- **WorldPop.** WorldPop (www.worldpop.org), University of Southampton. Population data, 2025 release. https://www.worldpop.org/
+- **geoBoundaries.** Runfola, D., et al. (2020). geoBoundaries: A global database of political administrative boundaries. *PLoS ONE* 15(4): e0231866. https://www.geoboundaries.org/
+- **USGS earthquake catalog, PAGER, ShakeMap and finite-fault models.** U.S. Geological Survey, Earthquake Hazards Program. https://earthquake.usgs.gov/
+- **Assam flood validation.** Assam University, flood report for July 2026 (Figure 14), used to check our water threshold. https://www.aus.ac.in/wp-content/uploads/2026/08/Report_Flood_2026_Assam-University.pdf
+- **Upper Assam flood pipeline.** Rui Sun. https://github.com/ruisbasement-code/Upper-Assam-India
+- **Basemaps and tools.** Imagery: Esri, Maxar, Earthstar Geographics. Terrain: Mapzen / AWS Terrain Tiles. Map library: MapLibre GL JS (https://maplibre.org/).
 
 ## Data sources and credits
 

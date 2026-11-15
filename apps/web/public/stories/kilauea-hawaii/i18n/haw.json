@@ -1,9 +1,16 @@
 {
-  "_meta": { "lang": "haw", "machine_translated": true, "reviewed_by_native_speaker": false },
+  "_meta": {
+    "lang": "haw",
+    "machine_translated": true,
+    "reviewed_by_native_speaker": false,
+    "generated_by": "SI (Claude Code): machine translation, not reviewed by a native speaker"
+  },
   "title": "He lua pele i hana hou ʻia",
   "subtitle": "Kīlauea, Hawaiʻi",
   "storyText": "ʻO Kīlauea kekahi o nā lua pele ikaika loa ma ka honua, a i ka makahiki 2026 ua pele ʻia ma kahi o kēlā me kēia ʻelua pule. Ua lele ʻo NISAR ma luna ma ʻAukake 18 a ma ʻAukake 30 hou, me hoʻokahi hanana pele puna ʻeiwa hola ma waena. Ke hoʻohālikelike ʻia nā lā hele lekakā ʻelua, ʻike ʻia i ka neʻe ʻana o ka ʻāina a puni ka piko, ma kēia ana a NISAR.",
-  "statusDetail": { "story": "Ana NISAR, ʻaʻole i hōʻoia ʻia" },
+  "statusDetail": {
+    "story": "Ana NISAR, ʻaʻole i hōʻoia ʻia"
+  },
   "eventsLabel": "Nā ōlaʻi (USGS)",
   "why": [
     {
@@ -32,19 +39,50 @@
     }
   ],
   "annotations": [
-    { "label": "Puka pele Halemaʻumaʻu (Hanana 54)" },
-    { "label": "Ua neʻe ka ʻāina i ka mahina hoʻokele, ma kahi o 4 cm" }
+    {
+      "label": "Puka pele Halemaʻumaʻu (Hanana 54)"
+    },
+    {
+      "label": "Ua neʻe ka ʻāina i ka mahina hoʻokele, ma kahi o 4 cm"
+    }
   ],
   "tour": [
-    { "title": "Kīlauea", "text": "ʻO ka piko kēia o Kīlauea ma ka mokupuni ʻo Hawaiʻi. ʻO ka lua ma waenakonu ʻo Halemaʻumaʻu." },
-    { "title": "Nānā hoʻokahi ʻo NISAR", "text": "Ma ʻAukake 18, 2026, lele ʻo NISAR ma luna a hoʻopaʻa i ka ʻāina. ʻO kēia ke kiʻi \"ma mua\"." },
-    { "title": "Pele ka lua pele", "text": "Ma ʻAukake 25, puna ka pele mai ka piko no ka ʻeiwa hola (Hanana 54, e like me ka laina manawa a USGS Hawaiian Volcano Observatory). ʻO ka haʻalele ʻana o ka magma i ka waihona pāpaʻu e hoʻololi i ke ʻano o ka ʻāina ma luna." },
-    { "title": "Nānā hou ʻo NISAR", "text": "Ma ʻAukake 30, lele hou ʻo NISAR ma luna. Hōʻike ka hoʻohālikelike ʻana i nā lā hele ʻelua i ka neʻe ʻana o ka ʻāina. ʻO ka ʻalani ka haʻalele i ka mahina hoʻokele, ʻo ka polū ka hoʻokokoke." },
-    { "title": "Ua neʻe ka piko", "text": "A puni ka caldera piko, ua neʻe ka ʻāina mai ka mahina hoʻokele aku (ʻalani) ma ka puka pele ma kahi o 4 cm, a i ia mea (polū) ma ka hikina ma kahi o 4 cm. ʻO ka wahi ʻaʻohe kahi i hoʻohui ʻia e ka pele a me ka caldera i ka lekakā." },
-    { "title": "ʻĀina ʻūpā a ululāʻau paha? (HH)", "text": "Hōʻike kēia nānā i ka ʻālohilohi o ka hoʻi leo lekakā. Pane nui ka HH i ka ʻāina. Ua ʻālohilohi ma kahi o 3 dB ma ke komohana hema o ka lua (ʻalani) a ʻeleʻele ma kahi kokoke iā ia (polū)." },
-    { "title": "Ka hoʻi leo cross-polarized (HV)", "text": "ʻOi aku ka hoʻolohe o HV i nā lau a me nā lālā. Hōʻike ia i ke kiko ʻeleʻele like ma kahi kokoke i ka lua, he ʻālohilohi nāwaliwali wale nō, a he ʻeleʻele ākea ma ka ululāʻau. Kōkua ka hoʻohālikelike ʻana iā HH a me HV e hoʻokaʻawale i ka loli o ka ʻāina mai ka loli o nā mea kanu a me ka makū." },
-    { "title": "Helu i nā hawewe", "text": "ʻO kēlā me kēia ʻaoʻao kala he 12 cm ka neʻe ʻana. ʻO nā apo paʻa a puni ka piko, ua nui ka loli o ka ʻāina ma laila." },
-    { "title": "Pehea ka maopopo?", "text": "He mau āpau ka ʻikepili ma nā wahi ʻeleʻele, pinepine ma ka puka pele kahi e hoʻohui ai ka pōhaku hou a me ka lehu i ka lekakā. Hūnā mākou i ka mea hilinaʻi ʻole ʻia." }
+    {
+      "title": "Kīlauea",
+      "text": "ʻO ka piko kēia o Kīlauea ma ka mokupuni ʻo Hawaiʻi. ʻO ka lua ma waenakonu ʻo Halemaʻumaʻu."
+    },
+    {
+      "title": "Nānā hoʻokahi ʻo NISAR",
+      "text": "Ma ʻAukake 18, 2026, lele ʻo NISAR ma luna a hoʻopaʻa i ka ʻāina. ʻO kēia ke kiʻi \"ma mua\"."
+    },
+    {
+      "title": "Pele ka lua pele",
+      "text": "Ma ʻAukake 25, puna ka pele mai ka piko no ka ʻeiwa hola (Hanana 54, e like me ka laina manawa a USGS Hawaiian Volcano Observatory). ʻO ka haʻalele ʻana o ka magma i ka waihona pāpaʻu e hoʻololi i ke ʻano o ka ʻāina ma luna."
+    },
+    {
+      "title": "Nānā hou ʻo NISAR",
+      "text": "Ma ʻAukake 30, lele hou ʻo NISAR ma luna. Hōʻike ka hoʻohālikelike ʻana i nā lā hele ʻelua i ka neʻe ʻana o ka ʻāina. ʻO ka ʻalani ka haʻalele i ka mahina hoʻokele, ʻo ka polū ka hoʻokokoke."
+    },
+    {
+      "title": "Ua neʻe ka piko",
+      "text": "A puni ka caldera piko, ua neʻe ka ʻāina mai ka mahina hoʻokele aku (ʻalani) ma ka puka pele ma kahi o 4 cm, a i ia mea (polū) ma ka hikina ma kahi o 4 cm. ʻO ka wahi ʻaʻohe kahi i hoʻohui ʻia e ka pele a me ka caldera i ka lekakā."
+    },
+    {
+      "title": "ʻĀina ʻūpā a ululāʻau paha? (HH)",
+      "text": "Hōʻike kēia nānā i ka ʻālohilohi o ka hoʻi leo lekakā. Pane nui ka HH i ka ʻāina. Ua ʻālohilohi ma kahi o 3 dB ma ke komohana hema o ka lua (ʻalani) a ʻeleʻele ma kahi kokoke iā ia (polū)."
+    },
+    {
+      "title": "Ka hoʻi leo cross-polarized (HV)",
+      "text": "ʻOi aku ka hoʻolohe o HV i nā lau a me nā lālā. Hōʻike ia i ke kiko ʻeleʻele like ma kahi kokoke i ka lua, he ʻālohilohi nāwaliwali wale nō, a he ʻeleʻele ākea ma ka ululāʻau. Kōkua ka hoʻohālikelike ʻana iā HH a me HV e hoʻokaʻawale i ka loli o ka ʻāina mai ka loli o nā mea kanu a me ka makū."
+    },
+    {
+      "title": "Helu i nā hawewe",
+      "text": "ʻO kēlā me kēia ʻaoʻao kala he 12 cm ka neʻe ʻana. ʻO nā apo paʻa a puni ka piko, ua nui ka loli o ka ʻāina ma laila."
+    },
+    {
+      "title": "Pehea ka maopopo?",
+      "text": "He mau āpau ka ʻikepili ma nā wahi ʻeleʻele, pinepine ma ka puka pele kahi e hoʻohui ai ka pōhaku hou a me ka lehu i ka lekakā. Hūnā mākou i ka mea hilinaʻi ʻole ʻia."
+    }
   ],
   "layers": [
     {
@@ -75,12 +113,26 @@
     }
   ],
   "epochs": [
-    { "label": "19 Iune – 1 Iulai" },
-    { "label": "1 Iulai – 13 Iulai" },
-    { "label": "18 ʻAukake – 30 ʻAukake" },
-    { "label": "30 ʻAukake – 11 Kepakemapa" },
-    { "label": "11 Kepakemapa – 23 Kepakemapa" },
-    { "label": "23 Kepakemapa – 5 ʻOkakopa" },
-    { "label": "5 ʻOkakopa – 17 ʻOkakopa" }
+    {
+      "label": "19 Iune – 1 Iulai"
+    },
+    {
+      "label": "1 Iulai – 13 Iulai"
+    },
+    {
+      "label": "18 ʻAukake – 30 ʻAukake"
+    },
+    {
+      "label": "30 ʻAukake – 11 Kepakemapa"
+    },
+    {
+      "label": "11 Kepakemapa – 23 Kepakemapa"
+    },
+    {
+      "label": "23 Kepakemapa – 5 ʻOkakopa"
+    },
+    {
+      "label": "5 ʻOkakopa – 17 ʻOkakopa"
+    }
   ]
 }

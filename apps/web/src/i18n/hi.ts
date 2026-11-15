@@ -220,6 +220,7 @@ const d: Dict = {
   'f.insp.near': '{name} के पास: {text}',
   'top.featured': 'विशेष',
   'f.dedication': 'ऊपरी असम के परिवारों के लिए।',
+  's.si': 'AI कोडिंग सहायक (Claude Code) की मदद से बनाया गया। अनुवाद मशीन से किए गए हैं।',
 }
 
 export default d

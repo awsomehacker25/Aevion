@@ -228,6 +228,7 @@ const d: Dict = {
   's.mix.change.k3': 'ʻŌmaʻomaʻo: ua ʻālohilohi ka HV',
   's.mix.change.k4': 'Polū: ua ʻeleʻele nā mea ʻelua',
   'top.featured': 'Koʻikoʻi',
+  's.si': 'Ua kōkua ʻia e kekahi mea kōkua kōkua polokalamu AI (Claude Code). He unuhi mīkini nā unuhi.',
 }
 
 export default d
