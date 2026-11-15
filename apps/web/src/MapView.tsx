@@ -20,7 +20,7 @@ interface Props {
   radarHH?: { layer: LayerDef; grid: Grid }
   radarHV?: { layer: LayerDef; grid: Grid }
   /** The next measured period of a story that follows the timeline, cross-faded in between the two passes (from and to are times in ms). */
-  next?: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; from: number; to: number }
+  next?: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; radarHH?: { layer: LayerDef; grid: Grid }; from: number; to: number }
   mode: ViewMode
   fadeLow: boolean
   threshold: number
@@ -97,7 +97,7 @@ export default function MapView(p: Props) {
     { swipe: false, mode: 'los', replay: false, cursor: 0 })
   // The next period's picture for the view on screen (the HV picture in HV mode), or nothing when it has none.
   const nextPicture = (n: NonNullable<Props['next']>, mode: ViewMode) =>
-    mode === 'hh' ? undefined : mode === 'hv' ? n.radarHV : n.displacement
+    mode === 'hh' ? n.radarHH : mode === 'hv' ? n.radarHV : n.displacement
 
   // The current period's own layer fades out over the last part of the cross-fade, so that where the next picture is
   // transparent (little change there) the old one does not show through at the end, which would pop when the period changes.
@@ -357,7 +357,7 @@ export default function MapView(p: Props) {
     const n = p.next
     const pic = n ? nextPicture(n, p.mode) : undefined
     if (!ready || !map || !n || !pic || p.swipe) return
-    const radar = p.mode === 'hv'
+    const radar = p.mode === 'hv' || p.mode === 'hh'
     const canvas = renderOverlay(pic.grid, n.coherence.grid, {
       mode: radar ? 'los' : p.mode, range: p.mode === 'coherence' ? p.coherence.layer.range : pic.layer.range,
       fadeLow: radar ? false : p.fadeLow, threshold: p.threshold, quiet: pic.layer.quietBelow, colormap: pic.layer.colormap,

@@ -22,7 +22,8 @@ const DIVERGING = ['#1d4f91', '#3b8fd4', '#f4f4f4', '#f39237', '#b8430a']
 const CONFIDENCE = ['#0b0b1a', '#3b1f6b', '#8a2f87', '#e0556a', '#ffd479']
 
 /** The radar picture itself (not a change): dark navy for weak echoes up to white for strong ones. */
-const RADAR_GRAY = ['#070d1c', '#2a3550', '#6b7792', '#b6bfd2', '#ffffff']
+// weak echoes dark navy, ordinary ground grey, strong echoes white, the very strongest warm (rough surfaces such as fresh lava)
+const RADAR_GRAY = ['#050912', '#141d34', '#2b3858', '#4d5b7e', '#7482a3', '#9ba7c3', '#c3cbdc', '#eef1f8', '#ffd58a', '#ff8a2a']
 export const GRAY_GRADIENT = `linear-gradient(90deg, ${RADAR_GRAY.join(',')})`
 
 export const LEGEND_GRADIENTS: Record<ViewMode, string> = {
@@ -93,11 +94,110 @@ function bilinear(g: Grid, fx: number, fy: number): number {
   return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty
 }
 
-/** Draws the selected view onto a canvas, upsampled 2x with bilinear interpolation. */
+/** Catmull-Rom weights for the four neighbors around a position with fractional part t. Sharper than bilinear, so edges stay crisp. */
+function cubicW(t: number): [number, number, number, number] {
+  const t2 = t * t
+  const t3 = t2 * t
+  return [-0.5 * t3 + t2 - 0.5 * t, 1.5 * t3 - 2.5 * t2 + 1, -1.5 * t3 + 2 * t2 + 0.5 * t, 0.5 * t3 - 0.5 * t2]
+}
+
+/**
+ * Enlarges a grid to w by h cells with cubic interpolation (sharp) and a separate, hard-edged validity mask. Cells without
+ * data are filled from their neighbors only for the interpolation; the mask decides where color is drawn, so gaps keep crisp edges
+ * and never bleed color into the gap.
+ */
+function upsample(g: Grid, w: number, h: number): { vals: Float32Array; valid: Uint8Array } {
+  const gw = g.width
+  const gh = g.height
+  const src = new Float32Array(gw * gh)
+  const ok = new Uint8Array(gw * gh)
+  for (let i = 0; i < src.length; i++) {
+    const v = g.values[i]
+    if (v != null && Number.isFinite(v)) { src[i] = v; ok[i] = 1 }
+  }
+  // fill gaps with the mean of valid neighbors (a few passes), so cubic weights never pull in zeros
+  const fill = new Float32Array(src)
+  const have = new Uint8Array(ok)
+  for (let pass = 0; pass < 3; pass++) {
+    const nextFill = new Float32Array(fill)
+    const nextHave = new Uint8Array(have)
+    for (let y = 0; y < gh; y++) {
+      for (let x = 0; x < gw; x++) {
+        if (have[y * gw + x]) continue
+        let sum = 0
+        let n = 0
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const yy = y + dy
+            const xx = x + dx
+            if (yy < 0 || yy >= gh || xx < 0 || xx >= gw || !have[yy * gw + xx]) continue
+            sum += fill[yy * gw + xx]
+            n++
+          }
+        }
+        if (n) { nextFill[y * gw + x] = sum / n; nextHave[y * gw + x] = 1 }
+      }
+    }
+    fill.set(nextFill)
+    have.set(nextHave)
+  }
+  const clampI = (i: number, n: number) => (i < 0 ? 0 : i >= n ? n - 1 : i)
+  // horizontal pass for the values and the mask, one row of the source at a time
+  const hv = new Float32Array(gh * w)
+  const hm = new Float32Array(gh * w)
+  const xi = new Int32Array(w)
+  const xw: [number, number, number, number][] = []
+  const xm = new Float32Array(w)
+  const xm0 = new Int32Array(w)
+  for (let x = 0; x < w; x++) {
+    const fx = (x + 0.5) * (gw / w) - 0.5
+    const x0 = Math.floor(fx)
+    xi[x] = x0
+    xw.push(cubicW(fx - x0))
+    xm0[x] = clampI(x0, gw)
+    xm[x] = fx - x0
+  }
+  for (let y = 0; y < gh; y++) {
+    const row = y * gw
+    for (let x = 0; x < w; x++) {
+      const x0 = xi[x]
+      const wt = xw[x]
+      hv[y * w + x] = wt[0] * fill[row + clampI(x0 - 1, gw)] + wt[1] * fill[row + clampI(x0, gw)] + wt[2] * fill[row + clampI(x0 + 1, gw)] + wt[3] * fill[row + clampI(x0 + 2, gw)]
+      const a = ok[row + xm0[x]]
+      const b = ok[row + clampI(xm0[x] + 1, gw)]
+      hm[y * w + x] = a * (1 - xm[x]) + b * xm[x]
+    }
+  }
+  // vertical pass
+  const vals = new Float32Array(w * h)
+  const valid = new Uint8Array(w * h)
+  for (let y = 0; y < h; y++) {
+    const fy = (y + 0.5) * (gh / h) - 0.5
+    const y0 = Math.floor(fy)
+    const wt = cubicW(fy - y0)
+    const ya = clampI(y0 - 1, gh)
+    const yb = clampI(y0, gh)
+    const yc = clampI(y0 + 1, gh)
+    const yd = clampI(y0 + 2, gh)
+    const ty = fy - y0
+    const ym0 = clampI(y0, gh)
+    const ym1 = clampI(y0 + 1, gh)
+    for (let x = 0; x < w; x++) {
+      vals[y * w + x] = wt[0] * hv[ya * w + x] + wt[1] * hv[yb * w + x] + wt[2] * hv[yc * w + x] + wt[3] * hv[yd * w + x]
+      const m = hm[ym0 * w + x] * (1 - ty) + hm[ym1 * w + x] * ty
+      valid[y * w + x] = m >= 0.5 ? 1 : 0
+    }
+  }
+  return { vals, valid }
+}
+
+/** Draws the selected view onto a canvas, enlarged about 4x with cubic interpolation so it stays sharp when zoomed in. */
 export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasElement {
-  const S = o.low ? 0.5 : defo.width >= 400 ? 1 : 2 // big grids are already detailed; keep redraws fast
+  // aim for about 900 cells across (big grids need less enlarging); the replay draws smaller to stay fast
+  const S = o.low ? 1 : Math.max(2, Math.round(900 / defo.width))
   const W = Math.round(defo.width * S)
   const H = Math.round(defo.height * S)
+  const up = upsample(defo, W, H)
   const k = o.scale ?? 1
   const cv = document.createElement('canvas')
   cv.width = W
@@ -121,9 +221,10 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasE
     const fy = (y + 0.5) / S - 0.5
     for (let x = 0; x < W; x++) {
       const fx = (x + 0.5) / S - 0.5
-      const d = bilinear(defo, fx, fy) * k
+      if (!up.valid[y * W + x]) continue // no data: stay transparent
+      const d = up.vals[y * W + x] * k
       let c = bilinear(coh, fx, fy)
-      if (Number.isNaN(d) || (mode === 'coherence' && Number.isNaN(c))) continue // no data: stay transparent
+      if (mode === 'coherence' && Number.isNaN(c)) continue
       if (Number.isNaN(c)) c = 0
       let li: number // index into a color table
       let lutArr: Uint8ClampedArray
@@ -131,7 +232,7 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasE
       if (mode === 'los' && o.colormap === 'gray') {
         li = Math.round(Math.min(1, Math.max(0, (d - lo) / (hi - lo))) * (LUT_N - 1))
         lutArr = GRAY_LUT
-        a = 0.95 * grow
+        a = 1
       } else if (mode === 'los') {
         const tt = d / half // -1..1
         li = Math.round(Math.min(1, Math.max(0, (tt + 1) / 2)) * (LUT_N - 1))
@@ -159,7 +260,7 @@ export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasE
           a = Math.max(a, 0.22)
         }
       }
-      a *= smooth(0, feather, Math.min(x, y, W - 1 - x, H - 1 - y)) // soft edges, no visible box
+      a *= smooth(0, o.colormap === 'gray' ? feather * 0.5 : feather, Math.min(x, y, W - 1 - x, H - 1 - y)) // soft edges, no visible box
       const i = (y * W + x) * 4
       data[i] = r
       data[i + 1] = g

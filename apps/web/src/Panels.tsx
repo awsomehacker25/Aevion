@@ -133,6 +133,25 @@ export function SidePanel(p: SideProps) {
               : (p.displacement.hintStory ?? 'Blue and orange show the ground moving toward or away from the satellite, not up or down.'),
           }
 
+  // What the colors mean in the view on screen: the story's own key if it has one, otherwise a standard one built from the layer's wording.
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+  const keyItems: { color: string; text: string }[] | undefined = p.story.copy?.key?.[p.mode] ?? (
+    p.mode === 'fringes'
+      ? [{ color: LEGEND_GRADIENTS.fringes, text: 'One full color cycle is about 12 cm of motion toward or away from the satellite' },
+         { color: '#f4f4f4', text: 'Many tight bands: a lot of motion. Wide bands: little.' }]
+      : p.mode === 'coherence'
+        ? [{ color: '#ffd479', text: 'Bright: the two passes matched well, so it can be trusted' },
+           { color: '#3b1f6b', text: 'Dark: the ground changed too much, so it is unreliable' }]
+        : radarLayer
+          ? [{ color: '#f39237', text: cap(`echo got ${radarLayer.positiveMeans ?? 'brighter'}`) },
+             { color: '#3b8fd4', text: cap(`echo got ${radarLayer.negativeMeans ?? 'darker'}`) },
+             { color: '#f4f4f4', text: `Little change: left clear` }]
+          : bs
+            ? undefined
+            : [{ color: '#f39237', text: cap(`moved ${p.displacement.positiveMeans ?? 'away from the satellite'}`) },
+               { color: '#3b8fd4', text: cap(`moved ${p.displacement.negativeMeans ?? 'toward the satellite'}`) },
+               { color: '#f4f4f4', text: 'Barely moved: left clear' }])
+
   const pairLine = p.flagship
     ? `Track ${p.flagship.track} ${p.flagship.orbitDirection === 'A' ? 'ascending' : 'descending'} · ${p.story.flagshipPair.reference} → ${p.story.flagshipPair.secondary}`
     : ''
@@ -219,7 +238,7 @@ export function SidePanel(p: SideProps) {
         <h1>{sci && tech ? tech.title : p.story.title}</h1>
         <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
 
-        <div className={`views ${bs ? 'two' : ''}`}>
+        <div className={`views ${bs ? (p.radar?.hh && p.radar?.hv ? '' : 'two') : ''}`}>
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
             title={(p.story.copy?.mainView ?? ['Ground motion', 'LOS displacement'])[sci ? 1 : 0]}
             sub={bs ? (sci ? 'GCOV HHHH change, dB' : 'How much brighter or darker') : sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
@@ -229,6 +248,8 @@ export function SidePanel(p: SideProps) {
             title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />}
           {bs && p.radar?.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
             title="Radar HV" sub={sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants'} />}
+          {bs && p.radar?.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
+            title="What changed" sub={sci ? 'HH change vs the previous pass, dB' : 'Difference from the previous pass'} />}
         </div>
         {!bs && (p.radar?.hh || p.radar?.hv) && (
           <div className="views radar">
@@ -243,6 +264,11 @@ export function SidePanel(p: SideProps) {
           <div className="legend-title">{legend.title} <Badge kind={active.badge} synthetic={active.synthetic} /></div>
           <div className="bar" style={{ background: (radarLayer ?? (p.mode === 'los' ? p.displacement : undefined))?.colormap === 'gray' ? GRAY_GRADIENT : LEGEND_GRADIENTS[p.mode] }} />
           <div className="ends"><span>{legend.left}</span><span>{legend.right}</span></div>
+          {keyItems && (
+            <ul className="key">
+              {keyItems.map((k) => <li key={k.text}><i style={{ background: k.color }} />{k.text}</li>)}
+            </ul>
+          )}
         </div>
 
         <details className="settings">
@@ -363,7 +389,8 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
               {(['hh', 'hv'] as const).map((k) => {
                 const r = radar?.[k]
                 const v = r ? sampleGrid(r.grid, point[0], point[1]) : null
-                return r ? <tr key={k}><th>{k.toUpperCase()} brightness</th><td>{v == null ? 'no data' : `${v > 0 ? '+' : ''}${v.toFixed(1)} dB`}</td></tr> : null
+                const name = bs ? (k === 'hh' ? 'Change vs previous pass' : 'HV echo') : `${k.toUpperCase()} brightness`
+                return r ? <tr key={k}><th>{name}</th><td>{v == null ? 'no data' : `${v > 0 && (!bs || k === 'hh') ? '+' : ''}${v.toFixed(1)} dB`}</td></tr> : null
               })}
               <tr><th>Grid cell</th><td>col {col}, row {row} of {g.width} &times; {g.height}</td></tr>
               {sign && <tr><th>Sign</th><td>{sign}</td></tr>}

@@ -2,7 +2,7 @@
   "service": "https://gis.earthdata.nasa.gov/portal/rest/services/DISASTERS_202606_EARTHQUAKE_VENEZUELA/202611_nisar_LOSDisplacement/ImageServer",
   "rasterId": 1,
   "rasterName": "NISAR_GUNW_20260613_20260625_unw_deIon_deRamp_maskWater_cm-crop2",
-  "fetchedAtUtc": "2026-11-13T22:07:30+00:00",
+  "fetchedAtUtc": "2026-11-14T19:14:37+00:00",
   "bbox": [
     -69.4,
     9.6,
@@ -10,19 +10,19 @@
     11.3
   ],
   "size": [
-    560,
-    320
+    1120,
+    640
   ],
   "interpolation": "nearest",
   "limitsCm": [
     -48.56,
     56.45
   ],
-  "coverageWindow": 7,
-  "validFraction": 0.9345,
+  "coverageWindow": 13,
+  "validFraction": 0.922,
   "cmRange": [
-    -42.94,
-    55.19
+    -47.56,
+    53.77
   ],
   "credit": "NASA-JPL/Caltech ARIA team, NISAR Operations Science Team"
 }

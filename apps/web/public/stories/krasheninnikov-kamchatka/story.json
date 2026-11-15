@@ -7,7 +7,7 @@
   "technical": {
     "title": "HH backscatter of Krasheninnikov volcano, NISAR GCOV, track 60 descending, 2026-06-18 to 2026-10-28",
     "subtitle": "NISAR L2 GCOV (provisional), HHHH power in dB, 11 passes 12 days apart",
-    "summary": "Radar backscatter (the HHHH term of the L-band GCOV product, λ = 24.2 cm) of the volcano and its flanks for each of 11 NISAR passes on one track, block-averaged to about 105 m cells and shown in dB. Nothing is subtracted: every period is the radar picture of one pass. Fresh lava is rough and reflects the radar strongly, so it is bright against smoother ground, and NASA/JPL's published time-lapse of the same volcano shows lava this way. The same brightness also depends on snow, soil moisture and vegetation, so the maps need to be read with that in mind.",
+    "summary": "Radar backscatter (the HHHH term of the L-band GCOV product, λ = 24.2 cm) of the volcano and its flanks for each of 11 NISAR passes on one track, block-averaged to about 80 m cells and shown in dB. Nothing is subtracted: every period is the radar picture of one pass. Fresh lava is rough and reflects the radar strongly, so it is bright against smoother ground, and NASA/JPL's published time-lapse of the same volcano shows lava this way. The same brightness also depends on snow, soil moisture and vegetation, so the maps need to be read with that in mind.",
     "caveats": [
       "The source granules are provisional NISAR products, not validated by NASA. The Oct 28 pass is the validated product (GCOV V1), so the last period mixes two data maturities.",
       "Only passes from June 18, 2026 onward are in the public catalog so far. NISAR first imaged this volcano on Dec 25, 2025, and the earlier passes (the ones that show the lava building up) are not in this story.",
@@ -38,8 +38,8 @@
       160.27,
       54.585
     ],
-    "zoom": 11.1,
-    "pitch": 48,
+    "zoom": 10.9,
+    "pitch": 34,
     "bearing": 0
   },
   "timeline": {
@@ -60,11 +60,56 @@
       "Radar HH",
       "Radar HH"
     ],
+    "key": {
+      "los": [
+        {
+          "color": "#ff8a2a",
+          "text": "Strongest echo: the roughest surfaces, such as fresh lava or bare rock"
+        },
+        {
+          "color": "#e8ecf5",
+          "text": "Strong: ordinary ground and slopes facing the radar"
+        },
+        {
+          "color": "#1b2640",
+          "text": "Weak: smooth ground, slopes facing away, or wet snow"
+        }
+      ],
+      "hv": [
+        {
+          "color": "#ff8a2a",
+          "text": "Strongest cross-polarized echo: rough, scattering surfaces and plants"
+        },
+        {
+          "color": "#7482a3",
+          "text": "Medium: ordinary ground"
+        },
+        {
+          "color": "#141d34",
+          "text": "Weak: smooth surfaces"
+        }
+      ],
+      "hh": [
+        {
+          "color": "#f39237",
+          "text": "Got brighter since the previous pass: snow melting off, or a new rough surface"
+        },
+        {
+          "color": "#3b8fd4",
+          "text": "Got darker: new snow or wet ground, or a smoother surface"
+        },
+        {
+          "color": "#f4f4f4",
+          "text": "Little change (under 1.5 dB): left clear"
+        }
+      ]
+    },
     "followTimeline": true,
     "periodsHeading": "All radar passes",
     "howTo": [
       "Drag the timeline (or press play) to move from one radar pass to the next. The picture changes at each pass.",
-      "Bright means a strong radar echo (rough surfaces such as fresh lava), dark means a weak one (smooth ground or wet snow).",
+      "Bright means a strong radar echo (rough surfaces such as fresh lava), dark means a weak one (smooth ground or wet snow). Orange is the strongest.",
+      "Press What changed to see only what is different from the previous pass: orange got brighter, blue got darker.",
       "Click anywhere on the map to see how strong the echo is there. Switch to Scientist mode for the numbers and sources."
     ],
     "epochText": "NISAR flew over on {to}. This is the radar picture from that pass.",
@@ -108,8 +153,8 @@
           160.27,
           54.585
         ],
-        "zoom": 11.1,
-        "pitch": 48,
+        "zoom": 10.9,
+        "pitch": 34,
         "bearing": 0
       }
     },
@@ -152,16 +197,32 @@
       "date": "2026-07-26T00:00:00Z"
     },
     {
-      "title": "A snow-free summer",
-      "text": "From late July to September the picture hardly changes. This is the clearest view of the volcano's surface. Between passes, new lava would be a patch that suddenly gets brighter.",
-      "date": "2026-09-12T00:00:00Z",
+      "title": "What changed?",
+      "text": "Press What changed to see only the difference from the previous pass. Orange got brighter, blue got darker. In June and July it is mostly the slopes, as the snow melts away. Lava would be a patch that suddenly turns orange and then stays bright.",
+      "date": "2026-07-14T00:00:00Z",
+      "view": "hh",
       "camera": {
         "center": [
           160.27,
           54.585
         ],
-        "zoom": 11.1,
-        "pitch": 48,
+        "zoom": 10.9,
+        "pitch": 34,
+        "bearing": 0
+      }
+    },
+    {
+      "title": "A snow-free summer",
+      "text": "From late July to September the picture hardly changes. This is the clearest view of the volcano's surface. Between passes, new lava would be a patch that suddenly gets brighter.",
+      "date": "2026-09-12T00:00:00Z",
+      "view": "los",
+      "camera": {
+        "center": [
+          160.27,
+          54.585
+        ],
+        "zoom": 10.9,
+        "pitch": 34,
         "bearing": 0
       }
     },
@@ -272,8 +333,8 @@
       "displayUnits": "dB",
       "displayScale": 1,
       "range": [
-        -20,
-        0
+        -18,
+        -1
       ],
       "colormap": "gray",
       "appearsAfter": "secondary",
@@ -295,7 +356,44 @@
         "geometry": "Track 60 descending, frame 61, left-looking, dual-pol mode (DHDH)",
         "polarization": "HH (L-band, about 24 cm)",
         "measurement": "Radar backscatter power, in dB (a picture of how strongly the ground echoes the radar, not a change)",
-        "method": "Aevion read the HHHH power layer inside the map box (the full file is never saved), averaged the linear power in blocks down to about 105 m cells, converted to dB, and resampled to a 220 by 220 grid. No smoothing, no background correction and no terrain correction beyond what the product has.",
+        "method": "Aevion read the HHHH power layer inside the map box (the full file is never saved), averaged the linear power in blocks down to about 80 m cells, converted to dB, and resampled to a 300 by 300 grid. No smoothing, no background correction and no terrain correction beyond what the product has.",
+        "license": "NASA data, free to use. Research-grade, not for operational use."
+      }
+    },
+    {
+      "id": "hh-change",
+      "role": "backscatterHH",
+      "name": "What changed since the previous pass",
+      "badge": "DERIVED",
+      "grid": "backscatter-hh.grid.json",
+      "units": "dB",
+      "displayUnits": "dB",
+      "displayScale": 1,
+      "range": [
+        -8,
+        8
+      ],
+      "quietBelow": 1.5,
+      "appearsAfter": "secondary",
+      "synthetic": false,
+      "positiveMeans": "brighter than on the previous pass",
+      "negativeMeans": "darker than on the previous pass",
+      "titleStory": "What changed since the previous pass (HH)",
+      "titleScientist": "Change in HH backscatter vs the previous pass (dB)",
+      "hintStory": "Orange means the radar echo got brighter since the previous pass 12 days earlier, blue means darker. Changes under 1.5 dB are left clear. Most of the colour in June and July is snow melting off the slopes; lava would be a patch that suddenly turns orange and then stays bright.",
+      "hintScientist": "HH backscatter (dB) of this pass minus the previous pass on the same track, with the scene-wide median shift of that pair removed. Changes below 1.5 dB are drawn transparent. The first pass has no earlier pass to compare with.",
+      "provenance": {
+        "mission": "NISAR (NASA-ISRO)",
+        "band": "L-band",
+        "product": "L2 GCOV (geocoded polarimetric covariance), HHHH term, provisional (the Oct 28 pass is the validated product)",
+        "granuleId": "NISAR_L2_PR_GCOV_028_060_D_061_4005_DHDH_A_20260817T084924_20260817T085002_P05023_N_F_J_001 minus the previous pass's granule (see the Periods tab)",
+        "maturity": "PROVISIONAL",
+        "referenceDate": "2026-07-24",
+        "secondaryDate": "2026-08-17",
+        "geometry": "Track 60 descending, frame 61, left-looking, dual-pol mode (DHDH)",
+        "polarization": "HH (L-band, about 24 cm)",
+        "measurement": "Radar backscatter power, in dB (a picture of how strongly the ground echoes the radar, not a change)",
+        "method": "Aevion subtracted the previous pass's HHHH backscatter (dB) from this pass's, then removed the median of the difference over the whole map box. Resampled to a 220 by 200 grid. No smoothing.",
         "license": "NASA data, free to use. Research-grade, not for operational use."
       }
     },
@@ -336,8 +434,8 @@
       "displayUnits": "dB",
       "displayScale": 1,
       "range": [
-        -26,
-        -2
+        -28,
+        -5
       ],
       "colormap": "gray",
       "appearsAfter": "secondary",
@@ -359,7 +457,7 @@
         "geometry": "Track 60 descending, frame 61, left-looking, dual-pol mode (DHDH)",
         "polarization": "HV (L-band, about 24 cm)",
         "measurement": "Radar backscatter power, in dB (a picture of how strongly the ground echoes the radar, not a change)",
-        "method": "Aevion read the HHHH power layer inside the map box (the full file is never saved), averaged the linear power in blocks down to about 105 m cells, converted to dB, and resampled to a 220 by 220 grid. No smoothing, no background correction and no terrain correction beyond what the product has.",
+        "method": "Aevion read the HHHH power layer inside the map box (the full file is never saved), averaged the linear power in blocks down to about 80 m cells, converted to dB, and resampled to a 300 by 300 grid. No smoothing, no background correction and no terrain correction beyond what the product has.",
         "license": "NASA data, free to use. Research-grade, not for operational use."
       }
     }
@@ -389,7 +487,8 @@
         "secondary": "2026-06-18"
       },
       "deformation": "epochs/ep-2026-06-18.deformation.grid.json",
-      "hv": "epochs/ep-2026-06-18.hv.grid.json"
+      "hv": "epochs/ep-2026-06-18.hv.grid.json",
+      "hh": "epochs/ep-2026-06-18.hh.grid.json"
     },
     {
       "id": "ep-2026-06-30",
@@ -400,7 +499,8 @@
         "secondary": "2026-06-30"
       },
       "deformation": "epochs/ep-2026-06-30.deformation.grid.json",
-      "hv": "epochs/ep-2026-06-30.hv.grid.json"
+      "hv": "epochs/ep-2026-06-30.hv.grid.json",
+      "hh": "epochs/ep-2026-06-30.hh.grid.json"
     },
     {
       "id": "ep-2026-07-12",
@@ -411,7 +511,8 @@
         "secondary": "2026-07-12"
       },
       "deformation": "epochs/ep-2026-07-12.deformation.grid.json",
-      "hv": "epochs/ep-2026-07-12.hv.grid.json"
+      "hv": "epochs/ep-2026-07-12.hv.grid.json",
+      "hh": "epochs/ep-2026-07-12.hh.grid.json"
     },
     {
       "id": "ep-2026-07-24",
@@ -422,7 +523,8 @@
         "secondary": "2026-07-24"
       },
       "deformation": "epochs/ep-2026-07-24.deformation.grid.json",
-      "hv": "epochs/ep-2026-07-24.hv.grid.json"
+      "hv": "epochs/ep-2026-07-24.hv.grid.json",
+      "hh": "epochs/ep-2026-07-24.hh.grid.json"
     },
     {
       "id": "ep-2026-08-17",
@@ -433,7 +535,8 @@
         "secondary": "2026-08-17"
       },
       "deformation": "deformation.grid.json",
-      "hv": "backscatter-hv.grid.json"
+      "hv": "backscatter-hv.grid.json",
+      "hh": "backscatter-hh.grid.json"
     },
     {
       "id": "ep-2026-08-29",
@@ -444,7 +547,8 @@
         "secondary": "2026-08-29"
       },
       "deformation": "epochs/ep-2026-08-29.deformation.grid.json",
-      "hv": "epochs/ep-2026-08-29.hv.grid.json"
+      "hv": "epochs/ep-2026-08-29.hv.grid.json",
+      "hh": "epochs/ep-2026-08-29.hh.grid.json"
     },
     {
       "id": "ep-2026-09-10",
@@ -455,7 +559,8 @@
         "secondary": "2026-09-10"
       },
       "deformation": "epochs/ep-2026-09-10.deformation.grid.json",
-      "hv": "epochs/ep-2026-09-10.hv.grid.json"
+      "hv": "epochs/ep-2026-09-10.hv.grid.json",
+      "hh": "epochs/ep-2026-09-10.hh.grid.json"
     },
     {
       "id": "ep-2026-09-22",
@@ -466,7 +571,8 @@
         "secondary": "2026-09-22"
       },
       "deformation": "epochs/ep-2026-09-22.deformation.grid.json",
-      "hv": "epochs/ep-2026-09-22.hv.grid.json"
+      "hv": "epochs/ep-2026-09-22.hv.grid.json",
+      "hh": "epochs/ep-2026-09-22.hh.grid.json"
     },
     {
       "id": "ep-2026-10-04",
@@ -477,7 +583,8 @@
         "secondary": "2026-10-04"
       },
       "deformation": "epochs/ep-2026-10-04.deformation.grid.json",
-      "hv": "epochs/ep-2026-10-04.hv.grid.json"
+      "hv": "epochs/ep-2026-10-04.hv.grid.json",
+      "hh": "epochs/ep-2026-10-04.hh.grid.json"
     },
     {
       "id": "ep-2026-10-16",
@@ -488,7 +595,8 @@
         "secondary": "2026-10-16"
       },
       "deformation": "epochs/ep-2026-10-16.deformation.grid.json",
-      "hv": "epochs/ep-2026-10-16.hv.grid.json"
+      "hv": "epochs/ep-2026-10-16.hv.grid.json",
+      "hh": "epochs/ep-2026-10-16.hh.grid.json"
     },
     {
       "id": "ep-2026-10-28",
@@ -499,7 +607,8 @@
         "secondary": "2026-10-28"
       },
       "deformation": "epochs/ep-2026-10-28.deformation.grid.json",
-      "hv": "epochs/ep-2026-10-28.hv.grid.json"
+      "hv": "epochs/ep-2026-10-28.hv.grid.json",
+      "hh": "epochs/ep-2026-10-28.hh.grid.json"
     }
   ]
 }

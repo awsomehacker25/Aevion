@@ -77,6 +77,8 @@ export interface Epoch {
   deformation: string
   /** The period's HV radar picture, for stories whose radar views change with the period. */
   hv?: string
+  /** The period's "what changed since the previous pass" picture (the HH view slot), for the same kind of story. */
+  hh?: string
   /** Leave out to use the story's own coherence layer for every period. */
   coherence?: string
 }
@@ -97,6 +99,8 @@ export interface StoryCopy {
   chart?: { title: string; hint: string; unit: string; scale: number; minLim: number; digits?: number; ariaLabel?: string; label?: 'start' | 'end' }
   /** Replaces the formula line under Evidence in Scientist mode. */
   evidenceNote?: string
+  /** A short key under the legend for each view: a color swatch (any CSS background) and what it means. Views without one get a standard key. */
+  key?: Partial<Record<ViewMode, { color: string; text: string }[]>>
   /** Heading above the list of periods (default "All periods"). */
   periodsHeading?: string
   /**
@@ -272,5 +276,5 @@ export interface LoadedStory {
   flagship?: AcquisitionPair
   quakes: QuakeCollection
   context?: UsgsContext
-  epochGrids?: Record<string, { deformation: Grid; coherence: Grid; hv?: Grid }>
+  epochGrids?: Record<string, { deformation: Grid; coherence: Grid; hv?: Grid; hh?: Grid }>
 }

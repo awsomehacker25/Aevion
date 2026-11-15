@@ -64,8 +64,8 @@ def main(folder: str):
         if not l.get("synthetic") and not prov.get("maturity"):
             err(f"layer {l.get('id')}: real data needs provenance.maturity")
 
-    if len(set(shapes.values())) > 1:
-        err(f"grids differ in shape or bbox: {shapes}")
+    if len({v[2] for v in shapes.values()}) > 1:
+        err(f"grids cover different areas: {shapes}")  # sizes may differ (the app samples each grid on its own); the area may not
     if s.get("dataStatus") == "placeholder" and not any_synth:
         warn("dataStatus is 'placeholder' but no layer is marked synthetic")
     if s.get("dataStatus") != "placeholder" and any_synth:

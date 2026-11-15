@@ -55,12 +55,19 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
     return () => ro.disconnect()
   }, [])
 
+  // A story that follows the timeline plays at one steady speed. (Its build-up window changes with every period, and a clock that
+  // changed under the animation would restart it at each pass.)
+  const follow = !!story.copy?.followTimeline
+  const win = follow ? null : buildWindow(story, data.flagship?.secondary)
+  const winFrom = win?.from
+  const winTo = win?.to
   const clock = useMemo(
-    () => playClock(start, end, span / PLAY_SECONDS, buildWindow(story, data.flagship?.secondary), BUILD_SECONDS),
-    [start, end, span, story, data.flagship?.secondary],
+    () => playClock(start, end, span / PLAY_SECONDS, winFrom != null && winTo != null ? { from: winFrom, to: winTo } : null, BUILD_SECONDS),
+    [start, end, span, winFrom, winTo],
   )
 
   useEffect(() => { cursorRef.current = cursor }, [cursor])
+
 
   // The cursor line is positioned imperatively. When not playing it follows React state;
   // while playing the animation loop owns it, so React commits can never make it snap back.

@@ -97,15 +97,16 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     const e = shownEpochId ? data.story.epochs?.find((x) => x.id === shownEpochId) : undefined
     const g = e ? data.epochGrids?.[e.id] : undefined
     // a story that follows the timeline cross-fades into the next measured period
-    let next: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; from: number; to: number } | undefined
+    let next: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; radarHH?: { layer: LayerDef; grid: Grid }; from: number; to: number } | undefined
     if (data.story.copy?.followTimeline && data.story.epochs?.length) {
       const rows = sortEpochs(data.story.epochs)
       const cur = e ?? rows.find((x) => isFeatured(data.story, x))
       const nx = cur ? rows[rows.indexOf(cur) + 1] : undefined
-      const ng = nx ? (isFeatured(data.story, nx) ? { deformation: ok.displacement.grid, coherence: ok.coherence.grid, hv: radar.hv?.grid } : data.epochGrids?.[nx.id]) : undefined
+      const ng = nx ? (isFeatured(data.story, nx) ? { deformation: ok.displacement.grid, coherence: ok.coherence.grid, hv: radar.hv?.grid, hh: radar.hh?.grid } : data.epochGrids?.[nx.id]) : undefined
       if (cur && nx && ng) {
         next = { displacement: { layer: ok.displacement.layer, grid: ng.deformation }, coherence: { layer: ok.coherence.layer, grid: ng.coherence },
-          radarHV: radar.hv && ng.hv ? { layer: radar.hv.layer, grid: ng.hv } : undefined, from: ms(`${cur.pair.secondary}T00:00:00Z`), to: ms(`${nx.pair.secondary}T00:00:00Z`) }
+          radarHV: radar.hv && ng.hv ? { layer: radar.hv.layer, grid: ng.hv } : undefined,
+          radarHH: radar.hh && ng.hh ? { layer: radar.hh.layer, grid: ng.hh } : undefined, from: ms(`${cur.pair.secondary}T00:00:00Z`), to: ms(`${nx.pair.secondary}T00:00:00Z`) }
       }
     }
     if (!e || !g || isFeatured(data.story, e)) {
@@ -120,7 +121,10 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
       displacement: { layer: epochLayer(ok.displacement.layer, e, pair), grid: g.deformation },
       coherence: { layer: ok.coherence.layer, grid: g.coherence },
       flagship: pair,
-      radar: { hh: undefined, hv: radar.hv && g.hv ? { layer: radar.hv.layer, grid: g.hv } : undefined },
+      radar: {
+        hh: radar.hh && g.hh ? { layer: radar.hh.layer, grid: g.hh } : undefined,
+        hv: radar.hv && g.hv ? { layer: radar.hv.layer, grid: g.hv } : undefined,
+      },
       next,
     }
   }, [data, ok, radar, shownEpochId])
@@ -230,8 +234,11 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     setMode(prevMode.current)
   }, [])
   const startReplay = () => {
+    const radarStory = data?.story.kind === 'backscatter'
+    // a radar-picture story replays its "what changed" view growing from nothing; it needs that view for this period
+    if (radarStory && !view?.radar.hh) { flashNote('There is no change picture for this pass, because there is no earlier pass to compare with.'); return }
     prevMode.current = mode
-    setMode('fringes')
+    setMode(radarStory ? 'hh' : 'fringes')
     const t0 = performance.now()
     let lastDraw = 0
     const DURATION = 7000
@@ -305,7 +312,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         slots={sci ? {
           analysis: (
             <>
-              <div className="actions">{swipeBtn}{!bs && replayBtn}</div>
+              <div className="actions">{swipeBtn}{replayBtn}</div>
               {!bs && <ProfileControls picking={picking} hasLine={!!profileData}
                 onStart={() => { setProfile({ a: null, b: null }); setPicking(true); setPicked(null) }}
                 onClear={() => { setProfile({ a: null, b: null }); setPicking(false) }} />}
@@ -321,7 +328,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
               {!bs && <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />}
               <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
               {swipeBtn}
-              {!bs && replayBtn}
+              {replayBtn}
             </div>
           ),
           impact,
@@ -330,7 +337,9 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
           los: bs ? undefined : <LosDiagram sci={false} />,
         }} />
       {replay != null && (
-        <div className="replay-chip">Illustrative replay: the satellite measured the final result, not the motion as it happened</div>
+        <div className="replay-chip">{bs
+          ? 'Illustrative replay: NISAR took one picture every 12 days, not the change in between'
+          : 'Illustrative replay: the satellite measured the final result, not the motion as it happened'}</div>
       )}
       <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
         {!bs && <>Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between</>}

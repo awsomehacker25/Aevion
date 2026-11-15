@@ -73,11 +73,12 @@ def window_mean(mask, k):
     return s / (k * k)
 
 
-def grid(values, units, name, bbox, nd=4):
+def grid(values, units, name, bbox, step):
+    """Values are stored as whole numbers in steps of `step` (value = number * step), which keeps the file small."""
     h, w = values.shape
-    flat = [None if not np.isfinite(v) else round(float(v), nd) for v in values.ravel()]
+    flat = [None if not np.isfinite(v) else int(round(float(v) / step)) for v in values.ravel()]
     return {"format": "aevion-grid-v1", "name": name, "units": units, "width": w, "height": h,
-            "bbox": list(bbox), "rowOrder": "north-up", "nodata": None, "values": flat}
+            "bbox": list(bbox), "rowOrder": "north-up", "nodata": None, "scale": step, "values": flat}
 
 
 def main():
@@ -85,8 +86,9 @@ def main():
     ap.add_argument("story_dir", nargs="?")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--raster-id", type=int, default=1, help="1 = 2026-06-13 to 06-25 (default)")
-    ap.add_argument("--width", type=int, default=560)
-    ap.add_argument("--height", type=int, default=320)
+    ap.add_argument("--width", type=int, default=1120)
+    ap.add_argument("--height", type=int, default=640)
+    ap.add_argument("--window", type=int, default=13, help="coverage window in cells (about 7 per 560 cells of width)")
     a = ap.parse_args()
 
     cat = catalog()
@@ -106,17 +108,17 @@ def main():
     lo, hi = published_limits()
     valid = np.isfinite(cm) & (cm >= lo) & (cm <= hi)
     defo_m = np.where(valid, cm / 100.0, np.nan)
-    cover = window_mean(valid, COVERAGE_WINDOW)
+    cover = window_mean(valid, a.window)
 
     (sd / "deformation.grid.json").write_text(
-        json.dumps(grid(defo_m, "m", "los_displacement_aria", bbox)), encoding="utf-8")
+        json.dumps(grid(defo_m, "m", "los_displacement_aria", bbox, 0.001), separators=(",", ":")), encoding="utf-8")
     (sd / "coverage.grid.json").write_text(
-        json.dumps(grid(cover, "1", "measurement_coverage", bbox, nd=3)), encoding="utf-8")
+        json.dumps(grid(cover, "1", "measurement_coverage", bbox, 0.01), separators=(",", ":")), encoding="utf-8")
     (sd / "aria-source.json").write_text(json.dumps({
         "service": SERVICE, "rasterId": a.raster_id, "rasterName": name,
         "fetchedAtUtc": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "bbox": bbox, "size": [a.width, a.height], "interpolation": "nearest",
-        "limitsCm": [round(lo, 2), round(hi, 2)], "coverageWindow": COVERAGE_WINDOW,
+        "limitsCm": [round(lo, 2), round(hi, 2)], "coverageWindow": a.window,
         "validFraction": round(float(valid.mean()), 4),
         "cmRange": [round(float(cm[valid].min()), 2), round(float(cm[valid].max()), 2)],
         "credit": "NASA-JPL/Caltech ARIA team, NISAR Operations Science Team",

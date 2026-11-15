@@ -346,3 +346,7 @@
    except for the markers themselves, so dots and diamonds can be hovered and clicked while the rest still scrubs. */
 .tl-row { z-index: 3; pointer-events: none; }
 .tl-row .pass, .tl-row .edot, .tl-row .qdot { pointer-events: auto; }
+
+.key { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 11.5px; color: var(--muted); }
+.key li { display: flex; align-items: center; gap: 8px; line-height: 1.3; }
+.key i { flex: none; width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); }

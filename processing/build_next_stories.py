@@ -22,7 +22,7 @@ from scipy.ndimage import zoom
 ROOT = Path(__file__).resolve().parent.parent
 PENDING = ROOT / "processing" / "pending"
 PUBLIC = ROOT / "apps" / "web" / "public" / "stories"
-WIDTH = 220
+WIDTH = 300
 
 
 def load_grid(path):
@@ -41,6 +41,18 @@ def resize(a, w):
     with np.errstate(all="ignore"):
         out = zv / zm
     out[zm < 0.6] = np.nan
+    return out
+
+
+def blur(a, sigma):
+    """Light smoothing that ignores gaps (radar speckle is noisy cell to cell). Gaps stay gaps."""
+    from scipy.ndimage import gaussian_filter
+    ok = np.isfinite(a).astype("float64")
+    num = gaussian_filter(np.nan_to_num(a) * ok, sigma)
+    den = gaussian_filter(ok, sigma)
+    with np.errstate(all="ignore"):
+        out = num / den
+    out[ok == 0] = np.nan
     return out
 
 
@@ -93,11 +105,25 @@ def krasheninnikov():
     out = PUBLIC / sid
     featured = "2026-08-17"
     files = sorted((ROOT / "data" / "stacks" / sid).glob("gcov_*.npz"))
+    prev = None
     for f in files:
         z = np.load(f, allow_pickle=True)
         d, bbox = str(z["date"]), [float(v) for v in z["bbox"]]
-        hh = resize(z["hh_db"].astype("float64"), WIDTH)
-        hv = resize(z["hv_db"].astype("float64"), WIDTH)
+        # what changed since the previous pass: HH brightness difference in dB, with the scene-wide shift removed
+        cur_hh = z["hh_db"].astype("float64")
+        if prev is None:
+            chg = np.full(cur_hh.shape, np.nan)
+        else:
+            chg = cur_hh - prev
+            chg = chg - np.nanmedian(chg)
+        prev = cur_hh
+        chg = resize(chg, 220)
+        if d == featured:
+            write_grid(out / "backscatter-hh.grid.json", chg, bbox, "dB", "hh_change", 0.1)
+        else:
+            write_grid(out / "epochs" / f"ep-{d}.hh.grid.json", chg, bbox, "dB", "hh_change", 0.1)
+        hh = blur(resize(z["hh_db"].astype("float64"), WIDTH), 0.8)
+        hv = blur(resize(z["hv_db"].astype("float64"), WIDTH), 0.8)
         if d != featured:
             write_grid(out / "epochs" / f"ep-{d}.hv.grid.json", hv, bbox, "dB", "hv_backscatter", 0.1)
         if d == featured:
