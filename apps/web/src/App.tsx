@@ -14,6 +14,7 @@ import MapView from './MapView'
 import type { MapExtras } from './MapView'
 import type { MixOpts } from './lib/render'
 import { Inspector, SidePanel, TopBar } from './Panels'
+import { useTheme } from './theme'
 import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
@@ -54,6 +55,7 @@ interface ViewerProps {
 /** One story. It is re-created (with fresh state) whenever the story changes. */
 function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerProps) {
   const { t } = useI18n()
+  const theme = useTheme()
   const [raw, setRaw] = useState<LoadedStory | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
@@ -447,7 +449,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         {t('s.recenter')}
       </button>
-      <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} languages={stories.find((x) => x.id === story.id)?.languages} />
+      <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} languages={stories.find((x) => x.id === story.id)?.languages} theme={theme} />
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}

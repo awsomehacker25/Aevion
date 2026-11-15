@@ -1,0 +1,122 @@
+/*
+ * Aevion design tokens: Steel.
+ * Near-black base, muted blue-grey accent, soft glow. Floating UI is clear glass; reading panels are near-opaque.
+ * Orange and blue on the map are data colours (motion away from and toward the satellite) and are not part of the UI palette.
+ * Dark is the default. [data-theme="light"] swaps only the base tokens; everything derived is computed with color-mix.
+ */
+:root {
+  --font-ui: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Geist', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* base (Steel dark) */
+  --bg: #080c10;
+  --surface: #121820;
+  --ink: #edf2f7;
+  --muted: #8f9cab;
+  --accent: #b9c8d8;
+  --on-accent: #080c10;
+  --glow: #a3b8cc;
+
+  /* derived from the base, so both themes share one definition */
+  --raised: color-mix(in srgb, var(--ink) 14%, var(--surface));
+  --sunken: color-mix(in srgb, var(--ink) 5%, var(--surface));
+  --hover: color-mix(in srgb, var(--ink) 9%, var(--surface));
+  --line: color-mix(in srgb, var(--ink) 14%, transparent);
+  --line-soft: color-mix(in srgb, var(--ink) 9%, transparent);
+  --ink-soft: color-mix(in srgb, var(--ink) 82%, var(--surface));
+  --faint: color-mix(in srgb, var(--muted) 88%, var(--surface));
+  --accent-strong: color-mix(in srgb, var(--accent) 86%, var(--ink));
+  --accent-ink: var(--accent);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+
+  --warn-ink: #f0b35a;
+  --warn-soft: color-mix(in srgb, #f0b35a 14%, var(--surface));
+  --ok-ink: #5ccf8e;
+  --ok-soft: color-mix(in srgb, #5ccf8e 14%, var(--surface));
+  --bad-ink: #ff938a;
+  --bad-soft: color-mix(in srgb, #ff938a 14%, var(--surface));
+  --purple-ink: #c7a6f5;
+  --purple-soft: color-mix(in srgb, #c7a6f5 14%, var(--surface));
+
+  /* status dots */
+  --st-placeholder: #e5701a;
+  --st-provisional: #d9a21b;
+  --st-validated: #1e9e5a;
+
+  /* data colours, as swatches and as readable text on the panels. Fixed meaning, never decoration. */
+  --away: #f39237;
+  --toward: #3b8fd4;
+  --away-ink: #ffa65a;
+  --toward-ink: #74b6ff;
+
+  /* radius scale: floating glass containers, controls inside them, small chips */
+  --radius: 10px;
+  --radius-ctl: 6px;
+  --radius-sm: 4px;
+
+  /* surfaces */
+  --glass-bg: color-mix(in srgb, var(--surface) 58%, transparent);
+  --glass-blur: blur(18px) saturate(150%);
+  --glass-border: color-mix(in srgb, var(--ink) 12%, transparent);
+  --glass-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent), 0 8px 30px rgba(0, 0, 0, .25);
+  --panel-bg: color-mix(in srgb, var(--surface) 88%, transparent);
+  --glow-shadow: 0 0 18px color-mix(in srgb, var(--glow) 20%, transparent);
+  --shadow: 0 0 0 1px var(--line);
+  --shadow-sm: none;
+
+  --scroll-thumb: color-mix(in srgb, var(--ink) 24%, transparent);
+  --scroll-thumb-hover: color-mix(in srgb, var(--ink) 38%, transparent);
+
+  color-scheme: dark;
+}
+
+/* Steel light. Only the chrome changes; the satellite map stays as it is. */
+:root[data-theme="light"] {
+  --bg: #eef2f6;
+  --surface: #ffffff;
+  --ink: #0e141b;
+  --muted: #5b6876;
+  --accent: #3e5468;
+  --on-accent: #ffffff;
+  --glow: #6d859c;
+
+  --raised: color-mix(in srgb, var(--ink) 8%, var(--surface));
+  --sunken: color-mix(in srgb, var(--ink) 4%, var(--surface));
+  --hover: color-mix(in srgb, var(--ink) 6%, var(--surface));
+  --line: color-mix(in srgb, var(--ink) 16%, transparent);
+  --line-soft: color-mix(in srgb, var(--ink) 10%, transparent);
+  --accent-strong: color-mix(in srgb, var(--accent) 84%, #000);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
+
+  --warn-ink: #8a5a00;
+  --ok-ink: #1a7a45;
+  --bad-ink: #b3261e;
+  --purple-ink: #6a3fb0;
+
+  /* readable on white: the data colours themselves are unchanged on the map and in swatches */
+  --away-ink: #a8470a;
+  --toward-ink: #1d62a8;
+
+  --glass-bg: color-mix(in srgb, var(--surface) 74%, transparent);
+  --glass-shadow: inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent), 0 8px 30px rgba(14, 20, 27, .18);
+  --glow-shadow: 0 0 14px color-mix(in srgb, var(--glow) 14%, transparent);
+
+  color-scheme: light;
+}
+
+/* Clean transparency for what floats over the map: see-through, a blur and a hairline. Not full liquid glass. */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+/* Reading panels carry long text and charts, so they stay nearly opaque. */
+.glass.panel { background: var(--panel-bg); }
+/* Soft glow: the primary action, the active nav item and the timeline playhead only. */
+.glow { box-shadow: var(--glow-shadow); }
+
+/* map-control icons are drawn dark by MapLibre: flip them on a dark chrome */
+:root { --icon-filter: invert(1) brightness(1.3); }
+:root[data-theme="light"] { --icon-filter: none; }

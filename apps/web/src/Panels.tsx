@@ -6,6 +6,8 @@ import { Paras } from './lib/rich'
 import { EVENT, TEAM } from './config'
 import { LANGS, isLang, rememberLang, useI18n } from './i18n'
 import type { Lang } from './i18n'
+import { ThemeSwitch } from './ThemeSwitch'
+import type { ThemePref } from './theme'
 import type { AcquisitionPair, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
@@ -27,9 +29,10 @@ interface TopBarProps {
   onSwitchStory: (id: string) => void
   /** Languages this story is offered in. The switcher is hidden when there is only English. */
   languages?: string[]
+  theme: { pref: ThemePref; setPref: (p: ThemePref) => void }
 }
 
-export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: TopBarProps) {
+export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages, theme }: TopBarProps) {
   const { t, lang, setLang } = useI18n()
   const sci = ui === 'scientist'
   const langs = (languages ?? ['en']).filter(isLang)
@@ -58,6 +61,7 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: 
         <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>{t('top.story')}</button>
         <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>{t('top.scientist')}</button>
       </div>
+      <ThemeSwitch pref={theme.pref} setPref={theme.setPref} />
     </header>
   )
 }

@@ -20,7 +20,7 @@ It turns raw NISAR interferometry and radar-brightness products into guided, hon
 
 ## Operating Context
 
-A full-screen web app: a 3D map with a left information panel, a bottom timeline and a Story / Scientist switch. Built for NASA Space Apps 2026 (Dancing with the SARs); presented live to judges and shared by link.
+A full-screen web app: a 3D map with a left information panel, a timeline bar and a navigation dock at the bottom, and a Story / Scientist switch. Built for NASA Space Apps 2026 (Dancing with the SARs); presented live to judges and shared by link.
 
 ## Capabilities and Constraints
 
@@ -33,7 +33,7 @@ A full-screen web app: a 3D map with a left information panel, a bottom timeline
 
 - Name and logo: Aevion (assets in `apps/web/public/logo*`).
 - Team credit and challenge credit stay in the app and README.
-- Binding visual constraints from the user: a clean, modern, sleek look that does not look vibe-coded; solid dark panels (the user rejected white panels) with Ascend-app discipline (`Documents/GitHub/ascend`: flat surfaces, Inter/Geist type, a small 3 to 4px radius, one elevation cue: a hairline border, no floating shadows); blue accent kept but refined.
+- Binding visual constraints from the user: a clean, modern, sleek look that does not look vibe-coded; the Steel theme (near-black base `#080c10`, muted blue-grey accent `#b9c8d8`, soft glow) with a light Steel set behind a System / Dark / Light switcher (the user rejected white panels on the dark theme, and the satellite map never changes with the theme). Floating elements (the dock, timeline bar, menus, popovers, inspector and tour cards, map controls) are clean glass: transparency, a blur and a hairline border, not full liquid glass. Reading panels (the side panel) stay about 85 to 92% opaque so long text and charts stay readable. Corner radius: 10px on floating containers, 6px on controls inside them, 4px on small chips and badges. Glow is soft and rare (primary action, active nav item, timeline playhead, at about 20% opacity or less). Inter/Geist type. Blue accent is gone: the accent is a muted blue-grey so a button never reads as a measurement.
 
 ## Product Principles
 
