@@ -125,16 +125,26 @@ export default function MapView(p: Props) {
 
   // Send the overlay to the map as an image, cutting off the "before" side when swiping. Encoding happens off the main
   // thread (toBlob), and only the newest request is applied.
+  const paintBusy = useRef(false) // one encode at a time: while one runs, newer swipe positions wait and only the latest is drawn
+  const paintDirty = useRef(false)
+  const dragging = useRef(false) // while the divider is being dragged the picture is drawn smaller, then sharp again on release
+  const paintRef = useRef<() => void>(() => {})
   const paintOverlay = useCallback(() => {
     const map = mapRef.current
     const full = fullRef.current
     if (!map || !full) return
+    if (paintBusy.current) { paintDirty.current = true; return }
+    // while dragging: a small picture in WebP (much quicker to encode than PNG); once let go: full size and lossless again
+    const k = dragging.current ? Math.min(1, 640 / full.width) : 1
+    const W = Math.max(1, Math.round(full.width * k))
+    const H = Math.max(1, Math.round(full.height * k))
     const view = viewRef.current ?? (viewRef.current = document.createElement('canvas'))
-    if (view.width !== full.width || view.height !== full.height) { view.width = full.width; view.height = full.height }
+    if (view.width !== W || view.height !== H) { view.width = W; view.height = H }
     const ctx = view.getContext('2d')!
-    ctx.clearRect(0, 0, view.width, view.height)
+    ctx.clearRect(0, 0, W, H)
     const sx = swipeOn.current ? Math.round(Math.min(1, Math.max(0, swipeFrac.current)) * full.width) : 0
-    if (sx < full.width) ctx.drawImage(full, sx, 0, full.width - sx, full.height, sx, 0, full.width - sx, full.height)
+    const dx = Math.round(sx * k)
+    if (sx < full.width) ctx.drawImage(full, sx, 0, full.width - sx, full.height, dx, 0, W - dx, H)
     const seq = ++paintSeq.current
     if (view.width <= 400) {
       // the small replay frames encode instantly, so skip the asynchronous encoder, which can lag behind a fast replay
@@ -143,20 +153,25 @@ export default function MapView(p: Props) {
       if (holdB.current) setTimeout(() => releaseRef.current(), 150)
       return
     }
+    paintBusy.current = true
     view.toBlob((blob) => {
-      if (!blob || seq <= appliedSeq.current || mapRef.current !== map) return
-      appliedSeq.current = seq
-      const url = URL.createObjectURL(blob)
-      const old = lastUrl.current
-      lastUrl.current = url
-      ;(map.getSource('overlay') as ImageSource | undefined)?.updateImage({ url, coordinates: corners(bbox) })
-      if (old) setTimeout(() => URL.revokeObjectURL(old), 3000) // the map has long since loaded the previous image
-      if (holdB.current) {
-        // the main layer now shows what the second layer was showing: give the map a moment to draw it, then let the second layer move on
-        setTimeout(() => releaseRef.current(), 150)
+      paintBusy.current = false
+      if (blob && seq > appliedSeq.current && mapRef.current === map) {
+        appliedSeq.current = seq
+        const url = URL.createObjectURL(blob)
+        const old = lastUrl.current
+        lastUrl.current = url
+        ;(map.getSource('overlay') as ImageSource | undefined)?.updateImage({ url, coordinates: corners(bbox) })
+        if (old) setTimeout(() => URL.revokeObjectURL(old), 3000) // the map has long since loaded the previous image
+        if (holdB.current) {
+          // the main layer now shows what the second layer was showing: give the map a moment to draw it, then let the second layer move on
+          setTimeout(() => releaseRef.current(), 150)
+        }
       }
-    }, 'image/png')
+      if (paintDirty.current) { paintDirty.current = false; paintRef.current() }
+    }, dragging.current ? 'image/webp' : 'image/png', dragging.current ? 0.75 : undefined)
   }, [bbox])
+  useEffect(() => { paintRef.current = paintOverlay }, [paintOverlay])
   // the latest callbacks and mode, read by the one-time click handler
   const live = useRef({ onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode })
   const [ready, setReady] = useState(false)
@@ -322,15 +337,20 @@ export default function MapView(p: Props) {
     const src = map.getSource('swipe') as GeoJSONSource
     swipeOn.current = p.swipe
     if (!p.swipe) { src.setData(EMPTY); paintOverlay(); return }
-    const lng0 = w + (e - w) * swipeFrac.current
+    // the divider can slide from the picture's west edge to its east edge, like borders
+    const within = (lng: number) => Math.min(e, Math.max(w, lng))
+    const lng0 = within(w + (e - w) * swipeFrac.current)
+    swipeFrac.current = (lng0 - w) / (e - w)
     src.setData(lineAt(lng0))
     const el = document.createElement('div')
     el.className = 'swipe-handle'
     el.title = 'Drag to compare before and after'
     el.innerHTML = '<span>Before</span><b>&lsaquo; &rsaquo;</b><span>After</span>'
     const marker = new maplibregl.Marker({ element: el, draggable: true }).setLngLat([lng0, lat0]).addTo(map)
+    marker.on('dragstart', () => { dragging.current = true })
+    marker.on('dragend', () => { dragging.current = false; paintOverlay() }) // sharp again once let go
     marker.on('drag', () => {
-      const lng = Math.min(e, Math.max(w, marker.getLngLat().lng))
+      const lng = within(marker.getLngLat().lng)
       swipeFrac.current = (lng - w) / (e - w)
       marker.setLngLat([lng, lat0]) // stay on the line, only slide east and west
       src.setData(lineAt(lng))

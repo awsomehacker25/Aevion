@@ -402,6 +402,19 @@ const en: Record<string, string> = {
   'f.legend.HV.dark': 'Dark: smooth ground',
   'f.legend.HV.bright': 'Bright: plants, crops',
   'f.waterOnly': 'water view only',
+  'f.insp.flooded': 'Under new flood water on this date: dark in the radar here but not in the dry season.',
+  'f.insp.waterAll': 'Water on this date and in the dry season too: probably a river, pond or wetland.',
+  'f.insp.dry': 'Not flooded on this date: the radar echo here is too strong for open water.',
+  'f.insp.none': 'No radar data at this spot.',
+  'f.insp.bigWater': 'Water',
+  'f.insp.bigLand': 'Land',
+  'f.insp.ref': 'Dry season HH',
+  'f.insp.chart': 'Chart this spot over the season',
+  'f.insp.hist': 'Under new flood water on {n} of {total} passes, from {first} to {last}.',
+  'f.insp.histNone': 'Not under new flood water on any of the {total} passes.',
+  'f.insp.near': 'Near {name}: {text}',
 }
 
 export default en
+
+

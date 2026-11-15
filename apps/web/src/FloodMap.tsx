@@ -26,6 +26,8 @@ export interface FloodMapHandle {
   /** Back to the whole study area. */
   reset: () => void
   flyTo: (lng: number, lat: number, zoom?: number) => void
+  /** Where the radar picture's west and east edges are across the map, as fractions of its width (below 0 or above 1 when off screen). */
+  pictureEdges: () => [number, number] | null
   /** Current camera, for the shareable link. */
   camera: () => { lng: number; lat: number; zoom: number } | null
 }
@@ -112,6 +114,13 @@ export default function FloodMap(p: Props) {
     zoomOut: () => maps.current?.b.zoomOut(),
     reset: () => maps.current?.b.easeTo({ ...coverCam(), bearing: 0, pitch: p.terrain ? 58 : 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 500, essential: true }),
     flyTo: (lng, lat, zoom) => maps.current?.b.easeTo({ center: [lng, lat], zoom: zoom ?? Math.max(maps.current.b.getZoom(), 11.5), duration: 600, essential: true }),
+    pictureEdges: () => {
+      const m = maps.current?.b
+      const el = wrap.current
+      if (!m || !el) return null
+      const cy = (y0 + y1) / 2
+      return [m.project([x0, cy]).x / el.clientWidth, m.project([x1, cy]).x / el.clientWidth]
+    },
     camera: () => {
       const m = maps.current?.b
       if (!m) return null
@@ -159,7 +168,8 @@ export default function FloodMap(p: Props) {
       ],
     })
     const cam = d.startCamera ? { center: [d.startCamera.lng, d.startCamera.lat] as [number, number], zoom: d.startCamera.zoom } : coverCam()
-    const startOpts = { center: cam.center, zoom: cam.zoom, attributionControl: false as const, maxPitch: 75 }
+    // like the other stories, you can't zoom out far from the study area, which also keeps the number of tiles down
+    const startOpts = { center: cam.center, zoom: cam.zoom, minZoom: Math.max(2, coverCam().zoom - 1.5), attributionControl: false as const, maxPitch: 75 }
     const A = new maplibregl.Map({ container: elA.current!, style: style(d.a), ...startOpts })
     const B = new maplibregl.Map({ container: elB.current!, style: style(d.b), ...startOpts })
     B.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')

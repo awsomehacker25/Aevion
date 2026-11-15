@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import FloodMap, { swipeAngle, swipeSlope } from './FloodMap'
 import type { FloodLayers, FloodMapHandle } from './FloodMap'
 import FloodTimeline from './FloodTimeline'
-import { ChartsTab, EvidenceTab, LayersTab, LearnTab, LegendKey, MethodsDialog, OverviewText } from './FloodPanels'
+import { ChartsTab, EvidenceTab, FloodInspector, LayersTab, LearnTab, LegendKey, MethodsDialog, OverviewText } from './FloodPanels'
 import { EXCLUSIVE, FLOOD_TABS, initialFloodState, readHash, writeHash } from './lib/flood'
 import type { FloodState, FloodTab } from './lib/flood'
 import { loadFlood } from './lib/data'
@@ -27,6 +27,18 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
   const [error, setError] = useState<string | null>(null)
   const [st, setSt] = useState<FloodState | null>(null)
   const [swipe, setSwipe] = useState(0.5)
+  // The divider slides between the radar picture's own edges, like borders (or the window's edges when the picture runs past them).
+  const swipeRange = (): [number, number] => {
+    const edges = map.current?.pictureEdges()
+    if (!edges) return [0, 1]
+    const lo = Math.max(0, edges[0]), hi = Math.min(1, edges[1])
+    // while the map is still settling the edges can be nonsense: ignore a picture that seems to be almost off screen
+    return hi - lo > 0.15 ? [lo, hi] : [0, 1]
+  }
+  const clampSwipe = (f: number) => {
+    const [lo, hi] = swipeRange()
+    return lo < hi ? Math.min(hi, Math.max(lo, f)) : f
+  }
   const [point, setPoint] = useState<[number, number] | null>(null)
   const [preset, setPreset] = useState<string | null>(null)
   const [pin, setPin] = useState<string | null>(null)
@@ -49,11 +61,11 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
       setData(d); setSt(state); setStartCam(state.cam)
       // the first time, the divider glides in from the left edge
       if (!fromHash && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        setSwipe(0.02)
+        setSwipe(swipeRange()[0])
         const t0 = performance.now()
         const step = (now: number) => {
           const x = Math.min(1, (now - t0) / 1300)
-          setSwipe(0.02 + 0.48 * (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2))
+          setSwipe(swipeRange()[0] + (0.5 - swipeRange()[0]) * (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2))
           if (x < 1) requestAnimationFrame(step)
         }
         requestAnimationFrame(step)
@@ -127,7 +139,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
     update(patch)
     onUiChange(m)
   }
-  const onPick = (lng: number, lat: number) => { setPoint([lng, lat]); setPreset(null); setTab('charts') }
+  const onPick = (lng: number, lat: number) => { setPoint([lng, lat]); setPreset(null) }
   const onPreset = (pid: string) => {
     const p = flood.presets.find((x) => x.id === pid)
     if (!p) return
@@ -193,7 +205,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
     <div className="app flood" ref={wrap}>
       <FloodMap ref={map} data={data} a={st.a} b={st.b} view={st.view} water={st.water} swipeOn={st.swipeOn} terrain={terrain} swipe={swipe} layers={st.layers}
         point={point} startCamera={startCam} onPick={onPick} onPin={(p) => { setPin(p); setTab('impact') }}
-        onLoading={setBusy} onMissing={(w) => flash(t('error.layer', { name: w }))} onMoveEnd={() => {}} />
+        onLoading={setBusy} onMissing={(w) => flash(t('error.layer', { name: w }))} onMoveEnd={() => setSwipe((s) => clampSwipe(s))} />
       {busy && <div className="floadbar" aria-hidden="true" />}
             {st.swipeOn && (
         <div className="fdivider" role="slider" tabIndex={0} aria-orientation="horizontal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={nSwipePct}
@@ -206,7 +218,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
               const r = wrap.current!.getBoundingClientRect()
               // the line leans, so find where it crosses the middle of the map from wherever it is grabbed
               const cx = ev.clientX - r.left - (r.height / 2 - (ev.clientY - r.top)) * swipeSlope(terrain)
-              setSwipe(Math.min(1, Math.max(0, cx / r.width)))
+              setSwipe(clampSwipe(cx / r.width))
             }
             const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up) }
             el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up)
@@ -214,9 +226,9 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
           onKeyDown={(e) => {
             const step = e.shiftKey ? 0.1 : 0.02
             const d: Record<string, number> = { ArrowLeft: -step, ArrowDown: -step, ArrowRight: step, ArrowUp: step, PageDown: -0.1, PageUp: 0.1 }
-            if (e.key in d) setSwipe((s) => Math.min(1, Math.max(0, s + d[e.key])))
-            else if (e.key === 'Home') setSwipe(0)
-            else if (e.key === 'End') setSwipe(1)
+            if (e.key in d) setSwipe((s) => clampSwipe(s + d[e.key]))
+            else if (e.key === 'Home') setSwipe(clampSwipe(0))
+            else if (e.key === 'End') setSwipe(clampSwipe(1))
             else return
             e.preventDefault()
           }}>
@@ -288,6 +300,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
         )}
       </aside>
 
+      {point && <FloodInspector data={data} story={story} state={st} point={point} onChart={() => setTab('charts')} onClose={() => setPoint(null)} />}
       <div className={`replay-chip fade note ${note ? 'on' : ''}`} role="status" aria-hidden={!note}>{note}</div>
       <FloodTimeline data={data} story={story} a={st.a} b={st.b} setA={(i) => update({ a: i })} setB={(i) => update({ b: i })} playing={playing} onPlay={togglePlay} expert={expert} />
       {methods && <MethodsDialog data={data} onClose={() => setMethods(false)} />}

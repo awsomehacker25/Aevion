@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Chart from './charts/Chart'
 import type { FloodLayers } from './FloodMap'
-import { dayMs, pointValues } from './lib/flood'
+import { dayMs, floodHistory, floodedAt, kmBetween, pointValues } from './lib/flood'
 import type { FloodState } from './lib/flood'
 import { Paras } from './lib/rich'
 import { useI18n } from './i18n'
@@ -300,3 +300,78 @@ export function MethodsDialog({ data, onClose }: { data: LoadedFlood; onClose: (
     </dialog>
   )
 }
+
+interface InspectorProps { data: LoadedFlood; story: FloodStory; state: FloodState; point: [number, number]; onChart: () => void; onClose: () => void }
+
+/** The small card that opens when you click the map: what the radar says at that spot on the chosen date. */
+export function FloodInspector({ data, story, state, point, onChart, onClose }: InspectorProps) {
+  const { t, num, date } = useI18n()
+  const { flood, series } = data
+  const vals = pointValues(series, point[0], point[1])
+  const di = series.dates.indexOf(flood.dates[state.b].date)
+  const ri = series.dates.indexOf(flood.reference)
+  const hh = vals ? vals.HH[di] : null
+  const hv = vals ? vals.HV[di] : null
+  const ref = vals ? vals.HH[ri] : null
+  const thr = flood.threshold_db
+  // is this spot in the new-water picture drawn on the map? (read from the picture itself, not the coarse series)
+  const [mask, setMask] = useState<{ key: string; wet: boolean | null } | null>(null)
+  const maskUrl = flood.dates[state.b].layers.water
+  const key = `${maskUrl}|${point[0]}|${point[1]}`
+  useEffect(() => {
+    let live = true
+    floodedAt(maskUrl, flood.bbox, point[0], point[1]).then((wet) => { if (live) setMask({ key, wet }) })
+    return () => { live = false }
+  }, [maskUrl, key, flood.bbox, point])
+  const flooded = mask && mask.key === key ? mask.wet : null
+
+  // how many of the flood passes was this spot under new water? (every pass but the dry-season reference)
+  const passes = flood.dates.filter((d) => d.date !== flood.reference)
+  const [hist, setHist] = useState<{ key: string; rows: { date: string; wet: boolean | null }[] } | null>(null)
+  const hkey = `${point[0]}|${point[1]}`
+  useEffect(() => {
+    let live = true
+    floodHistory(passes.map((d) => ({ date: d.date, url: d.layers.water })), flood.bbox, point[0], point[1]).then((rows) => { if (live) setHist({ key: hkey, rows }) })
+    return () => { live = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hkey, flood])
+  const rows = hist && hist.key === hkey ? hist.rows.filter((r) => r.wet != null) : []
+  const wetDates = rows.filter((r) => r.wet).map((r) => r.date)
+  const shortDate = (iso: string) => date(iso, { month: 'short', day: 'numeric', year: undefined })
+  const histLine = rows.length === 0 ? null
+    : wetDates.length === 0 ? t('f.insp.histNone', { total: rows.length })
+    : t('f.insp.hist', { n: wetDates.length, total: rows.length, first: shortDate(wetDates[0]), last: shortDate(wetDates[wetDates.length - 1]) })
+
+  // a reported damage site close by
+  const near = (data.pins?.features ?? [])
+    .map((f) => ({ f, km: kmBetween(point, (f.geometry as GeoJSON.Point).coordinates as [number, number]) }))
+    .filter((x) => x.km < 4).sort((a, b) => a.km - b.km)[0]
+  const nearId = near ? (near.f.properties as { id: string }).id : null
+  const wasWet = ref != null && ref < thr
+  const lowEcho = hh != null && hh < thr
+  const isWet = flooded ?? lowEcho
+  const sentence = vals == null || (hh == null && flooded == null) ? t('f.insp.none')
+    : flooded ? t('f.insp.flooded')
+    : lowEcho && wasWet ? t('f.insp.waterAll')
+    : t('f.insp.dry')
+  return (
+    <div className={`inspector fin ${state.expert ? 'sci' : ''}`} role="dialog" aria-label={t('s.point')}>
+      <button className="x" onClick={onClose} aria-label={t('s.close')}>&times;</button>
+      <div className="coords">{num(point[1], state.expert ? 5 : 2)}&deg;, {num(point[0], state.expert ? 5 : 2)}&deg; &middot; {date(flood.dates[state.b].date)}</div>
+      {(hh != null || flooded != null) && <div className="big">{state.expert && hh != null ? <>{num(hh, 1)} <small>dB HH</small></> : isWet ? t('f.insp.bigWater') : t('f.insp.bigLand')}</div>}
+      <p>{sentence}</p>
+      {histLine && <p className="fhist">{histLine}</p>}
+      {nearId && <p className="fhist">{t('f.insp.near', { name: t(`pin.name.${nearId}`), text: story.pinText[nearId] })}</p>}
+      {state.expert && hh != null && (
+        <table className="prov"><tbody>
+          <tr><th>HH</th><td>{num(hh, 1)} dB</td></tr>
+          <tr><th>HV</th><td>{hv == null ? '–' : `${num(hv, 1)} dB`}</td></tr>
+          <tr><th>{t('f.insp.ref')}</th><td>{ref == null ? '–' : `${num(ref, 1)} dB`}</td></tr>
+        </tbody></table>
+      )}
+      <button className="cta ghost" onClick={onChart}>{t('f.insp.chart')}</button>
+    </div>
+  )
+}
+
+
