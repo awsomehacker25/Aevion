@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
+import { Paras } from './lib/rich'
 import { EVENT, TEAM } from './config'
 import { LANGS, isLang, rememberLang, useI18n } from './i18n'
 import type { Lang } from './i18n'
@@ -80,6 +81,10 @@ interface SideProps {
   /** The tab to open first (from a shared link) and a callback when the open tab changes. */
   initialTab?: string
   onTab?: (id: string) => void
+  /** Ask the panel to open a tab (for example after a click on a map pin). Each new `nonce` opens it again. */
+  tabRequest?: { id: string; nonce: number }
+  /** Extra rows for the colour key (for example the flood story's map layers that are switched on). */
+  keyExtra?: ReactNode
   /** Content blocks the app supplies; the panel decides which tab each one lives in. */
   slots: {
     /** Story: tour and replay buttons. */
@@ -93,6 +98,8 @@ interface SideProps {
     periods?: ReactNode
     /** Charts of the data, shown as their own tab. */
     charts?: ReactNode
+    /** Extra map layers to switch on and off, shown as their own tab. */
+    layers?: ReactNode
   }
 }
 
@@ -180,6 +187,8 @@ export function SidePanel(p: SideProps) {
     : ''
 
   const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: p.initialTab ?? 'overview', scientist: p.initialTab ?? 'analysis' })
+  const { tabRequest } = p
+  useEffect(() => { if (tabRequest) { setTabs((s) => ({ ...s, [p.ui]: tabRequest.id })); setCollapsed(false) } }, [tabRequest]) // eslint-disable-line react-hooks/exhaustive-deps
   const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760)
 
   const credits = (
@@ -215,6 +224,7 @@ export function SidePanel(p: SideProps) {
           ),
         },
         ...(p.slots.periods ? [{ id: 'periods', label: t('s.tab.periods'), body: p.slots.periods }] : []),
+        ...(p.slots.layers ? [{ id: 'layers', label: t('panel.layers'), body: p.slots.layers }] : []),
         ...(p.slots.charts ? [{ id: 'charts', label: t('s.tab.charts'), body: p.slots.charts }] : []),
         {
           id: 'data', label: t('s.tab.data'), body: (
@@ -240,7 +250,13 @@ export function SidePanel(p: SideProps) {
         {
           id: 'overview', label: t('s.tab.overview'), body: (
             <>
-              <p className="lead">{p.story.storyText}</p>
+              {p.story.personal && (
+                <section className="personal">
+                  <h2>{p.story.personal.title}</h2>
+                  <Paras items={p.story.personal.body} className="lead" />
+                </section>
+              )}
+              <Paras items={p.story.storyText.split(/\n\n/)} className="lead" />
               {p.slots.actions}
               <details className="howto">
                 <summary>{t('s.howto')}</summary>
@@ -256,6 +272,7 @@ export function SidePanel(p: SideProps) {
           ),
         },
         ...(p.slots.periods ? [{ id: 'periods', label: t('s.tab.periods'), body: p.slots.periods }] : []),
+        ...(p.slots.layers ? [{ id: 'layers', label: t('panel.layers'), body: p.slots.layers }] : []),
         ...(p.slots.charts ? [{ id: 'charts', label: t('s.tab.charts'), body: p.slots.charts }] : []),
         ...(p.slots.impact ? [{ id: 'impact', label: t('s.tab.impact'), body: p.slots.impact }] : []),
         { id: 'learn', label: t('s.tab.learn'), body: <>{why}{sources}</> },
@@ -266,7 +283,7 @@ export function SidePanel(p: SideProps) {
   const layerItems: LayerItem[] = bs
     ? [
         ...(p.radar?.hv ? [{ id: 'hv' as const, title: t('s.layer.hv'), sub: t('s.layer.hv.sub') }] : []),
-        ...(p.radar?.hh ? [{ id: 'hh' as const, title: t('s.layer.changed'), sub: t('s.layer.changed.sub') }] : []),
+        ...(p.radar?.hh ? [{ id: 'hh' as const, title: p.story.copy?.changeView?.title ?? t('s.layer.changed'), sub: p.story.copy?.changeView?.sub ?? t('s.layer.changed.sub') }] : []),
         ...(p.mix ? [{ id: 'mix' as const, title: t('s.layer.mix'), sub: t('s.layer.mix.sub') }] : []),
       ]
     : [
@@ -281,7 +298,7 @@ export function SidePanel(p: SideProps) {
   useEffect(() => { onTab?.(current.id) }, [current.id, onTab])
 
   return (
-    <aside className={`side ${sci ? 'sci' : ''} ${collapsed ? 'collapsed' : ''}`}>
+    <aside className={`side ${sci ? 'sci' : ''} ${collapsed ? 'collapsed' : ''} ${all.length > 5 ? 'many' : ''}`}>
       <div className="side-head">
         <div className="side-title">
           <h1>{sci && tech ? tech.title : p.story.title}</h1>
@@ -303,7 +320,7 @@ export function SidePanel(p: SideProps) {
           {bs && sci && p.radar?.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
             title="Radar HV" sub={sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants'} />}
           {bs && sci && p.radar?.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
-            title="What changed" sub={sci ? 'HH change vs the previous pass, dB' : 'Difference from the previous pass'} />}
+            title={p.story.copy?.changeView?.title ?? 'What changed'} sub={sci ? (p.story.copy?.changeView?.subTech ?? 'HH change vs the previous pass, dB') : (p.story.copy?.changeView?.sub ?? 'Difference from the previous pass')} />}
           {sci && p.mix && <ViewBtn on={p.mode === 'mix'} onClick={() => p.setMode('mix')} title={t('s.layer.mix')} sub={t('s.layer.mix.sub')} />}
           {!bs && sci && (p.radar?.hh || p.radar?.hv) && <>
             {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
@@ -321,9 +338,10 @@ export function SidePanel(p: SideProps) {
 
         <details className="settings">
           <summary>{sci ? 'About this layer and display settings' : t('s.colors')}</summary>
-          {keyItems && (
+          {(keyItems || p.keyExtra) && (
             <ul className="key">
-              {keyItems.map((k) => <li key={k.text}><i style={{ background: k.color }} />{k.text}</li>)}
+              {keyItems?.map((k) => <li key={k.text}><i style={{ background: k.color }} />{k.text}</li>)}
+              {p.keyExtra}
             </ul>
           )}
           <p className="hint">{legend.hint}</p>
@@ -442,12 +460,16 @@ interface InspectProps {
   /** 'backscatter' stories describe a brightness change instead of ground motion. */
   kind?: 'interferometry' | 'backscatter'
   radar?: { hh?: { layer: LayerDef; grid: Grid }; hv?: { layer: LayerDef; grid: Grid } }
+  /** Name of the 'what changed' value (default: change vs the previous pass). */
+  changeLabel?: string
+  /** Extra content under the values (for example the flood analysis at that spot). */
+  extra?: ReactNode
   /** Moves the timeline to the second pass, where the change is shown. */
   onJump?: () => void
   onClose: () => void
 }
 
-export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', kind, radar, onJump, onClose }: InspectProps) {
+export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', kind, radar, changeLabel, extra, onJump, onClose }: InspectProps) {
   const { t } = useI18n()
   const bs = kind === 'backscatter'
   const sci = ui === 'scientist'
@@ -485,7 +507,7 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
               {(['hh', 'hv'] as const).map((k) => {
                 const r = radar?.[k]
                 const v = r ? sampleGrid(r.grid, point[0], point[1]) : null
-                const name = bs ? (k === 'hh' ? 'Change vs previous pass' : 'HV echo') : `${k.toUpperCase()} brightness`
+                const name = bs ? (k === 'hh' ? (changeLabel ?? 'Change vs previous pass') : 'HV echo') : `${k.toUpperCase()} brightness`
                 return r ? <tr key={k}><th>{name}</th><td>{v == null ? 'no data' : `${v > 0 && (!bs || k === 'hh') ? '+' : ''}${v.toFixed(1)} dB`}</td></tr> : null
               })}
               <tr><th>Grid cell</th><td>col {col}, row {row} of {g.width} &times; {g.height}</td></tr>
@@ -505,6 +527,7 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
           <Badge kind={displacement.layer.badge} synthetic={displacement.layer.synthetic} />
         </>
       )}
+      {showChange && extra}
     </div>
   )
 }

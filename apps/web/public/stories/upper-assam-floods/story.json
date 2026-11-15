@@ -1,93 +1,408 @@
 {
-  "id": "upper-assam-floods",
-  "kind": "flood",
-  "type": "flood",
-  "title": "When the rivers rose",
-  "subtitle": "Upper Assam floods, July 2026",
-  "dataStatus": "provisional",
-  "dataStatusNote": "Flood water is mapped from NISAR L2 GCOV radar brightness (HH below -15 dB). The threshold was checked against an independent Assam University map, but the areas are upper bounds: rice paddies flooded on purpose count too.",
-  "credits": "Radar: contains modified NISAR data (NASA/ISRO), distributed by the ASF DAAC · Basemap: Esri World Imagery (Esri, Maxar, Earthstar Geographics) and Esri place labels · Districts: geoBoundaries (ODbL) · Permanent water: JRC Global Surface Water · People: WorldPop 2025 (CC BY 4.0) · Rain: GPM IMERG (NASA GES DISC) · C-band: OPERA RTC-S1 from Copernicus Sentinel-1 data 2026 · Optical: Copernicus Sentinel-2 2026 · Pipeline by Rui Sun (github.com/ruisbasement-code/Upper-Assam-India)",
-  "aoi": {
-    "bbox": [
-      94.3,
-      26.6,
-      95.1,
-      27.3
-    ],
-    "center": [
-      94.7,
-      26.95
-    ],
-    "zoom": 9.3,
-    "pitch": 0,
-    "bearing": 0
-  },
-  "flood": "flood.json",
-  "series": "timeseries.json",
-  "validation": "validation.json",
-  "dateLabels": {
-    "2026-06-16": "Before the first wave",
-    "2026-06-28": "First flood wave",
-    "2026-07-10": "Between waves",
-    "2026-07-22": "Near the flood peak",
-    "2026-08-15": "Retreat",
-    "2026-09-20": "Late monsoon",
-    "2026-10-26": "Dry season"
-  },
-  "sections": [
-    {
-      "id": "what",
-      "title": "What happened",
-      "body": [
-        "On 18 to 20 July 2026, extreme rain fell on the Naga Hills just south of Upper Assam, and a landslide struck Mon in Nagaland. The Dikhow, Disang and Jhanji rivers carried the surge down onto the plains of Sivasagar and Charaideo. Embankments breached, villages such as Betbari were cut off, and the railway at Simaluguri went under water.",
-        "Clouds covered the region for most of the event, so optical satellites saw almost nothing. NISAR's L-band radar sees through cloud. It imaged this area every 12 days on the same orbit (track 40), including on **22 July, near the flood peak**. The Red Cross puts the emergency peak at 27 to 28 July, between two passes.",
-        "**Try it:** drag the white divider to compare dates, step through the timeline under the map, and click any spot to see how its radar signal changed over the season."
-      ]
-    },
-    {
-      "id": "radar",
-      "title": "What radar sees",
-      "body": [
-        "**HH (horizontal send, horizontal receive)** is the clearest flood signal. Calm open water acts like a mirror and bounces the radar pulse away from the satellite, so flooded fields turn **dark**. On 22 July, large dark patches appear along the river corridors that were bright on 10 July.",
-        "**HV (horizontal send, vertical receive)** responds to vegetation volume. Where water lies under standing crops or trees, HH can actually get *brighter*: the pulse bounces between the water surface and the stems (double bounce). Comparing HH with HV helps separate open floodwater from flooded vegetation.",
-        "**Caveat: rice paddies.** July is transplanting season, and farmers flood paddies on purpose. Some dark pixels are crop water, not flood water. New water is measured against the 26 October dry-season image, when paddies are drained, so paddies count as new water and every area is an upper bound.",
-        "**Seasonal change:** by October the water is gone. Along the Dikhow, Disang and Jhanji, the radar shows brighter ground, mostly rice and wetland plants growing, with no clear sign of new sand, silt or shifted channels at this resolution."
-      ]
-    },
-    {
-      "id": "why",
-      "title": "Why it flooded",
-      "body": [
-        "These are hypotheses. The radar supports some of them and cannot prove others.",
-        "**1. Extreme rain upstream.** The rivers that flooded rise in the Naga Hills. Three days of very heavy rain there (18 to 20 July) and the Mon landslide sent a sudden surge onto flat, low ground. The rain chart shows the rain peak just before the 22 July pass.",
-        "**2. Embankment failure.** Earthen embankments along the Jhanji and Disang breached. A breach floods a sharply bounded area next to the river. Look for dark areas that start at a single point on a riverbank.",
-        "**3. Riverbed and coal mining (contested).** Local groups argue that sand and coal mining in the hills filled riverbeds with debris and weakened banks. Radar alone cannot prove this, so treat it as an open question.",
-        "**4. Exposure.** A World Weather Attribution study points to high exposure and structural vulnerability: many people and farms sit on low floodplain land with little protection."
-      ]
-    },
-    {
-      "id": "next",
-      "title": "What's next",
-      "body": [
-        "**Routine flood maps through monsoon cloud.** NISAR images every 12 days, day or night, through cloud. State disaster agencies such as ASDMA could get a water map for each pass during the monsoon.",
-        "**Watching embankments and riverbeds.** Repeated radar can flag channel shifts, bank erosion and new sediment bars, which helps target embankment repairs and monitor riverbed mining.",
-        "**Crops and soil moisture.** L-band penetrates crop canopies, so the same data can track paddy flooding and transplanting dates, which also helps separate farming water from disaster water.",
-        "**Data:** NISAR Level-2 GCOV, ascending track 40, frame 15, from the ASF DAAC. Method and code: [GitHub](https://github.com/ruisbasement-code/Upper-Assam-India)."
-      ]
-    }
+ "id": "upper-assam-floods",
+ "type": "flood",
+ "kind": "backscatter",
+ "title": "When the rivers rose",
+ "subtitle": "Upper Assam floods, July 2026",
+ "sensor": "NISAR",
+ "eventsLabel": "Earthquakes (USGS)",
+ "credits": "Radar: contains modified NISAR data (NASA/ISRO), distributed by the ASF DAAC · Basemap: Esri World Imagery (Esri, Maxar, Earthstar Geographics) and Esri place labels · Districts: geoBoundaries (ODbL) · Permanent water: JRC Global Surface Water · People: WorldPop 2025 (CC BY 4.0) · Rain: GPM IMERG (NASA GES DISC) · C-band: OPERA RTC-S1 from Copernicus Sentinel-1 data 2026 · Optical: Copernicus Sentinel-2 2026 · Pipeline by Rui Sun (github.com/ruisbasement-code/Upper-Assam-India)",
+ "defaultThreshold": 0.3,
+ "dataStatus": "provisional",
+ "dataStatusNote": "Flood water is mapped from NISAR L2 GCOV radar brightness (HH below -15 dB). The threshold was checked against an independent Assam University map, but the areas are upper bounds: rice paddies flooded on purpose count too.",
+ "statusDetail": {
+  "story": "NISAR radar pictures, not yet validated",
+  "scientist": "NISAR GCOV (provisional), HH and HV backscatter in dB, 7 passes, track 40 ascending"
+ },
+ "storyText": "On 18 to 20 July 2026, extreme rain fell on the Naga Hills just south of Upper Assam, and a landslide struck Mon in Nagaland. The Dikhow, Disang and Jhanji rivers carried the surge down onto the plains of Sivasagar and Charaideo. Embankments breached, villages such as Betbari were cut off, and the railway at Simaluguri went under water.\n\nClouds covered the region for most of the event, so optical satellites saw almost nothing. NISAR's L-band radar sees through cloud. It imaged this area every 12 days on the same orbit (track 40), including on **22 July, near the flood peak**. The Red Cross puts the emergency peak at 27 to 28 July, between two passes.\n\n**Try it:** drag the white divider to compare dates, step through the timeline under the map, and click any spot to see how its radar signal changed over the season.",
+ "personal": {
+  "title": "Why we started here",
+  "body": [
+   "Upper Assam is personal for our team. Friends and family of ours have lived in these districts, and the floods hit them hard.",
+   "That is why this is the first story you see. Places like Betbari, Nazira and Simaluguri are on this map, and behind every blue patch are real fields and homes."
+  ]
+ },
+ "technical": {
+  "title": "HH backscatter and new flood water in Upper Assam, NISAR GCOV, track 40 ascending, 2026-06-16 to 2026-10-26",
+  "subtitle": "NISAR L2 GCOV (provisional), HH and HV power in dB, 7 passes",
+  "summary": "Radar backscatter (HHHH and HVHV terms of the L-band GCOV product, wavelength 24.2 cm) over the Dikhow, Disang and Jhanji floodplains in Sivasagar and Charaideo. New flood water is where HH is below -15 dB now and was not in the 26 October dry-season image.",
+  "caveats": [
+   "Areas are upper bounds: rice paddies flooded on purpose count as new water.",
+   "Values are decoded from the published 8-bit pictures (about 0.1 dB steps plus compression noise); exact figures stay in the original analysis.",
+   "The Red Cross puts the emergency peak at 27 to 28 July, between two passes."
+  ]
+ },
+ "aoi": {
+  "bbox": [
+   94.3,
+   26.6,
+   95.1,
+   27.3
   ],
-  "pinText": {
-    "simaluguri": "Dikhow floodwater over the Simaluguri station yard and tracks; Simaluguri–Namtiali and Simaluguri–Selenghat trains suspended.",
-    "disang_mahmora": "Disang embankment breach in Mahmora: 70–80 villages flooded, families sheltering on roadsides.",
-    "betbari": "Flooded from 20 July, nearly 7 ft deep in some homes; about 500 houses still under water 13 days later.",
-    "nazira": "Dikhow surge on 19 July flooded Nazira town and left knee-deep silt."
+  "center": [
+   94.7,
+   26.95
+  ],
+  "zoom": 9.3,
+  "pitch": 0,
+  "bearing": 0
+ },
+ "timeline": {
+  "start": "2026-06-04T00:00:00Z",
+  "end": "2026-11-07T00:00:00Z",
+  "initial": "2026-07-22T12:00:00Z"
+ },
+ "why": [
+  {
+   "title": "What radar sees",
+   "body": "**HH (horizontal send, horizontal receive)** is the clearest flood signal. Calm open water acts like a mirror and bounces the radar pulse away from the satellite, so flooded fields turn **dark**. On 22 July, large dark patches appear along the river corridors that were bright on 10 July.\n\n**HV (horizontal send, vertical receive)** responds to vegetation volume. Where water lies under standing crops or trees, HH can actually get *brighter*: the pulse bounces between the water surface and the stems (double bounce). Comparing HH with HV helps separate open floodwater from flooded vegetation.\n\n**Caveat: rice paddies.** July is transplanting season, and farmers flood paddies on purpose. Some dark pixels are crop water, not flood water. New water is measured against the 26 October dry-season image, when paddies are drained, so paddies count as new water and every area is an upper bound.\n\n**Seasonal change:** by October the water is gone. Along the Dikhow, Disang and Jhanji, the radar shows brighter ground, mostly rice and wetland plants growing, with no clear sign of new sand, silt or shifted channels at this resolution."
   },
-  "pinMissing": "Not pinned: the Jhanji breach (no located 2026 report) and a Nazira road washout (reports describe silt, not a washout).",
-  "personal": {
-    "title": "Why we started here",
-    "body": [
-      "Upper Assam is personal for our team. Friends and family of ours have lived in these districts, and the floods hit them hard.",
-      "That is why this is the first story you see. Places like Betbari, Nazira and Simaluguri are on this map, and behind every blue patch are real fields and homes."
-    ]
+  {
+   "title": "Why it flooded",
+   "body": "These are hypotheses. The radar supports some of them and cannot prove others.\n\n**1. Extreme rain upstream.** The rivers that flooded rise in the Naga Hills. Three days of very heavy rain there (18 to 20 July) and the Mon landslide sent a sudden surge onto flat, low ground. The rain chart shows the rain peak just before the 22 July pass.\n\n**2. Embankment failure.** Earthen embankments along the Jhanji and Disang breached. A breach floods a sharply bounded area next to the river. Look for dark areas that start at a single point on a riverbank.\n\n**3. Riverbed and coal mining (contested).** Local groups argue that sand and coal mining in the hills filled riverbeds with debris and weakened banks. Radar alone cannot prove this, so treat it as an open question.\n\n**4. Exposure.** A World Weather Attribution study points to high exposure and structural vulnerability: many people and farms sit on low floodplain land with little protection."
+  },
+  {
+   "title": "What's next",
+   "body": "**Routine flood maps through monsoon cloud.** NISAR images every 12 days, day or night, through cloud. State disaster agencies such as ASDMA could get a water map for each pass during the monsoon.\n\n**Watching embankments and riverbeds.** Repeated radar can flag channel shifts, bank erosion and new sediment bars, which helps target embankment repairs and monitor riverbed mining.\n\n**Crops and soil moisture.** L-band penetrates crop canopies, so the same data can track paddy flooding and transplanting dates, which also helps separate farming water from disaster water.\n\n**Data:** NISAR Level-2 GCOV, ascending track 40, frame 15, from the ASF DAAC. Method and code: [GitHub](https://github.com/ruisbasement-code/Upper-Assam-India)."
   }
+ ],
+ "flagshipPair": {
+  "track": 40,
+  "orbitDirection": "A",
+  "reference": "2026-07-10",
+  "secondary": "2026-07-22"
+ },
+ "acquisitions": "acquisitions.json",
+ "events": "events.geojson",
+ "copy": {
+  "mainView": [
+   "Radar picture",
+   "Radar HH"
+  ],
+  "followTimeline": true,
+  "periodsHeading": "All radar passes",
+  "key": {
+   "los": [
+    {
+     "color": "#eef1f8",
+     "text": "Strong echo: dry land, crops and buildings"
+    },
+    {
+     "color": "#4d5b7e",
+     "text": "Medium: wet ground and some vegetation"
+    },
+    {
+     "color": "#050912",
+     "text": "Weak echo: calm open water, which acts like a mirror"
+    }
+   ],
+   "hv": [
+    {
+     "color": "#eef1f8",
+     "text": "Strong cross-polarized echo: leaves, stems, dense plants"
+    },
+    {
+     "color": "#4d5b7e",
+     "text": "Medium: ordinary ground"
+    },
+    {
+     "color": "#050912",
+     "text": "Weak: smooth surfaces and open water"
+    }
+   ],
+   "hh": [
+    {
+     "color": "#3b8fd4",
+     "text": "New flood water: darker than in the dry season (26 Oct)"
+    },
+    {
+     "color": "#1d4f91",
+     "text": "The darker the blue, the bigger the drop in the echo"
+    },
+    {
+     "color": "#f4f4f4",
+     "text": "No new water: left clear"
+    }
+   ],
+   "mix": [
+    {
+     "color": "rgb(33,26,76)",
+     "text": "Open water (dark blue)"
+    },
+    {
+     "color": "rgb(241,175,213)",
+     "text": "Flooded vegetation (pink). Flooded plants and buildings look alike."
+    },
+    {
+     "color": "rgb(187,211,52)",
+     "text": "Forest, tall crops (yellow-green)"
+    },
+    {
+     "color": "rgb(255,195,224)",
+     "text": "Built-up (pale pink)"
+    }
+   ]
+  },
+  "howTo": [
+   "Press play (or drag the timeline) to step through the seven radar passes from 16 June to 26 October. The picture changes at each pass.",
+   "Press What changed to see only new flood water in blue, compared with the dry-season pass of 26 October.",
+   "Use the divider to compare any two dates, and More layers for districts, damage reports and people exposed.",
+   "Click anywhere on the map to see its radar signal and whether it was under new water. Switch to Scientist mode for the numbers and sources."
+  ],
+  "epochText": "NISAR flew over on {to}. This is the radar picture from that pass; flood water is measured against the dry-season pass of 26 October.",
+  "epochTechTitle": "HH backscatter of Upper Assam, NISAR pass {to}",
+  "evidenceNote": "Backscatter is the power of the radar echo from each ground cell (HHHH term of the covariance matrix) in dB. New flood water is where HH is below -15 dB now and was not in the dry-season image. Values here are decoded from the published pictures, so they are approximate.",
+  "defaultView": "hh",
+  "changeView": {
+   "title": "New flood water",
+   "sub": "Compared with the dry season (26 Oct)",
+   "subTech": "HH change vs the 26 Oct dry-season pass, new-water mask only, dB",
+   "inspector": "Change vs dry season (new water only)"
+  },
+  "compareDefault": "ep-2026-10-26"
+ },
+ "layers": [
+  {
+   "id": "hh-echo",
+   "role": "displacement",
+   "name": "Radar picture (HH)",
+   "badge": "DERIVED",
+   "grid": "deformation.grid.json",
+   "units": "dB",
+   "displayUnits": "dB",
+   "displayScale": 1,
+   "range": [
+    -22,
+    0
+   ],
+   "colormap": "gray",
+   "appearsAfter": "secondary",
+   "synthetic": false,
+   "positiveMeans": "a stronger echo (land, crops, buildings)",
+   "negativeMeans": "a weaker echo (calm open water acts like a mirror)",
+   "titleStory": "How strongly the ground echoes the radar",
+   "titleScientist": "HH backscatter (dB)",
+   "hintStory": "Bright means a strong radar echo, such as dry land, crops and buildings. Dark means a weak one. Calm open water bounces the radar away like a mirror, so flooded fields turn dark.",
+   "hintScientist": "L-band HHHH power from the GCOV product in dB, decoded from the published picture (about -22 to 0 dB). Flood water is mapped where HH falls below -15 dB.",
+   "provenance": {
+    "mission": "NISAR (NASA-ISRO)",
+    "band": "L-band",
+    "product": "L2 GCOV, ascending track 40 (provisional)",
+    "maturity": "PROVISIONAL",
+    "method": "Grids derived by Aevion from the published radar pictures (8-bit, about 0.1 dB steps plus compression noise). Exact flooded areas and the preset dB values come from the original analysis."
+   }
+  },
+  {
+   "id": "new-water",
+   "role": "backscatterHH",
+   "name": "New flood water",
+   "badge": "DERIVED",
+   "grid": "backscatter-hh.grid.json",
+   "units": "dB",
+   "displayUnits": "dB",
+   "displayScale": 1,
+   "range": [
+    -16,
+    16
+   ],
+   "quietBelow": 3,
+   "appearsAfter": "secondary",
+   "synthetic": false,
+   "positiveMeans": "brighter than in the dry season",
+   "negativeMeans": "darker than in the dry season: new flood water",
+   "titleStory": "Where new flood water appeared",
+   "titleScientist": "HH change vs the 26 Oct dry-season pass, only where the water mask says new water (dB)",
+   "hintStory": "Blue means flood water that was not there in the dry season (26 October). The darker the blue, the more the radar echo dropped. Everything else is left clear.",
+   "hintScientist": "HH backscatter (dB) of this pass minus the 26 October dry-season pass, kept only where the published water mask (HH below -15 dB, new vs the dry season) says water, and averaged over each cell so edges fade. Changes under 3 dB are left clear.",
+   "provenance": {
+    "mission": "NISAR (NASA-ISRO)",
+    "band": "L-band",
+    "product": "L2 GCOV, ascending track 40 (provisional)",
+    "maturity": "PROVISIONAL",
+    "method": "Grids derived by Aevion from the published radar pictures (8-bit, about 0.1 dB steps plus compression noise). Exact flooded areas and the preset dB values come from the original analysis.",
+    "reference": "2026-10-26 (dry season)",
+    "threshold": "HH below -15 dB (checked against an independent Assam University map)"
+   }
+  },
+  {
+   "id": "coverage",
+   "role": "coherence",
+   "name": "Coverage",
+   "label": "Coverage",
+   "badge": "DERIVED",
+   "grid": "coherence.grid.json",
+   "units": "1",
+   "displayUnits": "",
+   "displayScale": 1,
+   "range": [
+    0,
+    1
+   ],
+   "appearsAfter": "secondary",
+   "synthetic": false,
+   "titleStory": "Where there is data",
+   "titleScientist": "Valid-data coverage (1 = a value)",
+   "hintStory": "Every cell has a radar value. This story does not use the interferometric confidence layer.",
+   "hintScientist": "Always 1: the pictures have no gaps. Backscatter has no coherence; this layer exists because every story carries one.",
+   "provenance": {
+    "product": "Derived from the HH grid",
+    "maturity": "PROVISIONAL",
+    "measurement": "1 where the backscatter has a value",
+    "method": "Set to 1 everywhere."
+   }
+  },
+  {
+   "id": "hv-echo",
+   "role": "backscatterHV",
+   "name": "Radar picture (HV)",
+   "badge": "DERIVED",
+   "grid": "backscatter-hv.grid.json",
+   "units": "dB",
+   "displayUnits": "dB",
+   "displayScale": 1,
+   "range": [
+    -30,
+    -8
+   ],
+   "colormap": "gray",
+   "appearsAfter": "secondary",
+   "synthetic": false,
+   "positiveMeans": "a stronger cross-polarized echo (leaves, stems)",
+   "negativeMeans": "a weaker echo (smooth surfaces)",
+   "titleStory": "How plants echo the radar",
+   "titleScientist": "HV backscatter (dB)",
+   "hintStory": "HV listens to a different part of the echo. It responds to vegetation, so it helps tell open floodwater from flooded crops and trees.",
+   "hintScientist": "L-band HVHV power from the GCOV product in dB, decoded from the published picture (about -30 to -8 dB).",
+   "provenance": {
+    "mission": "NISAR (NASA-ISRO)",
+    "band": "L-band",
+    "product": "L2 GCOV, ascending track 40 (provisional)",
+    "maturity": "PROVISIONAL",
+    "method": "Grids derived by Aevion from the published radar pictures (8-bit, about 0.1 dB steps plus compression noise). Exact flooded areas and the preset dB values come from the original analysis."
+   }
+  }
+ ],
+ "epochs": [
+  {
+   "id": "ep-2026-06-16",
+   "label": "Jun 16",
+   "title": "Before the first wave",
+   "pair": {
+    "reference": "2026-06-04",
+    "secondary": "2026-06-16"
+   },
+   "deformation": "epochs/ep-2026-06-16.deformation.grid.json",
+   "hv": "epochs/ep-2026-06-16.hv.grid.json",
+   "hh": "epochs/ep-2026-06-16.hh.grid.json"
+  },
+  {
+   "id": "ep-2026-06-28",
+   "label": "Jun 28",
+   "title": "First flood wave",
+   "pair": {
+    "reference": "2026-06-16",
+    "secondary": "2026-06-28"
+   },
+   "deformation": "epochs/ep-2026-06-28.deformation.grid.json",
+   "hv": "epochs/ep-2026-06-28.hv.grid.json",
+   "hh": "epochs/ep-2026-06-28.hh.grid.json"
+  },
+  {
+   "id": "ep-2026-07-10",
+   "label": "Jul 10",
+   "title": "Between waves",
+   "pair": {
+    "reference": "2026-06-28",
+    "secondary": "2026-07-10"
+   },
+   "deformation": "epochs/ep-2026-07-10.deformation.grid.json",
+   "hv": "epochs/ep-2026-07-10.hv.grid.json",
+   "hh": "epochs/ep-2026-07-10.hh.grid.json"
+  },
+  {
+   "id": "ep-2026-07-22",
+   "label": "Jul 22",
+   "title": "Near the flood peak",
+   "pair": {
+    "reference": "2026-07-10",
+    "secondary": "2026-07-22"
+   },
+   "deformation": "epochs/ep-2026-07-22.deformation.grid.json",
+   "hv": "epochs/ep-2026-07-22.hv.grid.json",
+   "hh": "epochs/ep-2026-07-22.hh.grid.json"
+  },
+  {
+   "id": "ep-2026-08-15",
+   "label": "Aug 15",
+   "title": "Retreat",
+   "pair": {
+    "reference": "2026-07-22",
+    "secondary": "2026-08-15"
+   },
+   "deformation": "epochs/ep-2026-08-15.deformation.grid.json",
+   "hv": "epochs/ep-2026-08-15.hv.grid.json",
+   "hh": "epochs/ep-2026-08-15.hh.grid.json"
+  },
+  {
+   "id": "ep-2026-09-20",
+   "label": "Sep 20",
+   "title": "Late monsoon",
+   "pair": {
+    "reference": "2026-08-15",
+    "secondary": "2026-09-20"
+   },
+   "deformation": "epochs/ep-2026-09-20.deformation.grid.json",
+   "hv": "epochs/ep-2026-09-20.hv.grid.json",
+   "hh": "epochs/ep-2026-09-20.hh.grid.json"
+  },
+  {
+   "id": "ep-2026-10-26",
+   "label": "Oct 26",
+   "title": "Dry season",
+   "pair": {
+    "reference": "2026-09-20",
+    "secondary": "2026-10-26"
+   },
+   "deformation": "epochs/ep-2026-10-26.deformation.grid.json",
+   "hv": "epochs/ep-2026-10-26.hv.grid.json",
+   "hh": "epochs/ep-2026-10-26.hh.grid.json"
+  }
+ ],
+ "resources": [
+  {
+   "group": "learn",
+   "audience": "story",
+   "title": "NISAR StoryMaps",
+   "url": "https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/",
+   "description": "Interactive stories on floods, wildfires, subsidence, oil slicks and glacier motion."
+  },
+  {
+   "group": "data",
+   "audience": "scientist",
+   "title": "Method and code (GitHub)",
+   "url": "https://github.com/ruisbasement-code/Upper-Assam-India",
+   "description": "The pipeline behind the flood maps."
+  }
+ ],
+ "flood": {
+  "manifest": "flood.json",
+  "series": "timeseries.json",
+  "validation": "validation.json"
+ },
+ "dateLabels": {
+  "2026-06-16": "Before the first wave",
+  "2026-06-28": "First flood wave",
+  "2026-07-10": "Between waves",
+  "2026-07-22": "Near the flood peak",
+  "2026-08-15": "Retreat",
+  "2026-09-20": "Late monsoon",
+  "2026-10-26": "Dry season"
+ },
+ "pinText": {
+  "simaluguri": "Dikhow floodwater over the Simaluguri station yard and tracks; Simaluguri–Namtiali and Simaluguri–Selenghat trains suspended.",
+  "disang_mahmora": "Disang embankment breach in Mahmora: 70–80 villages flooded, families sheltering on roadsides.",
+  "betbari": "Flooded from 20 July, nearly 7 ft deep in some homes; about 500 houses still under water 13 days later.",
+  "nazira": "Dikhow surge on 19 July flooded Nazira town and left knee-deep silt."
+ },
+ "pinMissing": "Not pinned: the Jhanji breach (no located 2026 report) and a Nazira road washout (reports describe silt, not a washout)."
 }

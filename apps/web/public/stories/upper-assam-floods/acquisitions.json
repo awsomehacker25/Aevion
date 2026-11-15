@@ -1,0 +1,66 @@
+{
+ "source": "Published flood analysis",
+ "shortName": "NISAR_L2_GCOV (provisional)",
+ "bbox": [
+  94.3,
+  26.6,
+  95.1,
+  27.3
+ ],
+ "window": [
+  "2026-06-01",
+  "2026-11-10"
+ ],
+ "note": "GCOV backscatter passes on track 40 ascending, 12 days apart; each entry joins a pass to the previous listed pass.",
+ "pairs": [
+  {
+   "track": 40,
+   "orbitDirection": "A",
+   "reference": "2026-06-04T00:00:00Z",
+   "secondary": "2026-06-16T00:00:00Z",
+   "granuleId": "Not listed (grids derived from the published pictures)"
+  },
+  {
+   "track": 40,
+   "orbitDirection": "A",
+   "reference": "2026-06-16T00:00:00Z",
+   "secondary": "2026-06-28T00:00:00Z",
+   "granuleId": "Not listed (grids derived from the published pictures)"
+  },
+  {
+   "track": 40,
+   "orbitDirection": "A",
+   "reference": "2026-06-28T00:00:00Z",
+   "secondary": "2026-07-10T00:00:00Z",
+   "granuleId": "Not listed (grids derived from the published pictures)"
+  },
+  {
+   "track": 40,
+   "orbitDirection": "A",
+   "reference": "2026-07-10T00:00:00Z",
+   "secondary": "2026-07-22T00:00:00Z",
+   "granuleId": "Not listed (grids derived from the published pictures)"
+  },
+  {
+   "track": 40,
+   "orbitDirection": "A",
+   "reference": "2026-07-22T00:00:00Z",
+   "secondary": "2026-08-15T00:00:00Z",
+   "granuleId": "Not listed (grids derived from the published pictures)"
+  },
+  {
+   "track": 40,
+   "orbitDirection": "A",
+   "reference": "2026-08-15T00:00:00Z",
+   "secondary": "2026-09-20T00:00:00Z",
+   "granuleId": "Not listed (grids derived from the published pictures)"
+  },
+  {
+   "track": 40,
+   "orbitDirection": "A",
+   "reference": "2026-09-20T00:00:00Z",
+   "secondary": "2026-10-26T00:00:00Z",
+   "granuleId": "Not listed (grids derived from the published pictures)"
+  }
+ ]
+}

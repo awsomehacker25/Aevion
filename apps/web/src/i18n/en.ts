@@ -243,6 +243,7 @@ const en: Record<string, string> = {
   's.layer.changed': 'What changed',
   's.layer.changed.sub': 'Difference from the previous pass',
   's.colors': 'What do the colors mean?',
+  's.compare.with': 'Compare with',
   's.fade': 'Fade and hatch areas where the measurement is unreliable',
   's.moved': 'How far the ground moved ({u})',
   's.movedHint': 'Blue and orange show the ground moving toward or away from the satellite, not up or down.',

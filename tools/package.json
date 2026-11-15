@@ -1,0 +1,9 @@
+{
+  "name": "aevion-tools",
+  "private": true,
+  "type": "module",
+  "description": "Offline data tooling for Aevion. Not part of the web app's dependencies.",
+  "devDependencies": {
+    "sharp": "^0.34.0"
+  }
+}

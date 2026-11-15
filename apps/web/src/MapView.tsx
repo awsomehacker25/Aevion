@@ -3,7 +3,10 @@ import * as maplibregl from 'maplibre-gl'
 import type { GeoJSONSource, ImageSource, MapMouseEvent, StyleSpecification } from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { BASEMAP } from './config'
+import { BASEMAP, LOD } from './config'
+import { addBeacon, addSweep } from './AoiBeacon'
+import { attachLens, contours } from './vfx'
+import { reducedMotion, FLAT_ABOVE, GLOBE_BELOW, floorZoom, introFlight, orbitView, tetherZoom } from './camera'
 import { CHEVRONS_HTML } from './Icons'
 import { beachball } from './lib/beachball'
 import { playhead } from './lib/playhead'
@@ -12,6 +15,18 @@ import { renderOverlay } from './lib/render'
 import type { MixOpts } from './lib/render'
 import { fmtDate } from './lib/data'
 import type { CameraReq, Grid, LayerDef, Overlays, QuakeCollection, Story, UsgsContext, ViewMode } from './types'
+
+/** Extra layers drawn over the study area. Ids in `visible` are the image ids, 'districts' and 'pins'. */
+export interface MapExtras {
+  districts?: FeatureCollection
+  pins?: FeatureCollection
+  /** Context pictures stretched over the study area. `above` draws over the radar picture, otherwise under it. */
+  images: { id: string; url: string; opacity: number; resampling?: 'nearest' | 'linear'; above: boolean }[]
+  visible: Record<string, boolean>
+  onPin: (id: string) => void
+  /** Hide the radar picture (a whole-map context picture such as optical is on and the view is not the water view). */
+  hideData: boolean
+}
 
 interface Props {
   story: Story
@@ -25,6 +40,10 @@ interface Props {
   mix?: MixOpts
   /** The next measured period of a story that follows the timeline, cross-faded in between the two passes (from and to are times in ms). */
   next?: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; radarHH?: { layer: LayerDef; grid: Grid }; from: number; to: number }
+  /** Another measured period to show west of the swipe line instead of the plain imagery (a before/after between two dates). */
+  compare?: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHH?: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; mix?: MixOpts; labels: [string, string] }
+  /** Extra map layers a story brings (districts, reported damage, context pictures). Toggled by `visible`. */
+  extras?: MapExtras
   mode: ViewMode
   fadeLow: boolean
   threshold: number
@@ -50,19 +69,23 @@ interface Props {
 function styleFor(): StyleSpecification {
   return {
     version: 8,
+    projection: { type: 'globe' },
     sources: {
+      // Two imagery sources so the far view stays cheap: a world layer capped at a low zoom, and the full-detail layer used up close.
+      'sat-far': { type: 'raster', tiles: [BASEMAP.imageryTiles], tileSize: 256, maxzoom: LOD.far.maxzoom, attribution: BASEMAP.imageryAttribution },
       sat: { type: 'raster', tiles: [BASEMAP.imageryTiles], tileSize: 256, maxzoom: 18, attribution: BASEMAP.imageryAttribution },
       dem: { type: 'raster-dem', tiles: [BASEMAP.terrainTiles], tileSize: 256, maxzoom: 14, encoding: BASEMAP.terrainEncoding, attribution: BASEMAP.terrainAttribution },
     },
     layers: [
       { id: 'bg', type: 'background', paint: { 'background-color': '#05080f' } },
-      { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-brightness-max': 0.78, 'raster-saturation': -0.35, 'raster-contrast': 0.1 } },
+      { id: 'sat-far', type: 'raster', source: 'sat-far', maxzoom: LOD.handoff + 0.5, paint: { 'raster-brightness-max': 0.78, 'raster-saturation': -0.35, 'raster-contrast': 0.1, 'raster-fade-duration': 0 } },
+      { id: 'sat', type: 'raster', source: 'sat', minzoom: LOD.handoff, paint: { 'raster-brightness-max': 0.78, 'raster-saturation': -0.35, 'raster-contrast': 0.1 } },
       // No hillshade layer: it made panning and tilting crawl (about 1 frame per second against 30 without it). The 3D terrain still gives the relief.
     ],
-    terrain: { source: 'dem', exaggeration: BASEMAP.terrainExaggeration },
+    // terrain is switched on in code once the map is zoomed in far enough to be flat (see camera.ts)
     sky: {
       'sky-color': '#0a1424', 'horizon-color': '#2a4a7a', 'fog-color': '#16263f',
-      'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.25,
+      'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.25, 'atmosphere-blend': 0.9,
     },
   } as StyleSpecification
 }
@@ -80,6 +103,7 @@ export default function MapView(p: Props) {
   const beachRef = useRef<maplibregl.Marker[]>([])
   const annotRef = useRef<maplibregl.Marker[]>([])
   const fullRef = useRef<HTMLCanvasElement | null>(null) // the overlay, drawn once at full strength
+  const cmpRef = useRef<HTMLCanvasElement | null>(null) // the compare period's overlay, drawn west of the swipe line
   const viewRef = useRef<HTMLCanvasElement | null>(null) // the overlay cut at the swipe line, encoded and sent to the map
   const swipeFrac = useRef(0.5) // swipe line position across the map box: 0 = west edge, 1 = east edge
   const swipeOn = useRef(false)
@@ -104,7 +128,7 @@ export default function MapView(p: Props) {
 
   // The current period's own layer fades out over the last part of the cross-fade, so that where the next picture is
   // transparent (little change there) the old one does not show through at the end, which would pop when the period changes.
-  const aFactor = useCallback((t: number) => {
+  const aFactor0 = useCallback((t: number) => {
     const s = bState.current
     const n = s.next
     if (holdB.current) return 0
@@ -113,7 +137,7 @@ export default function MapView(p: Props) {
     const y = Math.max(0, (x - 0.6) / 0.4)
     return 1 - y * y * (3 - 2 * y)
   }, [])
-  const bOpacity = useCallback((t: number) => {
+  const bOpacity0 = useCallback((t: number) => {
     const s = bState.current
     const n = s.next
     if (holdB.current) return 0.95
@@ -123,6 +147,11 @@ export default function MapView(p: Props) {
     const x = (t - n.from) / (n.to - n.from)
     return 0.95 * x * x * (3 - 2 * x)
   }, [])
+  // The picture is revealed by the radar-pass sweep after the flight: until then everything the layers show is multiplied by revealRef (0 to 1).
+  const revealRef = useRef(0)
+  const gateRef = useRef(1) // 0 while a whole-map context picture replaces the radar picture
+  const aFactor = useCallback((t: number) => aFactor0(t) * revealRef.current * gateRef.current, [aFactor0])
+  const bOpacity = useCallback((t: number) => bOpacity0(t) * revealRef.current * gateRef.current, [bOpacity0])
 
   // Send the overlay to the map as an image, cutting off the "before" side when swiping. Encoding happens off the main
   // thread (toBlob), and only the newest request is applied.
@@ -145,6 +174,8 @@ export default function MapView(p: Props) {
     ctx.clearRect(0, 0, W, H)
     const sx = swipeOn.current ? Math.round(Math.min(1, Math.max(0, swipeFrac.current)) * full.width) : 0
     const dx = Math.round(sx * k)
+    const cmp = cmpRef.current
+    if (cmp && sx > 0 && swipeOn.current) ctx.drawImage(cmp, 0, 0, Math.min(sx, cmp.width), cmp.height, 0, 0, dx, H)
     if (sx < full.width) ctx.drawImage(full, sx, 0, full.width - sx, full.height, dx, 0, W - dx, H)
     const seq = ++paintSeq.current
     if (view.width <= 400) {
@@ -174,8 +205,19 @@ export default function MapView(p: Props) {
   }, [bbox])
   useEffect(() => { paintRef.current = paintOverlay }, [paintOverlay])
   // the latest callbacks and mode, read by the one-time click handler
-  const live = useRef({ onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode })
+  const live = useRef({ onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode, onPin: p.extras?.onPin })
   const [ready, setReady] = useState(false)
+  const [away, setAway] = useState(false) // the study area is off screen, or the view is pushed far out
+  const [intro, setIntro] = useState<null | 'wait' | 'fly'>(null) // waiting for the first imagery, or the opening flight is running
+  const beaconRef = useRef<ReturnType<typeof addBeacon> | null>(null)
+  const introRef = useRef<(() => void) | null>(null)
+  const returnRef = useRef<() => void>(() => {})
+  const [fxOn, setFxOn] = useState(false) // the flight and the reveal are over: the extra effects may run
+  const latest = useRef(p)
+  useEffect(() => { latest.current = p })
+  const fxBlocked = useRef(false) // true while something else owns the pointer or the picture (flight, cross-section tool)
+  useEffect(() => { fxBlocked.current = !fxOn || p.profileMode }, [fxOn, p.profileMode])
+  const lensRef = useRef<(() => void) | null>(null)
 
   // Everything on the map is a function of the timeline position, so scrubbing backward undoes it again.
   const scale = p.replayScale ?? p.progress
@@ -185,7 +227,8 @@ export default function MapView(p: Props) {
     .map((a) => ((a.appears === 'event' ? evReached : a.appears === 'change' ? scale >= 0.8 : true) ? '1' : '0'))
     .join('')
 
-  useEffect(() => { live.current = { onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode } })
+  useEffect(() => { live.current = { onPick: p.onPick, onProfilePoint: p.onProfilePoint, profileMode: p.profileMode, onPin: p.extras?.onPin } })
+  const imgUrl = useRef<Record<string, string>>({}) // the picture each context layer currently holds
 
   // create the map once per story
   useEffect(() => {
@@ -193,14 +236,16 @@ export default function MapView(p: Props) {
     const map = new maplibregl.Map({
       container: el.current!,
       style: styleFor(),
-      center: aoi.center, zoom: aoi.zoom, pitch: aoi.pitch, bearing: aoi.bearing,
-      // Can't zoom out far from the story area, which also keeps the number of tiles to load and draw down.
-      minZoom: Math.max(2, aoi.zoom - 1.5),
+      // starts as the whole Earth; the opening flight (below) carries it to the story's area
+      ...orbitView(aoi),
+      // A global floor keeps tile counts bounded; the soft tether (below) pulls the view back toward the study area well before it.
+      minZoom: floorZoom(),
       maxPitch: 75, attributionControl: { compact: true },
       // Lighter drawing: cap the pixel density on sharp screens (4x the work for little visible gain) and skip tile fade-ins.
       pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5), fadeDuration: 0,
     })
     mapRef.current = map
+    if (import.meta.env.DEV) (window as unknown as { __map: maplibregl.Map }).__map = map
     let cancelled = false // this map was replaced or removed before it finished starting
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
 
@@ -236,11 +281,35 @@ export default function MapView(p: Props) {
       map.addSource('swipe', { type: 'geojson', data: EMPTY })
       map.addLayer({ id: 'swipe-line', type: 'line', source: 'swipe', paint: { 'line-color': '#ffffff', 'line-width': 2.5, 'line-opacity': 0.95 } })
 
-      // AOI outline
-      map.addSource('aoi', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[...corners(aoi.bbox), corners(aoi.bbox)[0]]] } } })
-      // the frame of the picture is also the limit of the before/after divider, so it is drawn clearly: a dark casing under a bright dashed line
-      map.addLayer({ id: 'aoi-casing', type: 'line', source: 'aoi', paint: { 'line-color': '#000', 'line-width': 4, 'line-opacity': 0.45 } })
-      map.addLayer({ id: 'aoi-line', type: 'line', source: 'aoi', paint: { 'line-color': '#ffffff', 'line-width': 1.8, 'line-opacity': 0.95, 'line-dasharray': [3, 2] } })
+      // (the study-area outline is the glowing ring added below; it replaces the old dashed rectangle)
+
+      // outlines of the regions that moved the most: a thin light line with a soft glow, never recolouring the data
+      map.addSource('contour', { type: 'geojson', data: EMPTY })
+      map.addLayer({ id: 'contour-glow', type: 'line', source: 'contour', paint: { 'line-color': '#ffffff', 'line-width': 6, 'line-blur': 5, 'line-opacity': 0 } }, 'swipe-line')
+      map.addLayer({ id: 'contour-line', type: 'line', source: 'contour', paint: { 'line-color': '#ffffff', 'line-width': 1.1, 'line-opacity': 0 } }, 'swipe-line')
+
+      // extra layers a story brings: districts, reported damage and context pictures (hidden until switched on)
+      const ex = latest.current.extras
+      if (ex) {
+        for (const im of ex.images) {
+          map.addSource(`x-${im.id}`, { type: 'image', url: TRANSPARENT, coordinates: corners(aoi.bbox) })
+          map.addLayer({ id: `x-${im.id}`, type: 'raster', source: `x-${im.id}`, layout: { visibility: 'none' },
+            paint: { 'raster-opacity': im.opacity, 'raster-fade-duration': 0, 'raster-resampling': im.resampling ?? 'linear' } }, im.above ? 'swipe-line' : 'overlay')
+        }
+        if (ex.districts) {
+          map.addSource('districts', { type: 'geojson', data: ex.districts })
+          map.addLayer({ id: 'districts-casing', type: 'line', source: 'districts', layout: { visibility: 'none' }, paint: { 'line-color': '#000', 'line-width': 3.5, 'line-opacity': 0.5 } }, 'swipe-line')
+          map.addLayer({ id: 'districts', type: 'line', source: 'districts', layout: { visibility: 'none' }, paint: { 'line-color': '#ffffff', 'line-width': 1.6, 'line-dasharray': [4, 2] } }, 'swipe-line')
+        }
+        if (ex.pins) {
+          map.addSource('pins', { type: 'geojson', data: ex.pins })
+          map.addLayer({ id: 'pins-halo', type: 'circle', source: 'pins', filter: ['==', ['get', 'approximate'], true], layout: { visibility: 'none' },
+            paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 6, 11, 10, 14, 16], 'circle-color': '#e69f00', 'circle-opacity': 0.18, 'circle-stroke-color': '#e69f00', 'circle-stroke-width': 1, 'circle-stroke-opacity': 0.6 } }, 'swipe-line')
+          map.addLayer({ id: 'pins', type: 'circle', source: 'pins', layout: { visibility: 'none' },
+            paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 3.5, 11, 6, 14, 8], 'circle-color': ['case', ['get', 'approximate'], '#ffffff', '#e69f00'],
+              'circle-stroke-color': ['case', ['get', 'approximate'], '#e69f00', '#ffffff'], 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 8, 2, 12, 3] } }, 'swipe-line')
+        }
+      }
 
       // USGS context layers (hidden until switched on)
       map.addSource('fault', { type: 'geojson', data: (p.context?.fault ?? EMPTY) as FeatureCollection })
@@ -277,13 +346,14 @@ export default function MapView(p: Props) {
         paint: { 'circle-radius': rad, 'circle-color': ['interpolate', ['linear'], ['get', 'mag'], 3.5, '#ffd479', 5, '#ff8a3d', 7.5, '#ff3b30'],
           'circle-opacity': 0.9, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1 } })
 
-      for (const id of ['quake', 'cities']) {
+      for (const id of ['quake', 'cities', ...(map.getLayer('pins') ? ['pins'] : [])]) {
         map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer' })
         map.on('mouseleave', id, () => { map.getCanvas().style.cursor = '' })
       }
       map.on('click', (e: MapMouseEvent) => {
         if (live.current.profileMode) { live.current.onProfilePoint(e.lngLat.lng, e.lngLat.lat); return }
-        const f = map.queryRenderedFeatures(e.point, { layers: ['quake', 'cities'] })[0]
+        const f = map.queryRenderedFeatures(e.point, { layers: ['quake', 'cities', ...(map.getLayer('pins') ? ['pins'] : [])] })[0]
+        if (f && f.layer.id === 'pins') { live.current.onPin?.(String((f.properties as { id: string }).id)); return }
         if (f && f.layer.id === 'quake') {
           const pr = f.properties as { mag: number; time: number; place: string; url: string }
           new maplibregl.Popup({ closeButton: false, className: 'quake-pop' })
@@ -302,9 +372,105 @@ export default function MapView(p: Props) {
         }
         live.current.onPick(e.lngLat.lng, e.lngLat.lat)
       })
+
+      // Glowing boundary around the study area, with the outside dimmed so the eye stays inside it.
+      const beacon = addBeacon(map, aoi.bbox, { dimBefore: 'overlay' })
+      beaconRef.current = beacon
+
+      // Globe when far out, flat map with 3D terrain when close. Two thresholds so it does not flicker at the edge.
+      let flat = false
+      let flying = true
+      const syncProjection = () => {
+        // During the opening flight stay on the globe: switching mid-flight loads terrain tiles at every zoom the camera passes through.
+        if (flying) return
+        const z = map.getZoom()
+        if (!flat && z >= FLAT_ABOVE) {
+          flat = true
+          map.setProjection({ type: 'mercator' })
+          map.setTerrain({ source: 'dem', exaggeration: BASEMAP.terrainExaggeration })
+        } else if (flat && z <= GLOBE_BELOW) {
+          flat = false
+          map.setTerrain(null)
+          map.setProjection({ type: 'globe' })
+        }
+        beacon.scaleFor(z)
+      }
+      map.on('zoom', syncProjection)
+
+      // Is the study area still in view? If not (or if the view is pushed far out), offer a way back and ease the view home.
+      const tether = tetherZoom(aoi)
+      const checkAway = () => {
+        if (flying) return
+        // only "away" when no part of the study area is on screen (zooming in on a detail is not getting lost)
+        const bb = map.getBounds()
+        const [w, so, e, n] = aoi.bbox
+        const inView = bb.getWest() < e && bb.getEast() > w && bb.getSouth() < n && bb.getNorth() > so
+        setAway(!inView || map.getZoom() < tether)
+      }
+      let awayT = 0
+      map.on('move', () => { if (awayT) return; awayT = window.setTimeout(() => { awayT = 0; checkAway() }, 250) })
+      returnRef.current = () => map.flyTo({ center: aoi.center, zoom: aoi.zoom, pitch: aoi.pitch, bearing: aoi.bearing, speed: 0.9, essential: true })
+
+      // opening flight: the whole Earth turns and dives to the study area; Esc skips it
+      syncProjection()
+      // The radar-pass: a light line sweeps across the study area while the picture fades in behind it. Afterwards the other effects start.
+      const applyOpacity = () => {
+        const q = latest.current
+        if (q.replayScale != null) return
+        map.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(q.progress, q.mode) * aFactor(q.cursor))
+        map.setPaintProperty('overlay2', 'raster-opacity', bOpacity(q.cursor))
+      }
+      const sweep = addSweep(map, aoi.bbox)
+      // The sweep runs during the last stretch of the descent, while the whole ring is still in view, so the line is a chord of the ring
+      // on the ground (at the camera's own angle) and not a stray line across a screen that the ring has already outgrown.
+      let sweepDone = false
+      let flightDone = false
+      const maybeFx = () => { if (sweepDone && flightDone) setFxOn(true) }
+      let swept = false
+      const startReveal = () => {
+        if (swept) return
+        swept = true
+        beacon.scaleFor(map.getZoom()); beacon.show()
+        if (reducedMotion()) { revealRef.current = 1; applyOpacity(); sweepDone = true; maybeFx(); return }
+        const t0 = performance.now()
+        const D = 1700
+        const step = (t: number) => {
+          if (cancelled) return
+          const k = Math.min(1, (t - t0) / D)
+          const e = k * k * (3 - 2 * k)
+          sweep.set(e)
+          revealRef.current = Math.min(1, e * 1.25) // the picture is revealed just behind the line
+          applyOpacity()
+          if (k < 1) requestAnimationFrame(step)
+          else { sweep.clear(); revealRef.current = 1; applyOpacity(); sweepDone = true; maybeFx() }
+        }
+        requestAnimationFrame(step)
+      }
+      map.on('zoom', () => { if (flying && !swept && map.getZoom() >= aoi.zoom - 2.0) startReveal() })
+      // hover lens inside the study area (an outline only, so the data underneath is never tinted)
+      const detachLens = attachLens(map, aoi.bbox, () => fxBlocked.current)
+      lensRef.current = detachLens
+
+      // wait for the first picture of the Earth so the flight does not start over a blank globe (never longer than 4 s)
+      let started = false
+      const begin = () => {
+        if (started || cancelled) return
+        started = true
+        window.clearTimeout(to)
+        setIntro('fly')
+        introRef.current = introFlight(map, aoi, { onDone: () => {
+          flying = false; syncProjection(); checkAway(); setIntro(null)
+          flightDone = true
+          startReveal() // (no-op when the sweep already ran during the descent)
+          maybeFx()
+        } })
+      }
+      const to = window.setTimeout(begin, 4000)
+      map.once('idle', begin)
+      setIntro('wait')
       setReady(true)
     })
-    return () => { cancelled = true; map.remove(); mapRef.current = null; markerRef.current = null; beachRef.current = []; setReady(false) }
+    return () => { cancelled = true; lensRef.current?.(); revealRef.current = 0; setFxOn(false); beaconRef.current?.destroy(); introRef.current?.(); map.remove(); mapRef.current = null; markerRef.current = null; beachRef.current = []; setReady(false) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.story.id])
 
@@ -315,17 +481,21 @@ export default function MapView(p: Props) {
     // if the period just moved on to the picture the second layer already shows, keep that layer in place until the main one has it
     holdB.current = bShows.current === ((p.mode === 'hh' ? p.radarHH : p.mode === 'hv' ? p.radarHV : undefined)?.grid ?? p.displacement.grid)
     // radar brightness views draw their own layer with the same diverging colors; the interferometric coherence mask does not apply to them
-    const radar = p.mode === 'hh' ? p.radarHH : p.mode === 'hv' ? p.radarHV : undefined
-    fullRef.current = renderOverlay(p.mode === 'mix' && p.mix ? p.mix.hh : radar?.grid ?? p.displacement.grid, p.coherence.grid, {
-      mix: p.mix,
-      mode: radar ? 'los' : p.mode,
-      range: radar ? radar.layer.range : p.mode === 'coherence' ? p.coherence.layer.range : p.displacement.layer.range,
-      fadeLow: radar ? false : p.fadeLow, threshold: p.threshold,
-      scale: p.replayScale ?? 1, low: p.replayScale != null, quiet: (radar ?? p.displacement).layer.quietBelow,
-      colormap: (radar ?? p.displacement).layer.colormap,
-    })
+    const draw = (src: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHH?: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; mix?: MixOpts }) => {
+      const radar = p.mode === 'hh' ? src.radarHH : p.mode === 'hv' ? src.radarHV : undefined
+      return renderOverlay(p.mode === 'mix' && src.mix ? src.mix.hh : radar?.grid ?? src.displacement.grid, src.coherence.grid, {
+        mix: src.mix,
+        mode: radar ? 'los' : p.mode,
+        range: radar ? radar.layer.range : p.mode === 'coherence' ? src.coherence.layer.range : src.displacement.layer.range,
+        fadeLow: radar ? false : p.fadeLow, threshold: p.threshold,
+        scale: p.replayScale ?? 1, low: p.replayScale != null, quiet: (radar ?? src.displacement).layer.quietBelow,
+        colormap: (radar ?? src.displacement).layer.colormap,
+      })
+    }
+    fullRef.current = draw(p)
+    cmpRef.current = p.compare && p.replayScale == null ? draw(p.compare) : null
     paintOverlay()
-  }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mix, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
+  }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mix, p.compare, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
 
   // before/after swipe: a draggable handle on a line; the overlay is shown only east of the line
   useEffect(() => {
@@ -348,7 +518,7 @@ export default function MapView(p: Props) {
     const el = document.createElement('div')
     el.className = 'swipe-handle'
     el.title = 'Drag to compare before and after'
-    el.innerHTML = `<span>Before</span><b>${CHEVRONS_HTML}</b><span>After</span>`
+    el.innerHTML = `<span>${p.compare?.labels[0] ?? 'Before'}</span><b>${CHEVRONS_HTML}</b><span>${p.compare?.labels[1] ?? 'After'}</span>`
     const marker = new maplibregl.Marker({ element: el, draggable: true }).setLngLat([lng0, lat0]).addTo(map)
     marker.on('dragstart', () => { dragging.current = true })
     marker.on('dragend', () => { dragging.current = false; paintOverlay() }) // sharp again once let go
@@ -367,17 +537,38 @@ export default function MapView(p: Props) {
       src.setData(EMPTY)
       paintOverlay()
     }
-  }, [ready, p.swipe, p.story.aoi.bbox, paintOverlay])
+  }, [ready, p.swipe, p.story.aoi.bbox, paintOverlay, p.compare?.labels[0], p.compare?.labels[1]])
 
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
     if (p.replayScale != null) { map.setPaintProperty('overlay', 'raster-opacity', 0.95); map.setPaintProperty('overlay2', 'raster-opacity', 0); return }
+    gateRef.current = p.extras?.hideData ? 0 : 1
     if (playhead.active) return // while playing, the per-frame subscriber below owns the fade
     // The overlay is drawn once at full strength; the build-up only fades it, so nothing is redrawn as time moves.
     map.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(p.progress, p.mode) * aFactor(p.cursor))
     map.setPaintProperty('overlay2', 'raster-opacity', bOpacity(p.cursor))
-  }, [ready, p.progress, p.mode, p.replayScale, p.cursor, p.next, p.swipe, bOpacity, aFactor])
+  }, [ready, p.progress, p.mode, p.replayScale, p.cursor, p.next, p.swipe, p.extras?.hideData, bOpacity, aFactor])
+
+  // show or hide the extra layers, and load a context picture the first time it is switched on (or when its picture changes, like people by date)
+  useEffect(() => {
+    const map = mapRef.current
+    const ex = p.extras
+    if (!ready || !map || !ex) return
+    for (const im of ex.images) {
+      const id = `x-${im.id}`
+      if (!map.getLayer(id)) continue
+      const on = !!ex.visible[im.id]
+      map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+      if (on && imgUrl.current[im.id] !== im.url) {
+        imgUrl.current[im.id] = im.url
+        ;(map.getSource(id) as ImageSource).updateImage({ url: im.url, coordinates: corners(bbox) })
+      }
+    }
+    for (const [key, layers] of [['districts', ['districts-casing', 'districts']], ['pins', ['pins-halo', 'pins']]] as const) {
+      for (const l of layers) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', ex.visible[key] ? 'visible' : 'none')
+    }
+  }, [ready, p.extras, bbox])
 
   // while playing, fade smoothly every animation frame instead of at the slower React update rate
   useEffect(() => {
@@ -495,6 +686,25 @@ export default function MapView(p: Props) {
     annotRef.current.forEach((m, i) => m.getElement().classList.toggle('off', annotKey[i] === '0'))
   }, [ready, annotations, annotKey])
 
+  // ---- extra effects. They start only after the flight and the reveal, and each one stands down for the views it would clash with ----
+  const losView = p.mode === 'los' && !p.swipe && p.replayScale == null && !p.profileMode
+
+  // outlines of the strongest-moving regions
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || !fxOn || !map.getSource('contour')) return
+    const lay = p.displacement.layer
+    const level = Math.max(lay.quietBelow ?? 0, 0.3 * Math.max(Math.abs(lay.range[0]), Math.abs(lay.range[1])))
+    ;(map.getSource('contour') as GeoJSONSource).setData(contours(p.displacement.grid, p.coherence.grid, p.fadeLow ? p.threshold : 0, level) as FeatureCollection)
+  }, [ready, fxOn, p.displacement, p.coherence, p.fadeLow, p.threshold])
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || !map.getLayer('contour-line')) return
+    const k = fxOn && losView ? Math.min(1, overlayOpacity(p.progress, p.mode) * aFactor(p.cursor)) : 0
+    map.setPaintProperty('contour-line', 'line-opacity', 0.7 * k)
+    map.setPaintProperty('contour-glow', 'line-opacity', 0.22 * k)
+  }, [ready, fxOn, losView, p.progress, p.mode, p.cursor, p.next, aFactor])
+
   // cross-section line
   useEffect(() => {
     const map = mapRef.current
@@ -528,7 +738,17 @@ export default function MapView(p: Props) {
     }
   }, [ready, p.picked])
 
-  return <div ref={el} className={`map ${p.profileMode ? 'picking' : ''}`} />
+  return (
+    <>
+      <div ref={el} className={`map ${p.profileMode ? 'picking' : ''}`} />
+      {intro && <div className="intro-hint" role="status">{intro === 'wait' ? 'Loading imagery…' : 'Press Esc to skip'}</div>}
+      {away && !intro && (
+        <button className="return-chip" onClick={() => returnRef.current()}>
+          Return to the study area
+        </button>
+      )}
+    </>
+  )
 }
 
 const TRANSPARENT = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'

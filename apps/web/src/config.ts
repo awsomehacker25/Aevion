@@ -18,6 +18,12 @@ export const BASEMAP = {
   labelTiles: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
 }
 
+/**
+ * Level of detail for the base imagery. The far layer is capped at a low zoom so a whole-Earth view loads only a few tiles;
+ * the full-detail layer takes over from `handoff` upward.
+ */
+export const LOD = { far: { maxzoom: 5 }, handoff: 4.5 }
+
 /** Coherence below this is treated as unreliable by default. Users can change it in the UI. */
 export const DEFAULT_COHERENCE_THRESHOLD = 0.5
 

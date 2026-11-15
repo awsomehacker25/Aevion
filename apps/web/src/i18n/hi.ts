@@ -25,6 +25,7 @@ const d: Dict = {
   'panel.hide': 'पैनल छिपाएँ',
   'panel.tabs': 'पैनल के भाग',
   'panel.story': 'कहानी',
+  's.compare.with': 'इसके साथ तुलना करें',
   'panel.layers': 'परतें',
   'panel.charts': 'चार्ट',
   'panel.evidence': 'प्रमाण',
