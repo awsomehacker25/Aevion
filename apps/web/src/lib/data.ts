@@ -119,6 +119,7 @@ export const ms = (iso: string) => Date.parse(iso)
 let dateLocale = 'en-US'
 /** Called by the language provider so dates everywhere follow the chosen language. */
 export function setDateLocale(l: string) { dateLocale = l }
+export const getDateLocale = () => dateLocale
 
 export function fmtDate(t: number, withTime = false): string {
   const d = new Date(t)

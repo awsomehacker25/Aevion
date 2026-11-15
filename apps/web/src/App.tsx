@@ -17,7 +17,7 @@ import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
 import FloodViewer from './FloodViewer'
-import { I18nProvider, initialLang } from './i18n'
+import { I18nProvider, initialLang, useI18n } from './i18n'
 import type { Lang } from './i18n'
 import { offers } from './lib/localize'
 import type { Camera, CameraReq, City, EventMark, Grid, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
@@ -48,6 +48,7 @@ interface ViewerProps {
 
 /** One story. It is re-created (with fresh state) whenever the story changes. */
 function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerProps) {
+  const { t } = useI18n()
   const [data, setData] = useState<LoadedStory | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
@@ -162,12 +163,12 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const selectedEpochId = data?.story.epochs?.find((e) => (shownEpochId ? e.id === shownEpochId : isFeatured(data.story, e)))?.id ?? ''
   const ventMotion = useMemo(() => (data ? computeVentMotion(data.story, data.epochGrids) : null), [data])
   // A click on an eruption dot: go to its NISAR period if one was processed, otherwise just go to the date and say so.
-  const onEpisode = useCallback((e: EventMark, t: number) => {
-    const ep = data ? epochFor(data.story, t) : undefined
+  const onEpisode = useCallback((e: EventMark, time: number) => {
+    const ep = data ? epochFor(data.story, time) : undefined
     if (ep) selectEpoch(ep.id)
-    setCursor(t)
-    if (!ep) flashNote(`No NISAR period has been processed for ${e.name}, so there is no measured change to show for it.`)
-  }, [data, selectEpoch, flashNote])
+    setCursor(time)
+    if (!ep) flashNote(t('s.note.noPeriod', { name: e.name }))
+  }, [data, selectEpoch, flashNote, t])
   const stepEpoch = useCallback((delta: number) => {
     const rows = data?.story.epochs ? sortEpochs(data.story.epochs) : []
     const i = rows.findIndex((e) => e.id === selectedEpochId)
@@ -245,7 +246,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const startReplay = () => {
     const radarStory = data?.story.kind === 'backscatter'
     // a radar-picture story replays its "what changed" view growing from nothing; it needs that view for this period
-    if (radarStory && !view?.radar.hh) { flashNote('There is no change picture for this pass, because there is no earlier pass to compare with.'); return }
+    if (radarStory && !view?.radar.hh) { flashNote(t('s.note.noChange')); return }
     prevMode.current = mode
     setMode(radarStory ? 'hh' : 'fringes')
     setReplay(0) // start from an empty map in the same render, so the finished picture never flashes first
@@ -269,9 +270,9 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     setPicked([c.lon, c.lat])
   }
 
-  if (error) return <div className="splash"><b>Could not load the story.</b><span>{error}</span></div>
-  if (layers && 'error' in layers) return <div className="splash"><b>Story is not valid.</b><span>{layers.error}</span></div>
-  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>Loading story&hellip;</span><small className="splash-team">{EVENT}</small><small className="splash-names">Built by {TEAM.slice(0, -1).join(', ')} and {TEAM[TEAM.length - 1]}</small></div>
+  if (error) return <div className="splash"><b>{t('s.err.load')}</b><span>{error}</span></div>
+  if (layers && 'error' in layers) return <div className="splash"><b>{t('s.err.invalid')}</b><span>{layers.error}</span></div>
+  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>{t('loading')}</span><small className="splash-team">{EVENT}</small><small className="splash-names">{t('s.builtBy')} {t('s.team', { names: TEAM.slice(0, -1).join(', '), last: TEAM[TEAM.length - 1] })}</small></div>
 
   const { story, flagship: viewPair } = view
   // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
@@ -286,13 +287,13 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     <button className="cta ghost" aria-pressed={swipe} onClick={() => {
       if (!swipe && progress < 1) setCursor(ms(story.timeline.initial)) // there must be a measured change to compare against
       setSwipe(!swipe)
-    }}>{swipe ? 'Hide swipe' : 'Before / after'}</button>
+    }}>{swipe ? t('s.swipe.hide') : t('s.swipe.show')}</button>
   )
   const epochs = data.story.epochs
   const periodsTab = epochs?.length ? (
     <>
       {ventMotion && <EpochChart epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} chart={story.copy?.chart} />}
-      <h2>{story.copy?.periodsHeading ?? 'All periods'}</h2>
+      <h2>{story.copy?.periodsHeading ?? t('s.periods.all')}</h2>
       <PeriodList epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} chart={story.copy?.chart} />
     </>
   ) : undefined
@@ -315,9 +316,9 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
         onProfilePoint={addProfilePoint}
         replayScale={replay} />
       <button className="recenter" onClick={() => fly({ center: story.aoi.center, zoom: story.aoi.zoom, pitch: story.aoi.pitch, bearing: story.aoi.bearing })}
-        title="Fly back to the start of this story" aria-label="Recenter the map on this story">
+        title={t('s.recenter.tip')} aria-label={t('s.recenter.aria')}>
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-        Recenter
+        {t('s.recenter')}
       </button>
       <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} />
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
@@ -352,16 +353,16 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
         }} />
       {replay != null && (
         <div className="replay-chip">{bs
-          ? 'Illustrative replay: NISAR took one picture every 12 days, not the change in between'
-          : 'Illustrative replay: the satellite measured the final result, not the motion as it happened'}</div>
+          ? t('s.replay.chipRadar')
+          : t('s.replay.chipMotion')}</div>
       )}
       {!bs && (
         <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
-          Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between
+          {t('s.replay.buildup', { sensor: story.sensor ?? 'NISAR' })}
         </div>
       )}
       <div className={`replay-chip fade note ${note ? 'on' : ''}`} role="status" aria-hidden={!note}>{note}</div>
-      {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
+      {picking && <div className="replay-chip">{t('s.picking')}</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={view.displacement} coherence={view.coherence}
           threshold={threshold} showChange={showChange} sensor={story.sensor} kind={story.kind} radar={view.radar}
