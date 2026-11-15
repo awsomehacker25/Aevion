@@ -217,8 +217,8 @@ export function SidePanel(p: SideProps) {
             <>
               <p className="lead">{p.story.storyText}</p>
               {p.slots.actions}
-              <div className="howto">
-                <h2>How to read this</h2>
+              <details className="howto">
+                <summary>How to use this</summary>
                 <ul>
                   {(p.story.copy?.howTo ?? [
                     `Drag the timeline to the second ${p.story.sensor ?? 'NISAR'} pass to see the change appear.`,
@@ -226,14 +226,13 @@ export function SidePanel(p: SideProps) {
                     'Switch to Scientist mode for exact values and sources.',
                   ]).map((t) => <li key={t}>{t}</li>)}
                 </ul>
-              </div>
+              </details>
             </>
           ),
         },
         ...(p.slots.periods ? [{ id: 'periods', label: 'Periods', body: p.slots.periods }] : []),
         ...(p.slots.impact ? [{ id: 'impact', label: 'Impact', body: p.slots.impact }] : []),
-        ...(why ? [{ id: 'why', label: 'Why', body: why }] : []),
-        { id: 'learn', label: 'Learn', body: sources },
+        { id: 'learn', label: 'Learn', body: <>{why}{sources}</> },
       ]
   const current = all.find((t) => t.id === tabs[p.ui]) ?? all[0]
 
@@ -248,7 +247,7 @@ export function SidePanel(p: SideProps) {
         <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
         {!collapsed && <>
 
-        <div className={`views ${bs ? (p.radar?.hh && p.radar?.hv ? '' : 'two') : ''}`}>
+        <div className="views" role="group" aria-label="Map view">
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
             title={(p.story.copy?.mainView ?? ['Ground motion', 'LOS displacement'])[sci ? 1 : 0]}
             sub={bs ? (sci ? 'GCOV HHHH change, dB' : 'How much brighter or darker') : sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
@@ -260,15 +259,13 @@ export function SidePanel(p: SideProps) {
             title="Radar HV" sub={sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants'} />}
           {bs && p.radar?.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
             title="What changed" sub={sci ? 'HH change vs the previous pass, dB' : 'Difference from the previous pass'} />}
-        </div>
-        {!bs && (p.radar?.hh || p.radar?.hv) && (
-          <div className="views radar">
+          {!bs && (p.radar?.hh || p.radar?.hv) && <>
             {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
               title="Radar HH" sub={sci ? 'GCOV HHHH change, dB' : 'Ground-sensitive brightness change'} />}
             {p.radar.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
               title="Radar HV" sub={p.radar.hv.colormap === 'gray' ? (sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants') : sci ? 'GCOV HVHV change, dB' : 'Plant-sensitive brightness change'} />}
-          </div>
-        )}
+          </>}
+        </div>
 
         <div className="legend">
           <div className="legend-title">{legend.title} {(sci || active.synthetic) && <Badge kind={active.badge} synthetic={active.synthetic} />}</div>
