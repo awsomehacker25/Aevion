@@ -2,14 +2,22 @@
   "id": "upper-assam-floods",
   "kind": "flood",
   "type": "flood",
-  "title": "The July 2026 floods in Upper Assam",
-  "subtitle": "Sivasagar and Charaideo, seen by NISAR radar",
+  "title": "When the rivers rose",
+  "subtitle": "Upper Assam floods, July 2026",
   "dataStatus": "provisional",
   "dataStatusNote": "Flood water is mapped from NISAR L2 GCOV radar brightness (HH below -15 dB). The threshold was checked against an independent Assam University map, but the areas are upper bounds: rice paddies flooded on purpose count too.",
   "credits": "Radar: contains modified NISAR data (NASA/ISRO), distributed by the ASF DAAC · Basemap: Esri World Imagery (Esri, Maxar, Earthstar Geographics) and Esri place labels · Districts: geoBoundaries (ODbL) · Permanent water: JRC Global Surface Water · People: WorldPop 2025 (CC BY 4.0) · Rain: GPM IMERG (NASA GES DISC) · C-band: OPERA RTC-S1 from Copernicus Sentinel-1 data 2026 · Optical: Copernicus Sentinel-2 2026 · Pipeline by Rui Sun (github.com/ruisbasement-code/Upper-Assam-India)",
   "aoi": {
-    "bbox": [94.3, 26.6, 95.1, 27.3],
-    "center": [94.7, 26.95],
+    "bbox": [
+      94.3,
+      26.6,
+      95.1,
+      27.3
+    ],
+    "center": [
+      94.7,
+      26.95
+    ],
     "zoom": 9.3,
     "pitch": 0,
     "bearing": 0

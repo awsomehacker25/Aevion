@@ -78,7 +78,7 @@ const en: Record<string, string> = {
   'legend.label': 'Legend',
   'legend.dark.plain': 'Dark: open water',
   'legend.dark.expert': 'Dark: low backscatter (smooth, open water)',
-  'legend.bright.plain': 'Bright: rough ground, plants, buildings',
+  'legend.bright.plain': 'Bright: land, plants',
   'legend.bright.expert': 'Bright: high backscatter (rough, vegetation, built-up)',
   'legend.new': 'New water (blue)',
   'legend.permwater': 'Dry-season water (yellow stripes)',
@@ -397,10 +397,10 @@ const en: Record<string, string> = {
   'f.howto.1': 'Drag the white divider to compare the two dates, or switch it off to see one full map.',
   'f.howto.2': 'Click a bar on the timeline (or press play) to change the right-hand date.',
   'f.howto.3': 'Click anywhere on the map to chart how that spot changed over the season.',
-  'f.legend.HH': 'How strongly the ground echoes the radar (water view)',
-  'f.legend.HV': 'How strongly plants and rough ground echo the radar (plant view)',
-  'f.legend.HV.dark': 'Dark: smooth ground, bare soil',
-  'f.legend.HV.bright': 'Bright: plants, crops, rough ground',
+  'f.legend.HH': 'How strongly the ground echoes the radar',
+  'f.legend.HV': 'How strongly plants and rough ground echo the radar',
+  'f.legend.HV.dark': 'Dark: smooth ground',
+  'f.legend.HV.bright': 'Bright: plants, crops',
   'f.waterOnly': 'water view only',
 }
 

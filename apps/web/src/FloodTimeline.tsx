@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
 import Chart from './charts/Chart'
-import type { ChartMarker } from './charts/Chart'
 import { useI18n } from './i18n'
 import type { FloodRain, FloodStory, LoadedFlood } from './types'
 
@@ -30,11 +29,8 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
   const hi = times[times.length - 1] + 3 * DAY
   const short = (ms: number) => date(ms, { month: 'short', day: 'numeric', year: undefined })
 
-  const rainPts = rain?.dates.map((d, i) => ({ x: t0(d), y: rain.mean_mm[i], tip: `${short(t0(d))}: ${num(rain.mean_mm[i], 1)} mm` })) ?? []
   const narrow = typeof window !== 'undefined' && window.innerWidth < 700
-  // on a phone only the wettest day is labelled, so the labels never run into each other
-  const peakRain = rain ? rainPeaks(rain).slice(0, narrow ? 1 : 2) : []
-  const passMarkers: ChartMarker[] = times.map((x) => ({ x, dashed: true }))
+  const summaryText = t('timeline.value', { date: `${short(times[b])}, ${story.dateLabels[dates[b].date] ?? ''}`, km2: `${num(dates[b].new_water_km2)} ${t('unit.km2')}` })
   const box = useRef<HTMLElement>(null)
   // Tell the page how tall the timeline is, so the side panel and map credit sit right above it.
   useLayoutEffect(() => {
@@ -55,7 +51,14 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
     else setB(Math.min(dates.length - 1, Math.max(0, b + d)))
   }
 
-  const summary = t('timeline.value', { date: `${short(times[b])}, ${story.dateLabels[dates[b].date] ?? ''}`, km2: `${num(dates[b].new_water_km2)} ${t('unit.km2')}` })
+  // rain and flooded area share one small chart: rain is drawn faintly behind the bars, scaled to sit in the lower part
+  const maxWater = Math.max(1, ...dates.map((d) => d.new_water_km2))
+  const maxRain = rain ? Math.max(1, ...rain.mean_mm) : 1
+  const rainScale = (maxWater * 0.4) / maxRain
+  const rainSeries = rain ? [{
+    id: 'rain', kind: 'bar' as const, color: 'rgba(86, 180, 233, .55)', barUnit: 0.8 * DAY,
+    points: rain.dates.map((d, i) => ({ x: t0(d), y: rain.mean_mm[i] * rainScale, color: 'rgba(86, 180, 233, .55)', tip: `${short(t0(d))}: ${num(rain.mean_mm[i], 1)} mm` })),
+  }] : []
 
   return (
     <section ref={box} className="timeline ftl" aria-label={t('timeline.region')}>
@@ -65,33 +68,20 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
         </button>
         <div className="tl-date" title={t('timeline.label')}>{date(dates[b].date)}</div>
         <div className="ftl-keys">
-          <span className="ftl-key"><i className="k-rain" />{t('timeline.rain')}</span>
           <span className="ftl-key"><i className="k-water" />{t('timeline.water')}</span>
-          <span className="ftl-key"><i className="k-cmp" />{t('timeline.compare')}</span>
+          <span className="ftl-key"><i className="k-rain" />{t('timeline.rain')}</span>
         </div>
-        <div className="tl-status" role="status" aria-live="polite">{summary}</div>
       </div>
-      <div className="ftl-body">
-        <div className="ftl-charts" tabIndex={0} role="group" aria-label={t('timeline.label')} aria-describedby="ftl-keys" onKeyDown={onKey}>
-          {rain && (
-            <Chart label={t('timeline.rain')} height={narrow ? 40 : 50} hideY left={6} xDomain={[lo, hi]} xTicks={[]} xPad={14}
-              series={[{ id: 'rain', kind: 'bar', color: 'var(--d-rain)', points: rainPts, barUnit: 0.8 * DAY }]}
-              markers={passMarkers}
-              barLabels={(p) => {
-                const pk = peakRain.find((q) => q.x === p.x)
-                return pk ? `${short(p.x)}: ${num(p.y ?? 0)} mm` : null
-              }} />
-          )}
-          <Chart label={t('timeline.water')} height={narrow ? 62 : 70} hideY left={6} xDomain={[lo, hi]} xPad={14}
-            xTicks={times.map((x, i) => ({ x, label: i === b || i === a || window.innerWidth > 700 ? short(x) : '' }))}
-            series={[{
-              id: 'water', kind: 'bar', color: 'var(--d-water)', barUnit: 6 * DAY,
-              points: dates.map((d, i) => ({ x: times[i], y: d.new_water_km2, tip: `${short(times[i])}: ${num(d.new_water_km2)} ${t('unit.km2')}` })),
-            }]}
-            selectedX={times[b]} secondX={a !== b ? times[a] : undefined}
-            barLabels={(p) => (p.y == null || (p.y === 0) ? (p.y === 0 ? '0' : null) : num(p.y))}
-            onSelect={(x) => { const i = times.indexOf(x); if (i >= 0) setB(i) }} />
-        </div>
+      <div className="ftl-charts" tabIndex={0} role="group" aria-label={`${t('timeline.region')}: ${summaryText}`} aria-describedby="ftl-keys" onKeyDown={onKey}>
+        <Chart label={t('timeline.water')} height={narrow ? 70 : 82} hideY left={6} xDomain={[lo, hi]} xPad={14}
+          xTicks={times.map((x) => ({ x, label: short(x) }))}
+          series={[...rainSeries, {
+            id: 'water', kind: 'bar', color: 'var(--d-water)', barUnit: 6 * DAY,
+            points: dates.map((d, i) => ({ x: times[i], y: d.new_water_km2, tip: `${short(times[i])}: ${num(d.new_water_km2)} ${t('unit.km2')}` })),
+          }]}
+          selectedX={times[b]} secondX={a !== b ? times[a] : undefined}
+          barLabels={(p) => (p.y == null || p.color ? null : num(p.y))}
+          onSelect={(x) => { const i = times.indexOf(x); if (i >= 0) setB(i) }} />
       </div>
       <p className="sr-only" id="ftl-keys">{t('timeline.keys')}</p>
     </section>

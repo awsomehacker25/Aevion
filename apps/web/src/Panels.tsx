@@ -29,7 +29,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: TopBarProps) {
-  const { t, lang, setLang, machine } = useI18n()
+  const { t, lang, setLang } = useI18n()
   const sci = ui === 'scientist'
   const langs = (languages ?? ['en']).filter(isLang)
   return (
@@ -53,7 +53,6 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: 
           {langs.map((l) => <option key={l} value={l}>{LANGS[l].native}</option>)}
         </select>
       )}
-      {machine && <span className="status mt" title={t('lang.machine.title')}>{t('lang.machine')}</span>}
       <div className="seg" role="group" aria-label={t('top.mode')}>
         <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>{t('top.story')}</button>
         <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>{t('top.scientist')}</button>

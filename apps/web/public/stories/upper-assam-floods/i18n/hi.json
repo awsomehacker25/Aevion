@@ -1,7 +1,11 @@
 {
-  "_meta": { "lang": "hi", "machine_translated": true, "reviewed_by_native_speaker": false },
-  "title": "ऊपरी असम में जुलाई 2026 की बाढ़",
-  "subtitle": "शिवसागर और चराइदेव, NISAR रडार की नज़र से",
+  "_meta": {
+    "lang": "hi",
+    "machine_translated": true,
+    "reviewed_by_native_speaker": false
+  },
+  "title": "जब नदियाँ उफान पर आईं",
+  "subtitle": "ऊपरी असम की बाढ़, जुलाई 2026",
   "dataStatusNote": "बाढ़ का पानी NISAR L2 GCOV रडार की चमक (HH -15 dB से नीचे) से चिह्नित किया गया है। इस सीमा को असम विश्वविद्यालय के एक स्वतंत्र नक्शे से जाँचा गया, पर क्षेत्रफल ऊपरी सीमाएँ हैं: जानबूझकर भरे गए धान के खेत भी गिने जाते हैं।",
   "dateLabels": {
     "2026-06-16": "पहली लहर से पहले",

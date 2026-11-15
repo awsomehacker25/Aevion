@@ -1,7 +1,11 @@
 {
-  "_meta": { "lang": "as", "machine_translated": true, "reviewed_by_native_speaker": false },
-  "title": "উজনি অসমত ২০২৬ চনৰ জুলাইৰ বান",
-  "subtitle": "শিৱসাগৰ আৰু চৰাইদেউ, NISAR ৰাডাৰৰ দৃষ্টিৰে",
+  "_meta": {
+    "lang": "as",
+    "machine_translated": true,
+    "reviewed_by_native_speaker": false
+  },
+  "title": "যেতিয়া নদীবোৰ উফন্দি উঠিল",
+  "subtitle": "উজনি অসমৰ বান, জুলাই ২০২৬",
   "dataStatusNote": "বানপানী NISAR L2 GCOV ৰাডাৰৰ উজ্জ্বলতাৰ (HH -15 dB তকৈ তলত) পৰা চিহ্নিত কৰা হৈছে। এই সীমা অসম বিশ্ববিদ্যালয়ৰ এখন স্বতন্ত্ৰ মানচিত্ৰৰ লগত পৰীক্ষা কৰা হৈছে, কিন্তু ক্ষেত্ৰফলবোৰ ওপৰ-সীমা: ইচ্ছাকৃতভাৱে পানী ভৰোৱা ধানখেতিও গণনা কৰা হয়।",
   "dateLabels": {
     "2026-06-16": "প্ৰথম ঢৌৰ আগতে",

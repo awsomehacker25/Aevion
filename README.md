@@ -108,7 +108,7 @@ Each story is offered in English and the language of the place it is about:
 
 A language switcher appears in the top bar when a story has more than one. `?lang=es` opens a language directly and the choice is remembered.
 
-**Every translation other than English is machine translated and has not been checked by a native speaker.** The app says so with a "Machine translated" notice while one is on, and the English text is the reference. The Hawaiian text in particular needs review (vocabulary, ʻokina and kahakō). Scientist-mode technical notes (method summaries, limitations, table labels) are still in English.
+**Every translation other than English is machine translated and has not been checked by a native speaker.** The app no longer shows a notice about this, so treat the English text as the reference. The Hawaiian text in particular needs review (vocabulary, ʻokina and kahakō). Scientist-mode technical notes (method summaries, limitations, table labels) are still in English.
 
 ## Reading the map
 

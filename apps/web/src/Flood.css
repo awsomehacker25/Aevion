@@ -165,3 +165,4 @@
 .fside .legend .ends { gap: 14px; align-items: flex-start; }
 .fside .legend .ends span { flex: 1 1 0; }
 .fside .legend .ends span:last-child { text-align: right; }
+.fside .lead + .lead { margin-top: 10px; }
