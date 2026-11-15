@@ -24,3 +24,7 @@ export const PLAY_SECONDS = 14
 
 /** Playback slows down so the change takes at least this many seconds to build up. */
 export const BUILD_SECONDS = 3.5
+
+/** The team and the event, shown in the credits and on the loading screen. */
+export const TEAM = ['Rui Sun', 'Aaryaman Chopra', 'Palash Desarda', 'Andrew Chen', 'Ethan de Guzman', 'Kaiyaan Faisal']
+export const EVENT = '2026 NASA Space Apps Challenge · Dancing with the SARs'

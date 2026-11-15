@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
+import { EVENT, TEAM } from './config'
 import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
@@ -163,7 +164,12 @@ export function SidePanel(p: SideProps) {
       {p.story.credits ?? 'Imagery © Esri · Terrain: AWS Terrain Tiles · Earthquakes: USGS · NISAR pass dates: NASA CMR'}
     </p>
   )
-  const sources = <><Resources items={p.story.resources} ui={p.ui} />{credits}</>
+  const team = (
+    <p className="foot team">
+      <b>Built by</b> {TEAM.slice(0, -1).join(', ')} and {TEAM[TEAM.length - 1]}<br />{EVENT}
+    </p>
+  )
+  const sources = <><Resources items={p.story.resources} ui={p.ui} />{credits}{team}</>
   const caveats = tech?.caveats && tech.caveats.length > 0 && (
     <>
       <h2>Limitations</h2>

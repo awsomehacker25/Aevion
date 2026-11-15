@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
-import { DEFAULT_COHERENCE_THRESHOLD } from './config'
+import { DEFAULT_COHERENCE_THRESHOLD, EVENT, TEAM } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms } from './lib/data'
 import { epochLayer, epochStory, isFeatured, labelledStory } from './lib/epochs'
@@ -261,7 +261,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
 
   if (error) return <div className="splash"><b>Could not load the story.</b><span>{error}</span></div>
   if (layers && 'error' in layers) return <div className="splash"><b>Story is not valid.</b><span>{layers.error}</span></div>
-  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>Loading story&hellip;</span></div>
+  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>Loading story&hellip;</span><small className="splash-team">{EVENT}</small><small className="splash-names">Built by {TEAM.slice(0, -1).join(', ')} and {TEAM[TEAM.length - 1]}</small></div>
 
   const { story, flagship: viewPair } = view
   // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
