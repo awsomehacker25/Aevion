@@ -1,0 +1,93 @@
+{
+  "_meta": { "lang": "es", "machine_translated": true, "reviewed_by_native_speaker": false },
+  "title": "Una ciudad que se hunde, despacio",
+  "subtitle": "Ciudad de México, de octubre de 2025 a enero de 2026",
+  "storyText": "La Ciudad de México está construida sobre el lecho de un antiguo lago y, desde hace más de un siglo, se hunde porque se extrae agua subterránea de la arcilla que tiene debajo. NISAR sobrevoló la zona cada 12 días desde el 25 de octubre de 2025. Al juntar los pasos, se ve una amplia zona del antiguo lecho del lago alejándose del satélite a unos 2 centímetros al mes, hasta unos 7 centímetros en menos de tres meses, según esta medición.",
+  "statusDetail": { "story": "Medición de NISAR, aún sin validar" },
+  "copy": {
+    "periodsHeading": "Movimiento por fecha de paso",
+    "howTo": [
+      "Arrastra la línea de tiempo (o pulsa reproducir) para recorrer los pasos de NISAR. El mapa muestra cuánto se ha movido el suelo desde el 25 de octubre al ritmo constante que midió NISAR.",
+      "El naranja y el azul muestran el suelo alejándose del satélite o acercándose a él. El suelo que se hunde se aleja, así que el naranja es el lado que se hunde.",
+      "Haz clic en cualquier lugar del mapa para ver cuánto se movió ese punto. Cambia al modo Científico para ver valores exactos y fuentes."
+    ],
+    "epochText": "El ritmo constante que se ajusta a todos los pasos de NISAR, proyectado del {from} al {to}. Muestra cuánto se habría movido el suelo para entonces a ese ritmo.",
+    "ventLabel": "Mayor hundimiento en esta vista",
+    "chart": {
+      "title": "Movimiento a ritmo constante en el punto más fuerte",
+      "ariaLabel": "Movimiento a ritmo constante en la línea de visión en el punto más fuerte, por fecha de paso de NISAR",
+      "hint": "Cada barra es el ritmo constante que se ajusta a todos los pasos, multiplicado por los días desde el 25 de octubre, en el punto marcado al noreste del aeropuerto (se muestra la fecha final). Los totales sin procesar de cada fecha saltan por la atmósfera; se explican en Limitaciones en el modo Científico. El naranja es movimiento que se aleja del satélite (hundimiento, si el suelo bajó)."
+    }
+  },
+  "why": [
+    {
+      "title": "¿Por qué se hunde la Ciudad de México?",
+      "body": "La ciudad está sobre el lecho de un antiguo lago, encima de una gruesa capa de arcilla blanda llena de agua. La ciudad extrae gran parte de su agua potable del acuífero de esa arcilla. Al salir el agua, la arcilla se compacta como una esponja que se exprime y la superficie se hunde. La NASA señala que esto ocurre desde hace más de un siglo, a hasta unos 35 cm al año en partes del área metropolitana en las décadas de 1990 y 2000."
+    },
+    {
+      "title": "¿Cómo mide el radar unos pocos centímetros?",
+      "body": "NISAR envía pulsos de radar en banda L y registra el eco. Al comparar dos pasos separados por 12 días, un cambio minúsculo en la distancia al suelo desplaza la fase del eco. Un ciclo de color completo en la vista de Franjas equivale a unos 12 cm de movimiento hacia el satélite o alejándose de él, así que un centímetro es una fracción visible de una banda."
+    },
+    {
+      "title": "¿Por qué sumar los pasos?",
+      "body": "Un par de 12 días muestra menos de un centímetro de hundimiento, que es más o menos el tamaño del ruido de la atmósfera. Sumar seis pares uno tras otro hace crecer la señal mientras el ruido sigue siendo aleatorio, así que el patrón se aclara tras unos dos meses. A cada par también se le quitó antes una rampa suave, usando los cerros de alrededor como referencia estable, porque el agua del aire desvía el radar y añade una rampa."
+    },
+    {
+      "title": "¿Por qué un ritmo constante en lugar de los totales sin procesar?",
+      "body": "El vapor de agua del aire retrasa el radar de forma distinta cada día. El total de cada fecha incluye el clima de ese día, así que los seis totales sin procesar en el punto más fuerte son −1,0, +6,5, +1,7, +2,8, +7,2 y +6,8 cm, y así no se hunde una ciudad. Ajustar un solo ritmo constante a los seis promedia el clima y da unos 2,4 cm al mes, lo que coincide con los más de 2 cm al mes que informa la NASA. Es un modelo de hundimiento constante en la temporada seca, así que trátalo como una buena estimación, no como una medición día a día."
+    },
+    {
+      "title": "¿Por qué el radar solo puede decir «hundimiento» en parte?",
+      "body": "El satélite ve el suelo de lado, a lo largo de una línea inclinada, así que mide solo la parte del movimiento a lo largo de esa línea. Para un suelo que baja en vertical, el movimiento vertical es aproximadamente 1,27 veces lo que mide el satélite a 38 grados, así que 2,4 cm al mes a lo largo de la línea de visión son unos 3 cm al mes hacia abajo. Sin una segunda dirección no puede distinguir con certeza entre bajar y moverse de lado."
+    },
+    {
+      "title": "¿Por qué importa?",
+      "body": "El hundimiento desigual agrieta edificios, calles y tuberías de agua y drenaje, y dobla las vías del metro. El ejemplo de la propia NASA es el Ángel de la Independencia, en el Paseo de la Reforma, al que se le han añadido escalones en la base con los años a medida que el suelo se hundía a su alrededor. Saber dónde se hunde más rápido el suelo ayuda a las ciudades a decidir dónde reparar tuberías y dónde limitar el bombeo."
+    },
+    {
+      "title": "¿Por qué hay terremotos en la línea de tiempo?",
+      "body": "La Ciudad de México está sobre arcilla blanda de lecho de lago que hace que los terremotos lejanos la sacudan mucho más que a la roca cercana, por eso sismos a cientos de kilómetros ya han dañado la ciudad. Los puntos son terremotos del USGS de magnitud 4,5 o más en el centro de México, mostrando solo el mayor de cada grupo, incluido uno de magnitud 6,5 cerca de San Marcos el 2 de enero de 2026. El USGS no registra ninguno a menos de 150 km de la ciudad en este periodo, y no explican el hundimiento lento del mapa."
+    },
+    {
+      "title": "¿Qué podría hacer NISAR después?",
+      "body": "Esta historia reúne unos tres meses de datos de la temporada seca. NISAR pasa cada 12 días, todo el año, así que puede mostrar cómo cambia el hundimiento con las lluvias, qué tan rápido avanzan los puntos más veloces y si los límites al bombeo ayudan. El mismo método sirve para vigilar el hundimiento en cualquier delta, acuífero o mina de la Tierra."
+    }
+  ],
+  "annotations": [
+    { "label": "Mayor hundimiento en esta vista" },
+    { "label": "Sin datos: el lecho del lago y la arcilla húmeda alteran el radar" }
+  ],
+  "tour": [
+    { "title": "Ciudad de México", "text": "Este es el valle de la Ciudad de México. La ciudad está construida sobre el lecho del lago de Texcoco y de los otros lagos que los aztecas y luego los españoles drenaron. El suelo debajo es arcilla blanda llena de agua." },
+    { "title": "NISAR mira una vez", "text": "El 25 de octubre de 2025, NISAR sobrevoló la zona y registró el suelo. Todavía no hay nada coloreado, porque para ver un cambio hace falta una segunda imagen con la que comparar." },
+    { "title": "Doce días después", "text": "El 6 de noviembre NISAR volvió. Doce días son muy pocos para ver mucho: a unos 2 cm al mes el suelo se ha movido menos de 1 cm, que es el tamaño del ruido de la atmósfera. Solo se asoma una pista muy tenue de un patrón." },
+    { "title": "Por qué las fechas sueltas tienen ruido", "text": "El total sin procesar del 18 de noviembre marca unos 6 cm en el punto más fuerte y vuelve a menos de 2 cm el 12 de diciembre. El suelo no subió: el clima de ese solo día desvió el radar. Ajustar un ritmo constante a todos los pasos lo promedia." },
+    { "title": "Semana a semana se acumula", "text": "A medida que llegan más pasos, el total crece. A finales de diciembre se ve claramente una mancha naranja, al noreste del aeropuerto, sobre el antiguo lecho del lago. Pulsa reproducir para ver llegar los pasos." },
+    { "title": "Tres meses después", "text": "Para el 17 de enero de 2026, el ritmo constante da unos 7 cm alejándose del satélite en el punto más fuerte, unos 2,4 cm al mes, al noreste del aeropuerto. Si el suelo bajó en vertical, el hundimiento es unas 1,27 veces eso." },
+    { "title": "Contando las ondas", "text": "Cada banda de color equivale a unos 12 cm de movimiento. Esto son unos 7 cm en el punto más fuerte, así que allí solo se ve poco más de media banda. Las franjas aquí son una visualización basada en un modelo, así que tómalas como una forma de ver el patrón." },
+    { "title": "¿Qué tan seguros estamos?", "text": "Las zonas oscuras tienen poca señal: el agua abierta y la arcilla húmeda del antiguo lago alteran el radar, y los edificios densos y las plantas también pueden hacerlo. Esas celdas se dejan vacías." },
+    { "title": "Qué nos dice esto", "text": "Una ciudad puede hundirse centímetros al mes sin que nada parezca moverse. Un satélite que mira cada 12 días puede mapear dónde, manzana por manzana, y el mismo método sirve para cualquier ciudad sobre un lecho de lago o un acuífero. Son datos beta y tempranos de tres meses secos, así que las cifras son un punto de partida, no una respuesta final." }
+  ],
+  "layers": [
+    {
+      "positiveMeans": "alejándose del satélite (el suelo hundiéndose, si bajó en vertical)",
+      "negativeMeans": "acercándose al satélite (subiendo, o ruido)",
+      "name": "Movimiento del suelo (línea de visión)",
+      "hintStory": "El naranja significa que el suelo se alejó del satélite, que es como se ve el hundimiento. El azul, que se acercó. Los cambios menores a 0,8 cm se dejan transparentes para que destaque el patrón real. Es el movimiento desde el 25 de octubre de 2025, al ritmo constante que se ajusta a los pasos."
+    },
+    {
+      "label": "Coherencia",
+      "name": "Coherencia",
+      "titleStory": "Cuánto podemos fiarnos",
+      "hintStory": "Brillante significa que los pasos del radar coincidieron bien en cada etapa. Oscuro significa que el suelo o las plantas cambiaron demasiado para fiarse de la medición. La mancha vacía es donde el radar no devolvió señal utilizable."
+    }
+  ],
+  "epochs": [
+    { "label": "25 oct – 6 nov", "title": "+12 días" },
+    { "label": "25 oct – 18 nov", "title": "+24 días" },
+    { "label": "25 oct – 12 dic", "title": "+48 días" },
+    { "label": "25 oct – 24 dic", "title": "+60 días" },
+    { "label": "25 oct – 5 ene", "title": "+72 días" },
+    { "label": "25 oct – 17 ene", "title": "+84 días" }
+  ]
+}
