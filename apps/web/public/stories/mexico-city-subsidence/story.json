@@ -27,7 +27,7 @@
   "storyText": "Mexico City is built on the bed of an ancient lake, and for more than a century it has been sinking as groundwater is pumped out of the clay beneath it. NISAR flew over every 12 days from October 25, 2025. Putting the passes together shows a broad patch of the old lake bed moving away from the satellite at about 2 centimeters a month, up to about 7 centimeters in under three months, in this measurement.",
   "sensor": "NISAR",
   "eventsLabel": "Earthquakes (USGS)",
-  "credits": "Imagery © Esri · Terrain: AWS Terrain Tiles · NISAR data: NASA/JPL-Caltech and ISRO, processed by Aevion · NISAR pass dates: NASA CMR",
+  "credits": "Imagery © Esri · Terrain: AWS Terrain Tiles · NISAR data: NASA/JPL-Caltech and ISRO, processed by Aevion · NISAR pass dates: NASA CMR · Earthquakes: USGS (central Mexico, M4.5+, biggest per cluster)",
   "aoi": {
     "bbox": [
       -99.3,
@@ -112,6 +112,10 @@
     {
       "title": "Why does this matter?",
       "body": "Uneven sinking cracks buildings, streets and water and sewer pipes, and bends the metro tracks. NASA's own example is the Angel of Independence monument on Paseo de la Reforma, which has had steps added to its base over the years as the ground sank around it. Knowing where the ground sinks fastest helps cities decide where to fix pipes and where to limit pumping."
+    },
+    {
+      "title": "Why are earthquakes on the timeline?",
+      "body": "Mexico City sits on soft lake-bed clay that makes distant earthquakes shake it far harder than they shake nearby rock, which is why quakes hundreds of kilometers away have damaged the city before. The dots are USGS earthquakes of magnitude 4.5 or more across central Mexico, with only the biggest of each cluster shown, including a magnitude 6.5 near San Marcos on January 2, 2026. USGS lists none within 150 km of the city in this period, and they do not explain the slow sinking in the map."
     },
     {
       "title": "What could NISAR do next?",

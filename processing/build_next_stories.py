@@ -65,6 +65,17 @@ def write_grid(path, a, bbox, units, name, step):
     path.write_text(json.dumps(g, separators=(",", ":")), encoding="utf-8")
 
 
+def declutter(fc, days):
+    """Keep only the biggest earthquake of any cluster: an event is dropped if a larger one happened within `days` days of it."""
+    keep = []
+    for f in sorted(fc["features"], key=lambda f: -f["properties"]["mag"]):
+        t = f["properties"]["time"]
+        if all(abs(t - k["properties"]["time"]) > days * 86400000 for k in keep):
+            keep.append(f)
+    fc["features"] = sorted(keep, key=lambda f: f["properties"]["time"])
+    return fc
+
+
 def usgs(bbox, start, end, minmag):
     q = urllib.parse.urlencode({"format": "geojson", "starttime": start, "endtime": end, "minmagnitude": minmag,
                                 "minlongitude": bbox[0], "minlatitude": bbox[1], "maxlongitude": bbox[2], "maxlatitude": bbox[3],
@@ -148,7 +159,7 @@ def krasheninnikov():
         "source": "NASA CMR", "shortName": "NISAR_L2_GCOV (provisional, plus one validated pass)", "bbox": [160.09, 54.47, 160.45, 54.70],
         "window": ["2026-06-01", "2026-11-10"], "note": "GCOV backscatter passes on track 60 descending; each entry joins two consecutive passes.",
         "pairs": pairs}, indent=1), encoding="utf-8")
-    (out / "events.geojson").write_text(json.dumps(usgs([159.9, 54.3, 160.7, 54.9], "2026-06-01", "2026-11-10", 2.5)), encoding="utf-8")
+    (out / "events.geojson").write_text(json.dumps(declutter(usgs([156, 50, 166, 57.5], "2026-06-01", "2026-11-10", 5.0), 6)), encoding="utf-8")
     print("   wrote", out)
 
 
@@ -190,7 +201,7 @@ def mexico():
         acq["pairs"].append({"track": 113, "orbitDirection": "D", "reference": first["reference"], "secondary": lastp_d["secondary"],
                              "granuleId": "Chain of " + str(n) + " NISAR GUNW pairs added end to end: " + ", ".join(chain_ids[:n])})
     (out / "acquisitions.json").write_text(json.dumps(acq, indent=1), encoding="utf-8")
-    (out / "events.geojson").write_text(json.dumps(usgs([-100.2, 18.4, -98.0, 20.4], "2025-10-20", "2026-01-25", 3.5)), encoding="utf-8")
+    (out / "events.geojson").write_text(json.dumps(declutter(usgs([-104.5, 15, -94.5, 22.5], "2025-10-20", "2026-01-25", 4.5), 5)), encoding="utf-8")
     print("   wrote", out)
 
 
