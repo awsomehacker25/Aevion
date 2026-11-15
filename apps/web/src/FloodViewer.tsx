@@ -190,16 +190,14 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
       <div className="fctl" role="group" aria-label={t('map.controls')}>
         <button onClick={() => map.current?.zoomIn()} aria-label={t('map.zoomIn')} title={t('map.zoomIn')}>+</button>
         <button onClick={() => map.current?.zoomOut()} aria-label={t('map.zoomOut')} title={t('map.zoomOut')}>−</button>
-        <button onClick={() => map.current?.reset()} aria-label={t('map.reset')} title={t('map.resetTitle')}>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-        </button>
         <button onClick={() => setTerrain(!terrain)} aria-pressed={terrain} aria-label={t('map.tilt')} title={t('map.tiltTitle')} className={terrain ? 'on' : ''}>
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 18l6-9 4 5 3-4 5 8z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
         </button>
-        <button onClick={() => update({ swipeOn: !st.swipeOn })} aria-pressed={st.swipeOn} aria-label={t('controls.swipe')} title={t('map.swipeTitle')} className={st.swipeOn ? 'on' : ''}>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 5v14" stroke="currentColor" strokeWidth="2" /></svg>
-        </button>
       </div>
+      <button className="recenter" onClick={() => map.current?.reset()} title={t('s.recenter.tip')} aria-label={t('s.recenter.aria')}>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+        {t('s.recenter')}
+      </button>
 
       <TopBar story={story} ui={expert ? 'scientist' : 'story'} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory}
         languages={stories.find((s) => s.id === id)?.languages} />
