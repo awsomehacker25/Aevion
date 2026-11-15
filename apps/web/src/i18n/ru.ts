@@ -224,6 +224,7 @@ const d: Dict = {
   's.mix.change.k2': 'Красный и розовый: ярче стал в основном HH',
   's.mix.change.k3': 'Зелёный: ярче стал в основном HV',
   's.mix.change.k4': 'Синий: оба потемнели',
+  'top.featured': 'Главная',
 }
 
 export default d

@@ -17,7 +17,17 @@ interface TabProps {
 
 /** The first story section, as plain paragraphs (Overview tab). */
 export function OverviewText({ story }: { story: FloodStory }) {
-  return <Paras items={story.sections[0]?.body ?? []} className="lead" />
+  return (
+    <>
+      {story.personal && (
+        <section className="fpersonal">
+          <h2>{story.personal.title}</h2>
+          <Paras items={story.personal.body} className="lead" />
+        </section>
+      )}
+      <Paras items={story.sections[0]?.body ?? []} className="lead" />
+    </>
+  )
 }
 
 /** The rest of the story as cards (Learn tab), like the other stories. */
@@ -217,6 +227,19 @@ export function EvidenceTab({ data, story, state, onShow, selectedPin }: TabProp
   const peak = pop?.by_date[data.flood.peak_date]
   return (
     <div className="fevidence">
+      {pop && peak && (
+        <section>
+          <h3>{t('people.title')}</h3>
+          <p>{t('people.line', { n: num(peak.in_flood), total: num(pop.total), date: date(data.flood.peak_date) })}</p>
+          <table className="ftable">
+            <thead><tr><th>{t('people.district')}</th><th>{t('people.under')}</th><th>{t('people.total')}</th></tr></thead>
+            <tbody>
+              {Object.entries(pop.by_district).map(([k, v]) => <tr key={k}><td>{k}</td><td>{num(v.in_flood)}</td><td>{num(v.total)}</td></tr>)}
+            </tbody>
+          </table>
+          <p className="hint">{t('people.note', { year: pop.source_year })} {state.expert ? '' : ''}</p>
+        </section>
+      )}
       <section>
         <h3>{t('pins.title')}</h3>
         <ul className="fpins">
@@ -237,19 +260,6 @@ export function EvidenceTab({ data, story, state, onShow, selectedPin }: TabProp
         </ul>
         <p className="hint">{story.pinMissing}</p>
       </section>
-      {pop && peak && (
-        <section>
-          <h3>{t('people.title')}</h3>
-          <p>{t('people.line', { n: num(peak.in_flood), total: num(pop.total), date: date(data.flood.peak_date) })}</p>
-          <table className="ftable">
-            <thead><tr><th>{t('people.district')}</th><th>{t('people.under')}</th><th>{t('people.total')}</th></tr></thead>
-            <tbody>
-              {Object.entries(pop.by_district).map(([k, v]) => <tr key={k}><td>{k}</td><td>{num(v.in_flood)}</td><td>{num(v.total)}</td></tr>)}
-            </tbody>
-          </table>
-          <p className="hint">{t('people.note', { year: pop.source_year })} {state.expert ? '' : ''}</p>
-        </section>
-      )}
     </div>
   )
 }

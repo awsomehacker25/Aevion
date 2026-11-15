@@ -15,6 +15,8 @@ export interface StoryIndexEntry {
   type?: StoryType
   /** 'flood' stories use the flood viewer (image overlays and a before/after swipe) instead of the interferometry viewer. */
   kind?: 'flood'
+  /** The story the app opens on and highlights in the picker. */
+  featured?: boolean
   /** Languages this story is offered in, English first. */
   languages?: string[]
 }
@@ -377,6 +379,8 @@ export interface FloodStory {
   series: string
   validation: string
   sections: TextSection[]
+  /** A short note from the team about why this story is theirs. */
+  personal?: { title: string; body: string[] }
   dateLabels: Record<string, string>
   pinText: Record<string, string>
   pinMissing: string

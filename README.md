@@ -8,6 +8,8 @@ A NISAR-powered Earth change twin. Built for NASA Space Apps 2026: Dancing with 
 
 Live: https://tryaevion.vercel.app
 
+**Why Upper Assam comes first.** Friends and family of our team have lived in Upper Assam, and the floods hit them hard. It is the first story you see, and the one we care most about getting right.
+
 ---
 
 ## Contents

@@ -224,6 +224,7 @@ const d: Dict = {
   's.mix.change.k2': 'Rojo y rosa: sobre todo HH se aclaró',
   's.mix.change.k3': 'Verde: sobre todo HV se aclaró',
   's.mix.change.k4': 'Azul: ambos se oscurecieron',
+  'top.featured': 'Destacada',
 }
 
 export default d

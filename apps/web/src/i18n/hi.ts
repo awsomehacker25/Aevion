@@ -218,6 +218,8 @@ const d: Dict = {
   'f.insp.hist': '{total} में से {n} पासों पर नए बाढ़ के पानी के नीचे, {first} से {last} तक।',
   'f.insp.histNone': 'सभी {total} पासों में से किसी पर भी नए बाढ़ के पानी के नीचे नहीं।',
   'f.insp.near': '{name} के पास: {text}',
+  'top.featured': 'विशेष',
+  'f.dedication': 'ऊपरी असम के परिवारों के लिए।',
 }
 
 export default d

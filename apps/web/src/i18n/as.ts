@@ -218,6 +218,8 @@ const d: Dict = {
   'f.insp.hist': '{total} টাৰ ভিতৰত {n} টা পাছত নতুন বানপানীৰ তলত, {first} ৰ পৰা {last} লৈ।',
   'f.insp.histNone': 'সকলো {total} টা পাছৰ কোনোটোতে নতুন বানপানীৰ তলত নাছিল।',
   'f.insp.near': '{name}ৰ ওচৰত: {text}',
+  'top.featured': 'বিশেষ',
+  'f.dedication': 'উজনি অসমৰ পৰিয়ালবোৰৰ বাবে।',
 }
 
 export default d

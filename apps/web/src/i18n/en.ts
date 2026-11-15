@@ -413,6 +413,8 @@ const en: Record<string, string> = {
   'f.insp.hist': 'Under new flood water on {n} of {total} passes, from {first} to {last}.',
   'f.insp.histNone': 'Not under new flood water on any of the {total} passes.',
   'f.insp.near': 'Near {name}: {text}',
+  'top.featured': 'Featured',
+  'f.dedication': 'For the families of Upper Assam.',
 }
 
 export default en

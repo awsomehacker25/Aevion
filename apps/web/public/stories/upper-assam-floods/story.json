@@ -82,5 +82,12 @@
     "betbari": "Flooded from 20 July, nearly 7 ft deep in some homes; about 500 houses still under water 13 days later.",
     "nazira": "Dikhow surge on 19 July flooded Nazira town and left knee-deep silt."
   },
-  "pinMissing": "Not pinned: the Jhanji breach (no located 2026 report) and a Nazira road washout (reports describe silt, not a washout)."
+  "pinMissing": "Not pinned: the Jhanji breach (no located 2026 report) and a Nazira road washout (reports describe silt, not a washout).",
+  "personal": {
+    "title": "Why we started here",
+    "body": [
+      "Upper Assam is personal for our team. Friends and family of ours have lived in these districts, and the floods hit them hard.",
+      "That is why this is the first story you see. Places like Betbari, Nazira and Simaluguri are on this map, and behind every blue patch are real fields and homes."
+    ]
+  }
 }

@@ -113,7 +113,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
   }
 
   if (error) return <div className="splash"><b>{t('error.data')}</b><span>{error}</span></div>
-  if (!data || !st || !story) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>{t('loading')}</span></div>
+  if (!data || !st || !story) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>{t('loading')}</span><small className="splash-team">{t('f.dedication')}</small></div>
 
   const { flood } = data
   const dates = flood.dates

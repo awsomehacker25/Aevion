@@ -36,8 +36,8 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: 
     <header className="topbar">
       <div className="brand"><img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="Aevion" /></div>
       {stories.length > 1 && (
-        <select className="picker" value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label={t('top.chooseStory')}>
-          {stories.map((s) => <option key={s.id} value={s.id}>{s.label ?? s.title}</option>)}
+        <select className={`picker ${stories.find((x) => x.id === story.id)?.featured ? 'featured' : ''}`} value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label={t('top.chooseStory')}>
+          {stories.map((s) => <option key={s.id} value={s.id} style={s.featured ? { color: '#86a9ff', fontWeight: 600 } : undefined}>{s.label ?? s.title}{s.featured ? ` - ${t('top.featured')}` : ''}</option>)}
         </select>
       )}
       <div className={`status s-${story.dataStatus}`} title={[story.dataStatusNote, story.statusDetail ? (sci ? story.statusDetail.scientist : story.statusDetail.story) : ''].filter(Boolean).join(' - ')}>

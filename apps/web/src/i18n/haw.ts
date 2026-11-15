@@ -227,6 +227,7 @@ const d: Dict = {
   's.mix.change.k2': 'ʻUlaʻula a me pīnika: ua ʻālohilohi ka HH',
   's.mix.change.k3': 'ʻŌmaʻomaʻo: ua ʻālohilohi ka HV',
   's.mix.change.k4': 'Polū: ua ʻeleʻele nā mea ʻelua',
+  'top.featured': 'Koʻikoʻi',
 }
 
 export default d
