@@ -317,15 +317,14 @@ export function SidePanel(p: SideProps) {
           <div className="legend-title">{legend.title} {(sci || active.synthetic) && <Badge kind={active.badge} synthetic={active.synthetic} />}</div>
           <div className="bar" style={{ background: (radarLayer ?? (p.mode === 'los' ? p.displacement : undefined))?.colormap === 'gray' ? GRAY_GRADIENT : LEGEND_GRADIENTS[p.mode] }} />
           <div className="ends"><span>{legend.left}</span><span>{legend.right}</span></div>
-        </div>
-
-        <details className="settings">
-          <summary>{sci ? 'About this layer and display settings' : t('s.colors')}</summary>
           {keyItems && (
             <ul className="key">
               {keyItems.map((k) => <li key={k.text}><i style={{ background: k.color }} />{k.text}</li>)}
             </ul>
           )}
+        </div>
+
+        <div className="settings">
           <p className="hint">{legend.hint}</p>
           {!bs && <label className="check">
             <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
@@ -337,7 +336,7 @@ export function SidePanel(p: SideProps) {
               <input type="range" min={0.1} max={0.9} step={0.05} value={p.threshold} onChange={(e) => p.setThreshold(Number(e.target.value))} />
             </label>
           )}
-        </details>
+        </div>
 
         <div className="tabs" role="tablist" aria-label={t('panel.tabs')}>
           {all.map((t) => (

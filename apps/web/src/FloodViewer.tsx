@@ -275,16 +275,15 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
                   <span>{st.view === 'HV' ? t('f.legend.HV.dark') : expert ? t('legend.dark.expert') : t('legend.dark.plain')}</span>
                   <span>{st.view === 'HV' ? t('f.legend.HV.bright') : expert ? t('legend.bright.expert') : t('legend.bright.plain')}</span>
                 </div>}
+                <LegendKey data={data} state={st} />
               </div>
 
-              <details className="settings">
-                <summary>{t('s.colors')}</summary>
-                <LegendKey data={data} state={st} />
+              <div className="settings">
                 <label className="check">
                   <input type="checkbox" checked={st.water} disabled={st.view !== 'HH'} onChange={(e) => update({ water: e.target.checked })} />
                   <span>{t('controls.water')}{st.view !== 'HH' ? ` (${t('f.waterOnly')})` : ''}</span>
                 </label>
-              </details>
+              </div>
 
               <div className="tabs" role="tablist" aria-label={t('panel.tabs')}>
                 {FLOOD_TABS.map((k) => (
