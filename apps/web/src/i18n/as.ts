@@ -202,6 +202,9 @@ const d: Dict = {
   's.colors': 'ৰঙবোৰৰ অৰ্থ কি?',
   's.why': 'এইটো কিয় হ’ল?',
   's.tl.play': 'চলাওক',
+  'f.legend.HV.dark': 'গাঢ়: মসৃণ মাটি, খালী মাটি',
+  'f.legend.HV.bright': 'উজ্জ্বল: গছ-গছনি, শস্য, খহটা মাটি',
+  'f.waterOnly': 'কেৱল পানীৰ দৃশ্যত',
 }
 
 export default d

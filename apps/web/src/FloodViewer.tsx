@@ -9,7 +9,6 @@ import { loadFlood } from './lib/data'
 import { useLocalizedStory } from './lib/localize'
 import { useI18n } from './i18n'
 import { TopBar } from './Panels'
-import { GRAY_GRADIENT } from './lib/render'
 import type { UiMode } from './Panels'
 import type { FloodView, LoadedFlood, StoryIndexEntry } from './types'
 
@@ -247,16 +246,19 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
 
               <div className="legend">
                 <div className="legend-title">{st.view === 'RGB' ? (expert ? t('pol.RGB.title') : t('legend.rgb.plain')) : t(`f.legend.${st.view}`)}</div>
-                <div className="bar" style={{ background: st.view === 'RGB' ? 'linear-gradient(90deg,#211a4c,#f1afd5,#bbd334)' : GRAY_GRADIENT }} />
-                {st.view !== 'RGB' && <div className="ends"><span>{expert ? t('legend.dark.expert') : t('legend.dark.plain')}</span><span>{expert ? t('legend.bright.expert') : t('legend.bright.plain')}</span></div>}
+                <div className="bar" style={{ background: st.view === 'RGB' ? 'linear-gradient(90deg,#211a4c,#f1afd5,#bbd334)' : 'linear-gradient(90deg, #05070b, #3a3f47, #8b9098, #f1f3f6)' }} />
+                {st.view !== 'RGB' && <div className="ends">
+                  <span>{st.view === 'HV' ? t('f.legend.HV.dark') : expert ? t('legend.dark.expert') : t('legend.dark.plain')}</span>
+                  <span>{st.view === 'HV' ? t('f.legend.HV.bright') : expert ? t('legend.bright.expert') : t('legend.bright.plain')}</span>
+                </div>}
               </div>
 
               <details className="settings">
                 <summary>{t('s.colors')}</summary>
                 <LegendKey data={data} state={st} />
                 <label className="check">
-                  <input type="checkbox" checked={st.water} onChange={(e) => update({ water: e.target.checked })} />
-                  <span>{t('controls.water')}</span>
+                  <input type="checkbox" checked={st.water} disabled={st.view !== 'HH'} onChange={(e) => update({ water: e.target.checked })} />
+                  <span>{t('controls.water')}{st.view !== 'HH' ? ` (${t('f.waterOnly')})` : ''}</span>
                 </label>
               </details>
 

@@ -399,6 +399,9 @@ const en: Record<string, string> = {
   'f.howto.3': 'Click anywhere on the map to chart how that spot changed over the season.',
   'f.legend.HH': 'How strongly the ground echoes the radar (water view)',
   'f.legend.HV': 'How strongly plants and rough ground echo the radar (plant view)',
+  'f.legend.HV.dark': 'Dark: smooth ground, bare soil',
+  'f.legend.HV.bright': 'Bright: plants, crops, rough ground',
+  'f.waterOnly': 'water view only',
 }
 
 export default en

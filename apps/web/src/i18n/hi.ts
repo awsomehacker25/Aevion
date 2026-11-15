@@ -202,6 +202,9 @@ const d: Dict = {
   's.colors': 'रंगों का क्या अर्थ है?',
   's.why': 'ऐसा क्यों हुआ?',
   's.tl.play': 'चलाएँ',
+  'f.legend.HV.dark': 'गहरा: चिकनी ज़मीन, खुली मिट्टी',
+  'f.legend.HV.bright': 'चमकीला: पौधे, फसलें, खुरदरी ज़मीन',
+  'f.waterOnly': 'केवल जल दृश्य में',
 }
 
 export default d

@@ -52,7 +52,7 @@ export function LegendKey({ data, state }: { data: LoadedFlood; state: FloodStat
     <>
       <ul className="key">
         {state.view === 'RGB' && (['water', 'floodveg', 'forest', 'built'] as const).map((k) => <li key={k}><i style={{ background: rgb(sw?.[k]) }} />{t(`legend.rgb.${k}`)}</li>)}
-        {state.water && <li><i style={{ background: 'var(--d-water)' }} />{t('legend.new')}</li>}
+        {state.water && state.view === 'HH' && <li><i style={{ background: 'var(--d-water)' }} />{t('legend.new')}</li>}
         {L.permwater && ctx.permanent_water && <li><i className="stripes" />{t('legend.permwater')}</li>}
         {L.districts && data.districts && <li><i className="dash" />{t('legend.districts')}</li>}
         {L.pins && data.pins && <li><i className="ring" />{t('legend.pins')}</li>}

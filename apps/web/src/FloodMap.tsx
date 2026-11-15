@@ -273,7 +273,7 @@ export default function FloodMap(p: Props) {
         if (ctx.aftermath && p.layers.aftermath) setImage(map, 'aftermath', ctx.aftermath.url)
         if (ctx.permanent_water && p.layers.permwater) setImage(map, 'permwater', ctx.permanent_water.url)
         const s1 = left && p.layers.sentinel1 && !!ctx.sentinel1
-        for (const w of ['water', 'water-b']) if (map.getLayer(w)) map.setLayoutProperty(w, 'visibility', p.water && !s1 ? 'visible' : 'none')
+        for (const w of ['water', 'water-b']) if (map.getLayer(w)) map.setLayoutProperty(w, 'visibility', p.water && p.view === 'HH' && !s1 ? 'visible' : 'none')
         const vis: Record<string, boolean> = {
           sentinel1: p.layers.sentinel1 && left, optical: p.layers.optical, population: p.layers.population, aftermath: p.layers.aftermath,
           permwater: p.layers.permwater, districts: p.layers.districts, 'districts-casing': p.layers.districts, pins: p.layers.pins, 'pins-halo': p.layers.pins,

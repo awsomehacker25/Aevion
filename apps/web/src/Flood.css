@@ -162,3 +162,6 @@
 .ftl .ftl-key { display: inline-flex; align-items: center; gap: 6px; }
 .ftl .tl-status { margin-left: auto; text-align: right; }
 @media (max-width: 760px) { .ftl .ftl-keys { display: none; } }
+.fside .legend .ends { gap: 14px; align-items: flex-start; }
+.fside .legend .ends span { flex: 1 1 0; }
+.fside .legend .ends span:last-child { text-align: right; }
