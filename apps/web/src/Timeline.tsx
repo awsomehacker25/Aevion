@@ -160,7 +160,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
       </div>}
       {quakes.features.length > 0 && <div className="tl-row tl-quakes">
         <span className="tl-label">{story.eventsLabel ?? 'Earthquakes'}</span>
-        {quakes.features.map((q) => (
+        {quakes.features.filter((q) => q.properties.time >= start && q.properties.time <= end).map((q) => (
           <i key={q.id} className="qdot" style={{ left: pct(q.properties.time), width: quakeSize(q.properties.mag), height: quakeSize(q.properties.mag) }}
             title={`M${q.properties.mag} · ${q.properties.place}`} />
         ))}
@@ -194,7 +194,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
       ? (cursor < sec ? 'No radar picture yet.' : `Radar picture from ${fmtDate(sec)}.`)
     : cursor < ref ? 'Move forward to see the change.'
     : cursor < sec ? 'Waiting for the second pass.'
-    : `Change from ${fmtDate(ref)} to ${fmtDate(sec)}.`
+    : `Map shows the change measured from ${fmtDate(ref)} to ${fmtDate(sec)}.`
 
   return (
     <div className="timeline" role="group" aria-label="Timeline" ref={boxRef}>
@@ -207,7 +207,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
           {playing ? '❚❚ Pause' : '▶ Play'}
         </button>
         {headExtra}
-        <div className="tl-date">{fmtDate(cursor, true)}</div>
+        <div className="tl-date" title="Where the timeline marker is now">{fmtDate(cursor, true)}</div>
         <div className="tl-status">{status}</div>
       </div>
 

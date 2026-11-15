@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
@@ -23,6 +23,8 @@ const STATUS_LABEL: Record<DataStatus, string> = {
   validated: 'Validated NISAR data',
 }
 
+const STATUS_SHORT: Record<DataStatus, string> = { placeholder: 'Placeholder', beta: 'Beta', provisional: 'Provisional', validated: 'Validated' }
+
 interface TopBarProps {
   story: Story
   ui: UiMode
@@ -43,14 +45,15 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory }: TopBarProps
       )}
       <div className={`status s-${story.dataStatus}`} title={[story.dataStatusNote, story.statusDetail ? (sci ? story.statusDetail.scientist : story.statusDetail.story) : ''].filter(Boolean).join(' - ')}>
         <span className="dot" />
-        {STATUS_LABEL[story.dataStatus]}
+        <span className="s-full">{STATUS_LABEL[story.dataStatus]}</span>
+        <span className="s-short">{STATUS_SHORT[story.dataStatus]}</span>
         {sci && (story.statusDetail || story.dataStatus === 'placeholder') && (
           <em> &middot; {story.statusDetail ? story.statusDetail.scientist : 'LOS and coherence grids are synthetic placeholders'}</em>
         )}
       </div>
-      <div className="seg" role="tablist" aria-label="Mode">
-        <button role="tab" aria-selected={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>Story</button>
-        <button role="tab" aria-selected={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>Scientist</button>
+      <div className="seg" role="group" aria-label="Mode">
+        <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>Story</button>
+        <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>Scientist</button>
       </div>
     </header>
   )
@@ -156,7 +159,7 @@ export function SidePanel(p: SideProps) {
     : ''
 
   const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: 'overview', scientist: 'analysis' })
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760)
 
   const credits = (
     <p className="foot">
@@ -234,6 +237,20 @@ export function SidePanel(p: SideProps) {
         ...(p.slots.impact ? [{ id: 'impact', label: 'Impact', body: p.slots.impact }] : []),
         { id: 'learn', label: 'Learn', body: <>{why}{sources}</> },
       ]
+  // how many view buttons sit in the switcher, so the grid can lay them out in even rows
+  const nViews = !sci ? 2 : bs ? 1 + (p.radar?.hv ? 1 : 0) + (p.radar?.hh ? 1 : 0) : 3 + (p.radar?.hh ? 1 : 0) + (p.radar?.hv ? 1 : 0)
+  // Story mode keeps the first view simple: the other map views live in a menu that opens, picks one and closes again.
+  const layerItems: LayerItem[] = bs
+    ? [
+        ...(p.radar?.hv ? [{ id: 'hv' as const, title: 'Plants and rough ground', sub: 'Radar HV: rough surfaces and plants' }] : []),
+        ...(p.radar?.hh ? [{ id: 'hh' as const, title: 'What changed', sub: 'Difference from the previous pass' }] : []),
+      ]
+    : [
+        { id: 'fringes', title: 'Fringes', sub: 'The raw radar pattern' },
+        { id: 'coherence', title: 'Confidence', sub: 'Where we can trust it' },
+        ...(p.radar?.hh ? [{ id: 'hh' as const, title: 'Surface change', sub: 'Radar HH: ground-sensitive brightness change' }] : []),
+        ...(p.radar?.hv ? [{ id: 'hv' as const, title: 'Plants and rough ground', sub: p.radar.hv.colormap === 'gray' ? 'Radar HV: rough surfaces and plants' : 'Radar HV: plant-sensitive brightness change' }] : []),
+      ]
   const current = all.find((t) => t.id === tabs[p.ui]) ?? all[0]
 
   return (
@@ -247,19 +264,20 @@ export function SidePanel(p: SideProps) {
         <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
         {!collapsed && <>
 
-        <div className="views" role="group" aria-label="Map view">
+        <div className="views" role="group" aria-label="Map view" data-n={nViews}>
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
             title={(p.story.copy?.mainView ?? ['Ground motion', 'LOS displacement'])[sci ? 1 : 0]}
             sub={bs ? (sci ? 'GCOV HHHH change, dB' : 'How much brighter or darker') : sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
-          {!bs && <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
+          {!sci && <LayerMenu items={layerItems} mode={p.mode} setMode={p.setMode} />}
+          {!bs && sci && <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
             title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />}
-          {!bs && <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
+          {!bs && sci && <ViewBtn on={p.mode === 'coherence'} onClick={() => p.setMode('coherence')}
             title={sci ? (p.coherence.label ?? 'Coherence') : 'Confidence'} sub={sci ? 'Quality mask, 0 to 1' : 'Where we can trust it'} />}
-          {bs && p.radar?.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
+          {bs && sci && p.radar?.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
             title="Radar HV" sub={sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants'} />}
-          {bs && p.radar?.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
+          {bs && sci && p.radar?.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
             title="What changed" sub={sci ? 'HH change vs the previous pass, dB' : 'Difference from the previous pass'} />}
-          {!bs && (p.radar?.hh || p.radar?.hv) && <>
+          {!bs && sci && (p.radar?.hh || p.radar?.hv) && <>
             {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
               title="Radar HH" sub={sci ? 'GCOV HHHH change, dB' : 'Ground-sensitive brightness change'} />}
             {p.radar.hv && <ViewBtn on={p.mode === 'hv'} onClick={() => p.setMode('hv')}
@@ -337,6 +355,45 @@ function Resources({ items, ui }: { items?: Resource[]; ui: UiMode }) {
   )
 }
 
+interface LayerItem { id: ViewMode; title: string; sub: string }
+
+/** "More layers": a menu that opens on click, lists the other map views with a line each, and closes when one is picked. */
+function LayerMenu({ items, mode, setMode }: { items: LayerItem[]; mode: ViewMode; setMode: (m: ViewMode) => void }) {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  const active = items.find((i) => i.id === mode)
+
+  useEffect(() => {
+    if (!open) return
+    const away = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', away)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc) }
+  }, [open])
+
+  if (!items.length) return null
+  return (
+    <div className="lmenu-wrap" ref={box}>
+      <button className={`view layer-btn ${active ? 'on' : ''}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <b>{active ? active.title : 'More layers'}</b>
+        <i aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="lmenu" role="menu">
+          {items.map((i) => (
+            <button key={i.id} role="menuitemradio" aria-checked={i.id === mode} className={`lm-item ${i.id === mode ? 'on' : ''}`}
+              onClick={() => { setMode(i.id); setOpen(false) }}>
+              <span className="lm-title">{i.title}</span>
+              <span className="lm-sub">{i.sub}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ViewBtn(p: { on: boolean; onClick: () => void; title: string; sub: string }) {
   return (
     <button className={`view ${p.on ? 'on' : ''}`} onClick={p.onClick} aria-pressed={p.on} title={p.sub}>
@@ -360,10 +417,12 @@ interface InspectProps {
   /** 'backscatter' stories describe a brightness change instead of ground motion. */
   kind?: 'interferometry' | 'backscatter'
   radar?: { hh?: { layer: LayerDef; grid: Grid }; hv?: { layer: LayerDef; grid: Grid } }
+  /** Moves the timeline to the second pass, where the change is shown. */
+  onJump?: () => void
   onClose: () => void
 }
 
-export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', kind, radar, onClose }: InspectProps) {
+export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', kind, radar, onJump, onClose }: InspectProps) {
   const bs = kind === 'backscatter'
   const sci = ui === 'scientist'
   const g = displacement.grid
@@ -384,7 +443,10 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
       <button className="x" onClick={onClose} aria-label="Close">&times;</button>
       <div className="coords">{point[1].toFixed(sci ? 5 : 2)}&deg;, {point[0].toFixed(sci ? 5 : 2)}&deg;</div>
       {!showChange ? (
-        <p>{bs ? `No ${sensor} radar picture is shown yet at this date. Move the timeline forward.` : sci ? `No second ${sensor} acquisition at the selected date.` : `No ${sensor} change is available at this date. Move the timeline to the second pass.`}</p>
+        <>
+          <p>{bs ? `No ${sensor} radar picture is shown yet at this date.` : sci ? `No second ${sensor} acquisition at the selected date.` : `The change has not appeared yet at this date.`} Move the timeline to the second pass to see it.</p>
+          {onJump && <button className="cta ghost" onClick={onJump}>Jump to the second pass</button>}
+        </>
       ) : d == null ? (
         <p>Outside the processed area.</p>
       ) : sci ? (

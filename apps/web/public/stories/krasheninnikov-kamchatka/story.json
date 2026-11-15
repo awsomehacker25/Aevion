@@ -57,7 +57,7 @@
   "events": "events.geojson",
   "copy": {
     "mainView": [
-      "Radar HH",
+      "Radar picture",
       "Radar HH"
     ],
     "key": {
@@ -345,7 +345,7 @@
       "synthetic": false,
       "positiveMeans": "a stronger echo (rough surfaces, wet ground)",
       "negativeMeans": "a weaker echo (smooth ground, wet snow)",
-      "titleStory": "How strongly the ground echoes the radar (HH)",
+      "titleStory": "How strongly the ground echoes the radar",
       "titleScientist": "HH backscatter (dB)",
       "hintStory": "Bright means a strong radar echo, such as rough fresh lava. Dark means a weak one, such as smooth ground or wet snow. Fresh lava is not the only thing that looks bright, so compare several dates before reading a bright patch as lava.",
       "hintScientist": "L-band HHHH power from the GCOV product, block-averaged in linear power and shown in dB (typical range −18 to −3 dB here). One pass per period; nothing is subtracted, and no scene-wide correction is applied (the scene median moves between about −9 and −6 dB from date to date).",
@@ -382,7 +382,7 @@
       "synthetic": false,
       "positiveMeans": "brighter than on the previous pass",
       "negativeMeans": "darker than on the previous pass",
-      "titleStory": "What changed since the previous pass (HH)",
+      "titleStory": "What changed since the previous pass",
       "titleScientist": "Change in HH backscatter vs the previous pass (dB)",
       "hintStory": "Orange means the radar echo got brighter since the previous pass 12 days earlier, blue means darker. Changes under 1.5 dB are left clear. Most of the colour in June and July is snow melting off the slopes; lava would be a patch that suddenly turns orange and then stays bright.",
       "hintScientist": "HH backscatter (dB) of this pass minus the previous pass on the same track, with the scene-wide median shift of that pair removed. Changes below 1.5 dB are drawn transparent. The first pass has no earlier pass to compare with.",
@@ -446,7 +446,7 @@
       "synthetic": false,
       "positiveMeans": "a stronger cross-polarized echo (rough surfaces, leaves)",
       "negativeMeans": "a weaker echo (smooth surfaces)",
-      "titleStory": "The cross-polarized echo (HV)",
+      "titleStory": "How rough ground and plants echo the radar",
       "titleScientist": "HV backscatter (dB)",
       "hintStory": "HV listens to a different part of the echo. It responds more to rough, scattering surfaces and to plants.",
       "hintScientist": "L-band HVHV power from the GCOV product for every pass, block-averaged in linear power and shown in dB.",

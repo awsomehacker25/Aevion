@@ -36,14 +36,17 @@ interface ViewerProps {
   id?: string
   stories: StoryIndexEntry[]
   onSwitchStory: (id: string) => void
+  /** The mode (Story or Scientist) carries over when another story is chosen. */
+  initialUi: UiMode
+  onUiChange: (m: UiMode) => void
 }
 
 /** One story. It is re-created (with fresh state) whenever the story changes. */
-function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
+function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerProps) {
   const [data, setData] = useState<LoadedStory | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
-  const [ui, setUi] = useState<UiMode>('story')
+  const [ui, setUi] = useState<UiMode>(initialUi)
   const [mode, setMode] = useState<ViewMode>('los')
   const [fadeLow, setFadeLow] = useState(true)
   const [threshold, setThreshold] = useState(DEFAULT_COHERENCE_THRESHOLD)
@@ -225,6 +228,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
   const switchUi = (m: UiMode) => {
     if (m === 'story') { setPicking(false); setProfile({ a: null, b: null }) } else { setTour(null) }
     setUi(m)
+    onUiChange(m)
   }
 
   // Illustrative replay: the displacement scales 0 -> 1 so the fringes grow. NISAR itself only saw the end result.
@@ -330,9 +334,9 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         } : {
           actions: (
             <div className="actions">
+              {!bs && <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />}
               <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
               <div className="row-btns">{swipeBtn}{replayBtn}</div>
-              {!bs && <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />}
             </div>
           ),
           impact,
@@ -352,7 +356,8 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
       {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={view.displacement} coherence={view.coherence}
-          threshold={threshold} showChange={showChange} sensor={story.sensor} kind={story.kind} radar={view.radar} onClose={() => setPicked(null)} />
+          threshold={threshold} showChange={showChange} sensor={story.sensor} kind={story.kind} radar={view.radar}
+          onJump={viewPair?.secondary ? () => setCursor(ms(`${viewPair.secondary}T12:00:00Z`)) : undefined} onClose={() => setPicked(null)} />
       )}
       {sci && profileData && profile.a && profile.b && (
         <ProfileCard points={profileData.points} totalKm={profileData.totalKm} offset={offset} threshold={threshold}
@@ -371,6 +376,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
 
 export default function App() {
   const [stories, setStories] = useState<StoryIndexEntry[]>([])
+  const [ui, setUi] = useState<UiMode>('story')
   const [id, setId] = useState<string | undefined>(() => new URLSearchParams(location.search).get('story') ?? undefined)
 
   useEffect(() => { loadIndex().then(setStories).catch(() => setStories([])) }, [])
@@ -382,5 +388,5 @@ export default function App() {
     setId(next)
   }
 
-  return <Viewer key={id ?? 'default'} id={id} stories={stories} onSwitchStory={switchStory} />
+  return <Viewer key={id ?? 'default'} id={id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />
 }

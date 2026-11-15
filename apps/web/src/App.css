@@ -58,7 +58,7 @@
 .side-body > :first-child, .side-body > h2:first-child { margin-top: 0; }
 
 /* view switcher: a sunken track with a raised selected item */
-.views { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 10px; background: var(--sunken); }
+.views { position: relative; display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 10px; background: var(--sunken); }
 .view { flex: 1 1 auto; min-height: 30px; padding: 4px 10px; border: 0; border-radius: 8px; background: none; color: var(--muted); }
 .view b { font-size: 13px; font-weight: 500; white-space: nowrap; }
 .view:hover { color: var(--ink); }
@@ -340,8 +340,9 @@
   .side-body { overflow: visible; padding-top: 12px; }
   .side-head { position: sticky; top: 0; z-index: 1; background: var(--surface); padding-bottom: 0; }
   .inspector { bottom: calc(var(--tl-h, 124px) + 24px); right: 12px; left: 12px; width: auto; }
-  .tl-track { margin-left: 8px; }
-  .tl-label, .tl-status { display: none; }
+  .tl-track { margin-left: 84px; }
+  .tl-label { font-size: 10.5px; right: calc(100% + 8px); }
+  .tl-status { display: none; }
   .tour { left: 50%; width: calc(100vw - 24px); bottom: calc(var(--tl-h, 124px) + 24px); }
   .replay-chip { left: 50%; white-space: normal; text-align: center; width: calc(100vw - 24px); top: 108px; }
   .profile-card { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(var(--tl-h, 124px) + 24px); }
@@ -355,3 +356,60 @@
   .collapse, .inspector .x, .profile-card .x, .tour .x { width: 36px; height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } .annot.vent i { animation: none; } }
+
+/* ---- critique fixes ---- */
+.s-short { display: none; }
+.status .s-full, .status .s-short { flex: none; }
+.status em { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.status { max-width: 100%; }
+.app { overflow: clip; }
+.timeline { overflow-x: clip; }
+/* More layers menu */
+.lmenu-wrap { flex: 1 1 auto; display: flex; }
+.lmenu-wrap > .view { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.layer-btn i { width: 5px; height: 5px; margin-bottom: 2px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform .15s ease; }
+.layer-btn[aria-expanded='true'] i { transform: rotate(-135deg); margin-bottom: -3px; }
+.lmenu { position: absolute; z-index: 6; left: 0; right: 0; top: calc(100% + 6px); padding: 4px; border-radius: var(--radius-sm); background: var(--surface); box-shadow: var(--shadow), 0 0 0 1px var(--line); }
+.lm-item { display: grid; width: 100%; gap: 1px; padding: 8px 10px 8px 28px; text-align: left; border: 0; border-radius: 6px; background: none; color: var(--ink); position: relative; }
+.lm-item:hover { background: var(--hover); }
+.lm-item.on::before { content: ''; position: absolute; left: 11px; top: 14px; width: 5px; height: 9px; border-right: 2px solid var(--accent-ink); border-bottom: 2px solid var(--accent-ink); transform: rotate(45deg); }
+.lm-title { font-size: 13px; font-weight: 500; }
+.lm-sub { font-size: 12px; color: var(--muted); }
+.check input { width: 16px; height: 16px; }
+/* one shape for the data's own marks: the diamond of a satellite pass */
+.status .dot, .pdot { border-radius: 2px; transform: rotate(45deg); width: 7px; height: 7px; }
+.tour-dots i { border-radius: 1px; transform: rotate(45deg); }
+.num, .big, .ends, .cities, .prov td { font-variant-numeric: tabular-nums; }
+/* bigger hit areas without bigger marks */
+.pass, .qdot, .edot { touch-action: manipulation; }
+.pass::after, .edot::after { content: ''; position: absolute; inset: -9px; }
+@media (max-width: 760px) {
+  .status .s-full { display: none; }
+  .status .s-short { display: inline; }
+  .side.collapsed { max-height: none; bottom: calc(var(--tl-h, 124px) + 24px); }
+}
+@media (pointer: coarse) {
+  .settings summary, .howto summary, .more summary, .res summary { min-height: 40px; display: flex; align-items: center; }
+  .maplibregl-ctrl-group button { width: 40px !important; height: 40px !important; }
+  .check input { width: 20px; height: 20px; }
+  .recenter { min-height: 40px; }
+}
+
+@media (max-width: 760px) {
+  .tl-head { flex-wrap: wrap; row-gap: 4px; }
+  .tl-head .btn { white-space: nowrap; }
+  .tl-date { flex-basis: 100%; order: 5; font-size: 12px; color: var(--muted); }
+  .recenter { top: 140px; }
+}
+
+/* view switcher: an even grid, never a lonely button on its own row */
+.views, .views.two, .views.radar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.views > * { grid-column: span 2; min-width: 0; }
+.views[data-n='1'] > * { grid-column: span 6; }
+.views[data-n='2'] > *, .views[data-n='4'] > *, .views[data-n='5'] > :nth-child(n+4) { grid-column: span 3; }
+.view b { overflow: hidden; text-overflow: ellipsis; }
+.view { min-width: 0; }
+.views .view { align-items: center; justify-content: center; text-align: center; }
+.views .view b { display: block; white-space: normal; line-height: 1.2; text-overflow: clip; overflow-wrap: anywhere; }
+.views .view { padding: 5px 6px; }
+.side.sci .view b { font-size: 12px; }
