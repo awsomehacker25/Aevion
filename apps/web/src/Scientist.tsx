@@ -13,9 +13,8 @@ export function ProfileControls(p: ProfileCtl) {
   return (
     <div className="tool">
       <h2>Cross-section</h2>
-      <p className="hint">Click two points on the map to draw a line. The chart shows the ground motion along it, so a fault shows up as a step.</p>
       <div className="row-btns">
-        <button className={`cta ghost ${p.picking ? 'on' : ''}`} onClick={p.onStart}>
+        <button className={`cta ghost ${p.picking ? 'on' : ''}`} onClick={p.onStart} title="Click two points on the map to draw a line. The chart shows the ground motion along it, so a fault shows up as a step.">
           {p.picking ? 'Click two points on the map...' : p.hasLine ? 'Draw a new cross-section' : 'Draw a cross-section'}
         </button>
         {p.hasLine && <button className="btn" onClick={p.onClear}>Clear</button>}
@@ -113,22 +112,21 @@ export function PhysicsCheck({ context, result, geometry, overlays, setOverlays 
           )
         })}
       </ul>
-      <p className="hint">
-        Right-lateral slip on an east-west fault should move the south side west and the north side east, which is the orange south, blue north pattern in the map.
-      </p>
       {result ? (
         <div className="phys">
           <div className="phys-line">
             <span className={`pill ${result.r > 0 ? 'ok' : 'bad'}`}>{result.r > 0 ? 'Sign agrees' : 'Sign disagrees'}</span>
             <span className="pill neutral">{strength(result.r)} pattern match, r = {result.r.toFixed(2)}</span>
           </div>
+          <details className="more"><summary>How this was checked</summary>
           <p className="hint">
+            Right-lateral slip on an east-west fault should move the south side west and the north side east, which is the orange south, blue north pattern in the map.{' '}
             Compared with the USGS finite-fault model of the M7.5 projected onto the radar line of sight ({result.n} model cells of about 20 km
             {geometry ? `, incidence ${geometry.incidenceDeg}°, look azimuth ${geometry.lookAzimuthDeg}°` : ''}).
             The amplitude does not match: the model peaks near {result.modelPeakCm.toFixed(0)} cm and the radar map near {result.obsPeakCm.toFixed(0)} cm, with a fitted ratio of {result.slope.toFixed(2)}.
             Likely reasons: the ARIA map is deramped, near-fault cells have no radar data, and the model is coarse and not fit to this data.
             This is a consistency check, not a validation.
-          </p>
+          </p></details>
         </div>
       ) : (
         <p className="hint">Not enough overlap with the USGS model to compare.</p>

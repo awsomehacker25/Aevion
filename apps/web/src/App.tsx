@@ -312,7 +312,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         slots={sci ? {
           analysis: (
             <>
-              <div className="actions">{swipeBtn}{replayBtn}</div>
+              <div className="row-btns">{swipeBtn}{replayBtn}</div>
               {!bs && <ProfileControls picking={picking} hasLine={!!profileData}
                 onStart={() => { setProfile({ a: null, b: null }); setPicking(true); setPicked(null) }}
                 onClear={() => { setProfile({ a: null, b: null }); setPicking(false) }} />}

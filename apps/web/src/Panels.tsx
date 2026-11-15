@@ -128,7 +128,7 @@ export function SidePanel(p: SideProps) {
               ? (sci ? (p.displacement.titleScientist ?? p.displacement.name) : (p.displacement.titleStory ?? p.displacement.name))
               : sci ? `LOS displacement (${active.units})` : `How far the ground moved (${active.displayUnits})`,
             hint: sci
-              ? (p.displacement.hintScientist ?? 'Line-of-sight displacement in meters. Sign convention and reference point are listed under Evidence.')
+              ? (p.displacement.hintScientist ?? 'Line-of-sight displacement in meters. Sign convention and reference point are listed under Data.')
               : (p.displacement.hintStory ?? 'Blue and orange show the ground moving toward or away from the satellite, not up or down.'),
           }
 
@@ -185,14 +185,14 @@ export function SidePanel(p: SideProps) {
           id: 'analysis', label: 'Analysis', body: (
             <>
               <p className="pair mono">{pairLine}</p>
-              {tech && <p className="lead tech">{tech.summary}</p>}
               {p.slots.analysis}
+              {tech && <details className="more"><summary>Method and processing</summary><p className="lead tech">{tech.summary}</p></details>}
             </>
           ),
         },
         ...(p.slots.periods ? [{ id: 'periods', label: 'Periods', body: p.slots.periods }] : []),
         {
-          id: 'evidence', label: 'Evidence', body: (
+          id: 'data', label: 'Data', body: (
             <>
               <table className="prov">
                 <tbody>
@@ -205,10 +205,10 @@ export function SidePanel(p: SideProps) {
               {p.story.copy?.evidenceNote
                 ? <p className="hint">{p.story.copy.evidenceNote}</p>
                 : <p className="hint">Displacement = unwrapped phase &times; &lambda; / (4&pi;), with &lambda; = {LAMBDA} m for L-band.</p>}
+              {caveats}{p.slots.impact}{p.slots.los}
             </>
           ),
         },
-        { id: 'context', label: 'Context', body: <>{caveats}{p.slots.impact}{p.slots.los}</> },
         { id: 'sources', label: 'Sources', body: sources },
       ]
     : [
