@@ -25,7 +25,7 @@ export function OverviewText({ story }: { story: FloodStory }) {
           <Paras items={story.personal.body} className="lead" />
         </section>
       )}
-      <Paras items={story.sections[0]?.body ?? []} className="lead" />
+      <Paras items={story.sections[0]?.body.slice(0, 1) ?? []} className="lead" />
     </>
   )
 }
@@ -37,12 +37,15 @@ export function LearnTab({ story, onMethods }: { story: FloodStory; onMethods: (
     <>
       <div className="why">
         <h2>{t('s.why')}</h2>
-        {story.sections.slice(1).map((s) => (
-          <details key={s.id}>
-            <summary>{s.title}</summary>
-            <Paras items={s.body} />
-          </details>
-        ))}
+        {story.sections.map((s, i) => {
+          const body = i === 0 ? s.body.slice(1) : s.body // the first paragraph of the first section is the Overview
+          return body.length ? (
+            <details key={s.id}>
+              <summary>{s.title}</summary>
+              <Paras items={body} />
+            </details>
+          ) : null
+        })}
       </div>
       <button className="cta ghost" onClick={onMethods}>{t('methods.button')}</button>
       <p className="foot">{story.credits}</p>

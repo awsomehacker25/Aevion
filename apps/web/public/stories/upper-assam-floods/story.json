@@ -39,7 +39,7 @@
       "id": "what",
       "title": "What happened",
       "body": [
-        "On 18 to 20 July 2026, extreme rain fell on the Naga Hills just south of Upper Assam, and a landslide struck Mon in Nagaland. The Dikhow, Disang and Jhanji rivers carried the surge down onto the plains of Sivasagar and Charaideo. Embankments breached, villages such as Betbari were cut off, and the railway at Simaluguri went under water.",
+        "On 18 to 20 July 2026, extreme rain fell on the Naga Hills and sent the Dikhow, Disang and Jhanji rivers over the plains of Sivasagar and Charaideo. Embankments breached and villages were cut off. Clouds hid it all from optical satellites, but NISAR's radar saw through them.",
         "Clouds covered the region for most of the event, so optical satellites saw almost nothing. NISAR's L-band radar sees through cloud. It imaged this area every 12 days on the same orbit (track 40), including on **22 July, near the flood peak**. The Red Cross puts the emergency peak at 27 to 28 July, between two passes.",
         "**Try it:** drag the white divider to compare dates, step through the timeline under the map, and click any spot to see how its radar signal changed over the season."
       ]
@@ -86,8 +86,7 @@
   "personal": {
     "title": "Why we started here",
     "body": [
-      "Upper Assam is personal for our team. Friends and family of ours have lived in these districts, and the floods hit them hard.",
-      "That is why this is the first story you see. Places like Betbari, Nazira and Simaluguri are on this map, and behind every blue patch are real fields and homes."
+      "Upper Assam is personal for us. Friends and family of ours have lived in these districts, and the floods hit them hard. Places like Betbari, Nazira and Simaluguri are on this map, and behind every blue patch are real fields and homes."
     ]
   }
 }
