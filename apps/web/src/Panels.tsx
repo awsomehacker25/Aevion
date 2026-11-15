@@ -77,6 +77,9 @@ interface SideProps {
   radar?: { hh?: LayerDef; hv?: LayerDef }
   /** The HH/HV colour mix, when the story has both channels: which kind it is. */
   mix?: 'echo' | 'change'
+  /** The tab to open first (from a shared link) and a callback when the open tab changes. */
+  initialTab?: string
+  onTab?: (id: string) => void
   /** Content blocks the app supplies; the panel decides which tab each one lives in. */
   slots: {
     /** Story: tour and replay buttons. */
@@ -176,7 +179,7 @@ export function SidePanel(p: SideProps) {
     ? `Track ${p.flagship.track} ${p.flagship.orbitDirection === 'A' ? 'ascending' : 'descending'} · ${p.story.flagshipPair.reference} → ${p.story.flagshipPair.secondary}`
     : ''
 
-  const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: 'overview', scientist: 'analysis' })
+  const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: p.initialTab ?? 'overview', scientist: p.initialTab ?? 'analysis' })
   const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760)
 
   const credits = (
@@ -274,6 +277,8 @@ export function SidePanel(p: SideProps) {
         ...(p.mix ? [{ id: 'mix' as const, title: t('s.layer.mix'), sub: t('s.layer.mix.sub') }] : []),
       ]
   const current = all.find((t) => t.id === tabs[p.ui]) ?? all[0]
+  const { onTab } = p
+  useEffect(() => { onTab?.(current.id) }, [current.id, onTab])
 
   return (
     <aside className={`side ${sci ? 'sci' : ''} ${collapsed ? 'collapsed' : ''}`}>

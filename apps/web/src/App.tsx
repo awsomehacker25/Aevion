@@ -18,6 +18,7 @@ import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
 import StoryCharts from './StoryCharts'
+import { epochCode, epochFromCode, readLink, shortDate, writeLink } from './lib/link'
 import FloodViewer from './FloodViewer'
 import { I18nProvider, initialLang, useI18n } from './i18n'
 import type { Lang } from './i18n'
@@ -69,6 +70,8 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const [note, setNote] = useState<string | null>(null) // a short message that fades out by itself
   const noteTimer = useRef(0)
   const [epochId, setEpochId] = useState<string | null>(null) // null = the featured period
+  const [panelTab, setPanelTab] = useState<string | null>(null) // the open side-panel tab, for the shared link
+  const [initialTab, setInitialTab] = useState<string | undefined>(undefined)
   const replayRaf = useRef(0)
   const prevMode = useRef<ViewMode>('los')
 
@@ -78,6 +81,16 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
         setRaw(d)
         setCursor(ms(d.story.timeline.initial))
         if (d.story.defaultThreshold != null) setThreshold(d.story.defaultThreshold)
+        // a shared link can carry the view (v), the date (d) and the measured period (p)
+        const h = readLink()
+        const epId = epochFromCode(h.p, (d.story.epochs ?? []).map((e) => e.id))
+        const ep = d.story.epochs?.find((e) => e.id === epId)
+        if (ep && !isFeatured(d.story, ep)) setEpochId(ep.id)
+        if (h.t) setInitialTab(h.t)
+        const v = h.v as ViewMode | null
+        if (v && ['los', 'fringes', 'coherence', 'hh', 'hv', 'mix'].includes(v)) setMode(v)
+        const t0 = Date.parse(`${h.d}T12:00:00Z`)
+        if (Number.isFinite(t0) && t0 >= ms(d.story.timeline.start) && t0 <= ms(d.story.timeline.end)) setCursor(t0)
       })
       .catch((e: Error) => setError(e.message))
   }, [id])
@@ -87,6 +100,15 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const data = useMemo(() => (raw && localized ? { ...raw, story: localized } : raw), [raw, localized])
 
   useEffect(() => () => cancelAnimationFrame(replayRaf.current), [])
+
+  // keep the link current (view, date, period) once the viewer stops moving
+  useEffect(() => {
+    if (!raw || replay != null) return
+    const h = window.setTimeout(() => {
+      writeLink({ v: mode, d: shortDate(new Date(cursor).toISOString().slice(0, 10)), t: panelTab, p: epochId ? epochCode(epochId) : null })
+    }, 400)
+    return () => window.clearTimeout(h)
+  }, [raw, mode, cursor, epochId, replay, panelTab])
 
   const layers = useMemo(() => {
     if (!data) return null
@@ -341,7 +363,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}
-        radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }} mix={mixKind}
+        radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }} mix={mixKind} initialTab={initialTab} onTab={setPanelTab}
         slots={sci ? {
           analysis: (
             <>

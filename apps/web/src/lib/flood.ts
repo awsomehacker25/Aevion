@@ -1,5 +1,6 @@
 import type { FloodLayers } from '../FloodMap'
 import type { FloodManifest, FloodSeries, FloodView } from '../types'
+import { readLink, shortDate, writeLink } from './link'
 
 export type FloodTab = 'overview' | 'layers' | 'charts' | 'impact' | 'learn'
 export const FLOOD_TABS: FloodTab[] = ['overview', 'layers', 'charts', 'impact', 'learn']
@@ -29,30 +30,22 @@ export function initialFloodState(f: FloodManifest): FloodState {
   return { a: ref, b: peak, view: 'HH', water: true, swipeOn: true, tab: 'overview', expert: false, layers: { ...DEFAULT_LAYERS }, cam: null }
 }
 
-/** d = right date, c = compare date, v = radar view, tab, mode, swipe, at = lng,lat,zoom */
+/** The link keeps v = radar view, d = right date, c = compare date and t = tab (see lib/link.ts). */
 export function readHash(f: FloodManifest, s: FloodState): { state: FloodState; fromHash: boolean } {
-  const h: Record<string, string> = {}
-  location.hash.replace(/^#/, '').split('&').forEach((kv) => { const [k, v] = kv.split('='); if (k) h[k] = decodeURIComponent(v || '') })
-  const idx = (iso: string) => f.dates.findIndex((d) => d.date === iso)
+  const h = readLink()
+  const idx = (iso: string | null) => f.dates.findIndex((d) => d.date === iso)
   const next = { ...s }
   if (idx(h.d) >= 0) next.b = idx(h.d)
   if (idx(h.c) >= 0) next.a = idx(h.c)
-  if (h.v === 'HH' || h.v === 'HV' || (h.v === 'RGB' && f.dates.every((d) => d.layers.RGB))) next.view = h.v
-  if (h.mode === 'plain' || h.mode === 'expert') next.expert = h.mode === 'expert'
-  const tab = h.tab === 'story' ? 'overview' : h.tab === 'evidence' ? 'impact' : h.tab
+  const v = h.v?.toUpperCase()
+  if (v === 'HH' || v === 'HV' || (v === 'RGB' && f.dates.every((d) => d.layers.RGB))) next.view = v
+  const tab = h.t === 'story' ? 'overview' : h.t === 'evidence' ? 'impact' : h.t
   if (FLOOD_TABS.includes(tab as FloodTab)) next.tab = tab as FloodTab
-  if (h.swipe === '0' || h.swipe === '1') next.swipeOn = h.swipe === '1'
-  const at = (h.at || '').split(',').map(Number)
-  next.cam = at.length === 3 && at.every(Number.isFinite) ? { lng: at[0], lat: at[1], zoom: at[2] } : null
-  return { state: next, fromHash: Object.keys(h).length > 0 }
+  return { state: next, fromHash: !!(h.v || h.d || h.c || h.t) }
 }
 
 export function writeHash(f: FloodManifest, s: FloodState) {
-  const parts = [`d=${f.dates[s.b].date}`, `c=${f.dates[s.a].date}`, `v=${s.view}`, `tab=${s.tab}`, `mode=${s.expert ? 'expert' : 'plain'}`, `swipe=${s.swipeOn ? 1 : 0}`]
-  if (s.cam) parts.push(`at=${s.cam.lng.toFixed(4)},${s.cam.lat.toFixed(4)},${s.cam.zoom.toFixed(2)}`)
-  const url = new URL(location.href)
-  url.hash = parts.join('&')
-  history.replaceState(null, '', url)
+  writeLink({ v: s.view.toLowerCase(), d: shortDate(f.dates[s.b].date), c: shortDate(f.dates[s.a].date), t: s.tab })
 }
 
 /** HH and HV backscatter (dB) at a map position, one value per date, or null when the spot is outside the data. */

@@ -76,7 +76,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
   const syncHash = useCallback(() => {
     if (!data || !st) return
     window.clearTimeout(hashTimer.current)
-    hashTimer.current = window.setTimeout(() => writeHash(data.flood, { ...st, cam: map.current?.camera() ?? st.cam }), 250)
+    hashTimer.current = window.setTimeout(() => writeHash(data.flood, st), 250)
   }, [data, st])
   useEffect(syncHash, [syncHash])
 
@@ -182,7 +182,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
     <div className="app flood" ref={wrap}>
       <FloodMap ref={map} data={data} a={st.a} b={st.b} view={st.view} water={st.water} swipeOn={st.swipeOn} terrain={terrain} swipe={swipe} layers={st.layers}
         point={point} startCamera={startCam} onPick={onPick} onPin={(p) => { setPin(p); setTab('impact') }}
-        onLoading={setBusy} onMissing={(w) => flash(t('error.layer', { name: w }))} onMoveEnd={syncHash} />
+        onLoading={setBusy} onMissing={(w) => flash(t('error.layer', { name: w }))} onMoveEnd={() => {}} />
       {busy && <div className="floadbar" aria-hidden="true" />}
             {st.swipeOn && (
         <div className="fdivider" role="slider" tabIndex={0} aria-orientation="horizontal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={nSwipePct}
