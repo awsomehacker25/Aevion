@@ -79,6 +79,8 @@ interface SideProps {
   flagship?: AcquisitionPair
   /** Radar brightness (backscatter) change layers, when the story has them. */
   radar?: { hh?: LayerDef; hv?: LayerDef }
+  /** The HH/HV colour mix, when the story has both channels: which kind it is. */
+  mix?: 'echo' | 'change'
   /** Content blocks the app supplies; the panel decides which tab each one lives in. */
   slots: {
     /** Story: tour and replay buttons. */
@@ -106,7 +108,14 @@ export function SidePanel(p: SideProps) {
   const half = LAMBDA / 2
 
   // Story: friendly units and plain sentences. Scientist: raw units, numbers and the physics.
-  const legend = radarLayer
+  const legend = p.mode === 'mix' && p.mix
+    ? {
+        left: t(`s.mix.${p.mix}.left`),
+        right: t(`s.mix.${p.mix}.right`),
+        title: t(`s.mix.${p.mix}.title`),
+        hint: t(`s.mix.${p.mix}.hint`),
+      }
+    : radarLayer
     ? {
         left: `${fmtNum(lo)} dB`,
         right: `${fmtNum(hi)} dB`,
@@ -147,7 +156,11 @@ export function SidePanel(p: SideProps) {
   // What the colors mean in the view on screen: the story's own key if it has one, otherwise a standard one built from the layer's wording.
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
   const keyItems: { color: string; text: string }[] | undefined = p.story.copy?.key?.[p.mode] ?? (
-    p.mode === 'fringes'
+    p.mode === 'mix' && p.mix
+      ? (p.mix === 'echo'
+        ? [{ color: '#f2f7a0', text: t('s.mix.echo.k1') }, { color: '#d35c8a', text: t('s.mix.echo.k2') }, { color: '#3b1f6b', text: t('s.mix.echo.k3') }]
+        : [{ color: '#f1d04a', text: t('s.mix.change.k1') }, { color: '#d9506a', text: t('s.mix.change.k2') }, { color: '#3fbf7f', text: t('s.mix.change.k3') }, { color: '#2a3fa0', text: t('s.mix.change.k4') }])
+      : p.mode === 'fringes'
       ? [{ color: LEGEND_GRADIENTS.fringes, text: t('s.key.cycle') },
          { color: '#f7f7f7', text: t('s.key.bands') }]
       : p.mode === 'coherence'
@@ -249,18 +262,20 @@ export function SidePanel(p: SideProps) {
         { id: 'learn', label: t('s.tab.learn'), body: <>{why}{sources}</> },
       ]
   // how many view buttons sit in the switcher, so the grid can lay them out in even rows
-  const nViews = !sci ? 2 : bs ? 1 + (p.radar?.hv ? 1 : 0) + (p.radar?.hh ? 1 : 0) : 3 + (p.radar?.hh ? 1 : 0) + (p.radar?.hv ? 1 : 0)
+  const nViews = !sci ? 2 : bs ? 1 + (p.radar?.hv ? 1 : 0) + (p.radar?.hh ? 1 : 0) + (p.mix ? 1 : 0) : 3 + (p.radar?.hh ? 1 : 0) + (p.radar?.hv ? 1 : 0) + (p.mix ? 1 : 0)
   // Story mode keeps the first view simple: the other map views live in a menu that opens, picks one and closes again.
   const layerItems: LayerItem[] = bs
     ? [
         ...(p.radar?.hv ? [{ id: 'hv' as const, title: t('s.layer.hv'), sub: t('s.layer.hv.sub') }] : []),
         ...(p.radar?.hh ? [{ id: 'hh' as const, title: t('s.layer.changed'), sub: t('s.layer.changed.sub') }] : []),
+        ...(p.mix ? [{ id: 'mix' as const, title: t('s.layer.mix'), sub: t('s.layer.mix.sub') }] : []),
       ]
     : [
         { id: 'fringes', title: t('s.layer.fringes'), sub: t('s.layer.fringes.sub') },
         { id: 'coherence', title: t('s.layer.conf'), sub: t('s.layer.conf.sub') },
         ...(p.radar?.hh ? [{ id: 'hh' as const, title: t('s.layer.surface'), sub: t('s.layer.surface.sub') }] : []),
         ...(p.radar?.hv ? [{ id: 'hv' as const, title: t('s.layer.hv'), sub: p.radar.hv.colormap === 'gray' ? t('s.layer.hv.sub') : t('s.layer.hvchange.sub') }] : []),
+        ...(p.mix ? [{ id: 'mix' as const, title: t('s.layer.mix'), sub: t('s.layer.mix.sub') }] : []),
       ]
   const current = all.find((t) => t.id === tabs[p.ui]) ?? all[0]
 
@@ -288,6 +303,7 @@ export function SidePanel(p: SideProps) {
             title="Radar HV" sub={sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants'} />}
           {bs && sci && p.radar?.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
             title="What changed" sub={sci ? 'HH change vs the previous pass, dB' : 'Difference from the previous pass'} />}
+          {sci && p.mix && <ViewBtn on={p.mode === 'mix'} onClick={() => p.setMode('mix')} title={t('s.layer.mix')} sub={t('s.layer.mix.sub')} />}
           {!bs && sci && (p.radar?.hh || p.radar?.hv) && <>
             {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
               title="Radar HH" sub={sci ? 'GCOV HHHH change, dB' : 'Ground-sensitive brightness change'} />}

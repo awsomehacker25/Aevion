@@ -1,6 +1,6 @@
 export type Badge = 'OBSERVED' | 'DERIVED' | 'CONTEXT' | 'WHAT-IF'
 export type DataStatus = 'placeholder' | 'beta' | 'provisional' | 'validated'
-export type ViewMode = 'los' | 'fringes' | 'coherence' | 'hh' | 'hv'
+export type ViewMode = 'los' | 'fringes' | 'coherence' | 'hh' | 'hv' | 'mix'
 
 /** What kind of event a story is about. Used for the story picker and for data-source hints. */
 export type StoryType = 'earthquake' | 'volcano' | 'landslide' | 'subsidence' | 'flood'

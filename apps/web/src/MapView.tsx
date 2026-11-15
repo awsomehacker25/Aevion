@@ -8,6 +8,7 @@ import { beachball } from './lib/beachball'
 import { playhead } from './lib/playhead'
 import { changeProgress, eventReached, overlayOpacity } from './lib/progress'
 import { renderOverlay } from './lib/render'
+import type { MixOpts } from './lib/render'
 import { fmtDate } from './lib/data'
 import type { CameraReq, Grid, LayerDef, Overlays, QuakeCollection, Story, UsgsContext, ViewMode } from './types'
 
@@ -19,6 +20,8 @@ interface Props {
   coherence: { layer: LayerDef; grid: Grid }
   radarHH?: { layer: LayerDef; grid: Grid }
   radarHV?: { layer: LayerDef; grid: Grid }
+  /** HH/HV colour mix of the period on screen, when the story has the two channels. */
+  mix?: MixOpts
   /** The next measured period of a story that follows the timeline, cross-faded in between the two passes (from and to are times in ms). */
   next?: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; radarHH?: { layer: LayerDef; grid: Grid }; from: number; to: number }
   mode: ViewMode
@@ -96,7 +99,7 @@ export default function MapView(p: Props) {
     { swipe: false, mode: 'los', replay: false, cursor: 0 })
   // The next period's picture for the view on screen (the HV picture in HV mode), or nothing when it has none.
   const nextPicture = (n: NonNullable<Props['next']>, mode: ViewMode) =>
-    mode === 'hh' ? n.radarHH : mode === 'hv' ? n.radarHV : n.displacement
+    mode === 'hh' ? n.radarHH : mode === 'hv' ? n.radarHV : mode === 'mix' ? undefined : n.displacement
 
   // The current period's own layer fades out over the last part of the cross-fade, so that where the next picture is
   // transparent (little change there) the old one does not show through at the end, which would pop when the period changes.
@@ -295,7 +298,8 @@ export default function MapView(p: Props) {
     holdB.current = bShows.current === ((p.mode === 'hh' ? p.radarHH : p.mode === 'hv' ? p.radarHV : undefined)?.grid ?? p.displacement.grid)
     // radar brightness views draw their own layer with the same diverging colors; the interferometric coherence mask does not apply to them
     const radar = p.mode === 'hh' ? p.radarHH : p.mode === 'hv' ? p.radarHV : undefined
-    fullRef.current = renderOverlay(radar?.grid ?? p.displacement.grid, p.coherence.grid, {
+    fullRef.current = renderOverlay(p.mode === 'mix' && p.mix ? p.mix.hh : radar?.grid ?? p.displacement.grid, p.coherence.grid, {
+      mix: p.mix,
       mode: radar ? 'los' : p.mode,
       range: radar ? radar.layer.range : p.mode === 'coherence' ? p.coherence.layer.range : p.displacement.layer.range,
       fadeLow: radar ? false : p.fadeLow, threshold: p.threshold,
@@ -303,7 +307,7 @@ export default function MapView(p: Props) {
       colormap: (radar ?? p.displacement).layer.colormap,
     })
     paintOverlay()
-  }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
+  }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mix, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
 
   // before/after swipe: a draggable handle on a line; the overlay is shown only east of the line
   useEffect(() => {

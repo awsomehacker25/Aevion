@@ -373,6 +373,25 @@ const en: Record<string, string> = {
   'c.change.down': 'Darker',
   'c.echo.title': 'Average echo on each pass',
   'c.echo.hint': 'Mean HH and HV echo over the whole area, in decibels.',
+
+  // ---- HH/HV colour mix for the volcano stories ----
+  's.layer.mix': 'Colour mix',
+  's.layer.mix.sub': 'HH and HV together in one picture',
+  's.mix.echo.title': 'Colour mix: red = HH, green = HV, blue = HH minus HV',
+  's.mix.echo.left': 'weak echo',
+  's.mix.echo.right': 'strong echo',
+  's.mix.echo.hint': 'Three radar readings in one picture. Where HV is strong the ground scatters the radar in all directions, as rough lava and plants do; where only HH is strong the surface is smoother but still reflective.',
+  's.mix.echo.k1': 'Yellow-white: strong in both, a rough scattering surface such as fresh lava or rock',
+  's.mix.echo.k2': 'Pink and red: strong HH but weak HV, a smoother, harder surface',
+  's.mix.echo.k3': 'Dark purple and blue: weak echo, smooth ground, shadow or wet snow',
+  's.mix.change.title': 'Colour mix of the change: red = HH, green = HV',
+  's.mix.change.left': 'got darker',
+  's.mix.change.right': 'got brighter',
+  's.mix.change.hint': 'How much each radar channel changed since the previous pass, in one picture. Grey and transparent mean little change. Where both channels changed together the colour shows it.',
+  's.mix.change.k1': 'Yellow: both HH and HV got brighter',
+  's.mix.change.k2': 'Red and pink: mainly HH got brighter',
+  's.mix.change.k3': 'Green: mainly HV got brighter',
+  's.mix.change.k4': 'Blue: both got darker',
 }
 
 export default en

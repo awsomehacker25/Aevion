@@ -11,6 +11,7 @@ import { compareToModel } from './lib/physics'
 import { EpochChart, PeriodList, PeriodSwitcher } from './Epochs'
 import { ImpactPanel } from './Impact'
 import MapView from './MapView'
+import type { MixOpts } from './lib/render'
 import { Inspector, SidePanel, TopBar } from './Panels'
 import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
@@ -277,7 +278,14 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
 
   const { story, flagship: viewPair } = view
   // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
-  const shownMode: ViewMode = (mode === 'hh' && !view.radar.hh) || (mode === 'hv' && !view.radar.hv) ? 'los' : mode
+  // the colour mix needs both channels: the echo pictures (radar-picture stories) or both change pictures
+  const mixKind: 'echo' | 'change' | undefined = view.displacement.layer.colormap === 'gray' ? (view.radar.hv ? 'echo' : undefined) : view.radar.hh && view.radar.hv ? 'change' : undefined
+  const mixOpts: MixOpts | undefined = mixKind === 'echo' && view.radar.hv
+    ? { kind: 'echo', hh: view.displacement.grid, hv: view.radar.hv.grid, rHH: view.displacement.layer.range, rHV: view.radar.hv.layer.range }
+    : mixKind === 'change' && view.radar.hh && view.radar.hv
+      ? { kind: 'change', hh: view.radar.hh.grid, hv: view.radar.hv.grid, rHH: view.radar.hh.layer.range, rHV: view.radar.hv.layer.range }
+      : undefined
+  const shownMode: ViewMode = (mode === 'hh' && !view.radar.hh) || (mode === 'hv' && !view.radar.hv) || (mode === 'mix' && !mixOpts) ? 'los' : mode
   const { context } = data
   const progress = changeProgress(story, cursor, viewPair?.secondary)
   const showChange = progress >= 1
@@ -314,7 +322,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   return (
     <div className="app">
       <MapView story={story} quakes={data.quakes} context={context} displacement={view.displacement} coherence={view.coherence}
-        radarHH={view.radar.hh} radarHV={view.radar.hv} next={view.next}
+        radarHH={view.radar.hh} radarHV={view.radar.hv} mix={mixOpts} next={view.next}
         mode={shownMode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={viewPair?.secondary} swipe={swipe} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
@@ -329,7 +337,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}
-        radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }}
+        radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }} mix={mixKind}
         slots={sci ? {
           analysis: (
             <>
