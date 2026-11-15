@@ -50,7 +50,7 @@ type Img = [[number, number], [number, number], [number, number], [number, numbe
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 const OPACITY = { sar: 0.92, water: 0.9 }
-const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA='
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
 const preloads = new Map<string, Promise<boolean>>()
 const preload = (url: string) => {
