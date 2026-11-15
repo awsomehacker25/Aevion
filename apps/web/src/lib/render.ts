@@ -191,13 +191,17 @@ function upsample(g: Grid, w: number, h: number): { vals: Float32Array; valid: U
   return { vals, valid }
 }
 
+const upCache = new WeakMap<Grid, { W: number; H: number; vals: Float32Array; valid: Uint8Array }>()
+
 /** Draws the selected view onto a canvas, enlarged about 4x with cubic interpolation so it stays sharp when zoomed in. */
 export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasElement {
   // aim for about 720 cells across (big grids need less enlarging); the replay draws smaller to stay fast
-  const S = o.low ? 1 : Math.max(2, Math.round(720 / defo.width))
+  const S = o.low ? Math.min(1, 300 / defo.width) : Math.max(2, Math.round(720 / defo.width))
   const W = Math.round(defo.width * S)
   const H = Math.round(defo.height * S)
-  const up = upsample(defo, W, H)
+  // the enlarged picture is the same on every replay frame (only the scale changes), so keep the last one
+  let up = upCache.get(defo)
+  if (!up || up.W !== W || up.H !== H) { up = { W, H, ...upsample(defo, W, H) }; upCache.set(defo, up) }
   const k = o.scale ?? 1
   const cv = document.createElement('canvas')
   cv.width = W

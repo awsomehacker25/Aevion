@@ -243,6 +243,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     if (radarStory && !view?.radar.hh) { flashNote('There is no change picture for this pass, because there is no earlier pass to compare with.'); return }
     prevMode.current = mode
     setMode(radarStory ? 'hh' : 'fringes')
+    setReplay(0) // start from an empty map in the same render, so the finished picture never flashes first
     const t0 = performance.now()
     let lastDraw = 0
     const DURATION = 7000
@@ -349,9 +350,11 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
           ? 'Illustrative replay: NISAR took one picture every 12 days, not the change in between'
           : 'Illustrative replay: the satellite measured the final result, not the motion as it happened'}</div>
       )}
-      <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
-        {!bs && <>Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between</>}
-      </div>
+      {!bs && (
+        <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
+          Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between
+        </div>
+      )}
       <div className={`replay-chip fade note ${note ? 'on' : ''}`} role="status" aria-hidden={!note}>{note}</div>
       {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
       {picked && !picking && (

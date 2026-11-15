@@ -80,6 +80,7 @@ export default function MapView(p: Props) {
   const swipeFrac = useRef(0.5) // swipe line position across the map box: 0 = west edge, 1 = east edge
   const swipeOn = useRef(false)
 
+  const appliedSeq = useRef(0)
   const paintSeq = useRef(0) // numbers each update so an older, slower one can never overwrite a newer one
   const lastUrl = useRef<string | null>(null)
   const bbox = p.story.aoi.bbox
@@ -132,8 +133,16 @@ export default function MapView(p: Props) {
     const sx = swipeOn.current ? Math.round(Math.min(1, Math.max(0, swipeFrac.current)) * full.width) : 0
     if (sx < full.width) ctx.drawImage(full, sx, 0, full.width - sx, full.height, sx, 0, full.width - sx, full.height)
     const seq = ++paintSeq.current
+    if (view.width <= 400) {
+      // the small replay frames encode instantly, so skip the asynchronous encoder, which can lag behind a fast replay
+      appliedSeq.current = seq
+      ;(map.getSource('overlay') as ImageSource | undefined)?.updateImage({ url: view.toDataURL('image/png'), coordinates: corners(bbox) })
+      if (holdB.current) setTimeout(() => releaseRef.current(), 150)
+      return
+    }
     view.toBlob((blob) => {
-      if (!blob || seq !== paintSeq.current || mapRef.current !== map) return
+      if (!blob || seq <= appliedSeq.current || mapRef.current !== map) return
+      appliedSeq.current = seq
       const url = URL.createObjectURL(blob)
       const old = lastUrl.current
       lastUrl.current = url
