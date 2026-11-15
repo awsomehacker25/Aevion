@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import './Shell.css'
 import './Extras.css'
 import { DEFAULT_COHERENCE_THRESHOLD, EVENT, TEAM } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
@@ -13,7 +14,8 @@ import { ImpactPanel } from './Impact'
 import MapView from './MapView'
 import type { MapExtras } from './MapView'
 import type { MixOpts } from './lib/render'
-import { Inspector, SidePanel, TopBar } from './Panels'
+import { Inspector, SidePanel } from './Panels'
+import { Dock } from './Dock'
 import { useTheme } from './theme'
 import { Logo } from './Logo'
 import type { UiMode } from './Panels'
@@ -450,7 +452,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         {t('s.recenter')}
       </button>
-      <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} languages={stories.find((x) => x.id === story.id)?.languages} theme={theme} />
+      <Dock story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} languages={stories.find((x) => x.id === story.id)?.languages} theme={theme} coords={picked} />
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}

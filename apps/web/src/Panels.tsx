@@ -4,12 +4,8 @@ import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
 import { Paras } from './lib/rich'
 import { EVENT, TEAM } from './config'
-import { LANGS, isLang, rememberLang, useI18n } from './i18n'
-import type { Lang } from './i18n'
-import { ThemeSwitch } from './ThemeSwitch'
-import { Logo } from './Logo'
-import type { ThemePref } from './theme'
-import type { AcquisitionPair, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
+import { useI18n } from './i18n'
+import type { AcquisitionPair, Grid, LayerDef, Resource, Story, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
 
@@ -19,51 +15,6 @@ export function Badge({ kind, synthetic }: { kind: string; synthetic?: boolean }
       <span className={`badge b-${kind.toLowerCase().replace('-', '')}`}>{kind}</span>
       {synthetic && <span className="badge b-placeholder">Placeholder</span>}
     </span>
-  )
-}
-
-interface TopBarProps {
-  story: Pick<Story, 'id' | 'dataStatus' | 'dataStatusNote' | 'statusDetail'>
-  ui: UiMode
-  setUi: (m: UiMode) => void
-  stories: StoryIndexEntry[]
-  onSwitchStory: (id: string) => void
-  /** Languages this story is offered in. The switcher is hidden when there is only English. */
-  languages?: string[]
-  theme: { pref: ThemePref; setPref: (p: ThemePref) => void }
-}
-
-export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages, theme }: TopBarProps) {
-  const { t, lang, setLang } = useI18n()
-  const sci = ui === 'scientist'
-  const langs = (languages ?? ['en']).filter(isLang)
-  return (
-    <header className="topbar">
-      <div className="brand"><Logo variant="horizontal" height={22} /></div>
-      {stories.length > 1 && (
-        <select className={`picker ${stories.find((x) => x.id === story.id)?.featured ? 'featured' : ''}`} value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label={t('top.chooseStory')}>
-          {stories.map((s) => <option key={s.id} value={s.id} style={s.featured ? { color: '#86a9ff', fontWeight: 600 } : undefined}>{s.label ?? s.title}{s.featured ? ` - ${t('top.featured')}` : ''}</option>)}
-        </select>
-      )}
-      <div className={`status s-${story.dataStatus}`} title={[story.dataStatusNote, story.statusDetail ? (sci ? story.statusDetail.scientist : story.statusDetail.story) : ''].filter(Boolean).join(' - ')}>
-        <span className="dot" />
-        <span className="s-full">{t(`status.${story.dataStatus}`)}</span>
-        <span className="s-short">{t(`status.short.${story.dataStatus}`)}</span>
-        {sci && (story.statusDetail || story.dataStatus === 'placeholder') && (
-          <em> &middot; {story.statusDetail ? story.statusDetail.scientist : t('status.placeholderDetail')}</em>
-        )}
-      </div>
-      {langs.length > 1 && (
-        <select className="picker lang" value={lang} onChange={(e) => { const l = e.target.value as Lang; rememberLang(l); setLang(l) }} aria-label={t('top.language')}>
-          {langs.map((l) => <option key={l} value={l}>{LANGS[l].native}</option>)}
-        </select>
-      )}
-      <div className="seg" role="group" aria-label={t('top.mode')}>
-        <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>{t('top.story')}</button>
-        <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>{t('top.scientist')}</button>
-      </div>
-      <ThemeSwitch pref={theme.pref} setPref={theme.setPref} />
-    </header>
   )
 }
 

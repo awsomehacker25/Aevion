@@ -1,0 +1,63 @@
+/*
+ * The shared shell, used by every story: left side panel, right map controls, a timeline bar and a dock at the bottom.
+ * The dock sits at the very bottom; the timeline bar sits just above it and shares its edges so they read as one stack.
+ */
+:root { --dock-h: 48px; --stack-off: 56px; }
+
+/* ---------- the dock ---------- */
+.dock { position: absolute; z-index: 7; left: 12px; right: 12px; bottom: 12px; height: var(--dock-h); display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius); }
+/* The glass lives on a pseudo-element: a backdrop-filter on the dock itself would stop the menus inside it from blurring the map. */
+.dock::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); pointer-events: none; }
+.dock-brand { flex: none; display: flex; align-items: center; height: 28px; padding: 0 12px 0 6px; margin-right: 2px; color: var(--ink); border-right: 1px solid var(--line-soft); }
+
+.status { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border-radius: var(--radius-ctl); font-size: 13px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; overflow: hidden; }
+.status em { font-style: normal; font-weight: 400; color: var(--muted); }
+.status .dot { width: 7px; height: 7px; flex: none; background: var(--faint); }
+.s-placeholder .dot { background: var(--st-placeholder); }
+.s-beta .dot, .s-provisional .dot { background: var(--st-provisional); }
+.s-validated .dot { background: var(--st-validated); }
+
+.seg { flex: none; display: flex; gap: 2px; padding: 3px; border-radius: var(--radius-ctl); background: var(--sunken); }
+.seg button { height: 26px; padding: 0 14px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--muted); font-weight: 500; font-size: 13px; transition: background-color .15s ease-out, color .15s ease-out; }
+.seg button:hover { color: var(--ink); }
+.seg button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: var(--glow-shadow); }
+.seg .icon-btn { display: grid; place-items: center; width: 30px; padding: 0; }
+.theme-seg button.on { background: var(--raised); color: var(--ink); box-shadow: none; }
+
+.mt-note { flex: none; padding: 3px 8px; border-radius: var(--radius-sm); background: var(--sunken); color: var(--muted); font-size: 11px; font-weight: 500; white-space: nowrap; }
+
+.dock-coords { flex: none; min-width: 0; padding-left: 12px; margin-left: 4px; border-left: 1px solid var(--line-soft); font-size: 12px; color: var(--ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dock-coords .dim { color: var(--muted); }
+.dock-coords .mono { font-size: 12px; }
+
+/* ---------- menus that open upward ---------- */
+.menu { position: relative; flex: none; }
+.menu-btn { display: flex; align-items: center; gap: 8px; height: 32px; max-width: 240px; padding: 0 10px; border: 0; border-radius: var(--radius-ctl); background: none; color: var(--ink); font-size: 13px; font-weight: 500; transition: background-color .15s ease-out; }
+.menu-btn:hover, .menu-btn[aria-expanded='true'] { background: var(--hover); }
+.menu-btn svg { flex: none; opacity: .65; transition: transform .15s ease-out; }
+.menu-btn[aria-expanded='true'] svg { transform: rotate(180deg); }
+.menu-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fdiamond { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 1px; background: var(--accent); transform: rotate(45deg); }
+
+.menu-pop { position: absolute; left: 0; bottom: calc(100% + 14px); z-index: 9; min-width: 260px; max-width: 380px; padding: 4px; border-radius: var(--radius); animation: menu-in .16s ease-out; }
+.dock-lang .menu-pop { min-width: 240px; left: auto; right: 0; }
+.menu-pop ul { list-style: none; margin: 0; padding: 0; max-height: min(50vh, 420px); overflow-y: auto; outline: none; }
+.menu-pop li { position: relative; display: grid; gap: 1px; padding: 8px 32px 8px 10px; border-radius: var(--radius-ctl); cursor: pointer; }
+.menu-pop li.active { background: var(--hover); }
+.menu-pop li.on::after { content: ''; position: absolute; right: 13px; top: 50%; width: 5px; height: 9px; border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: translateY(-62%) rotate(45deg); }
+.mi-main { display: flex; align-items: center; gap: 10px; }
+.mi-label { font-size: 13px; font-weight: 500; }
+.menu-pop li.on .mi-label { font-weight: 600; }
+.mi-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--accent); }
+.mi-hint { font-size: 12px; color: var(--muted); }
+.menu-foot { margin-top: 4px; padding: 8px 10px 6px; border-top: 1px solid var(--line-soft); font-size: 12px; line-height: 1.4; color: var(--muted); }
+@keyframes menu-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .menu-pop { animation: none; } .menu-btn svg, .seg button { transition: none; } }
+
+/* narrower desktop windows: shorter status text, no coordinate hint */
+@media (max-width: 1400px) {
+  .status .s-full { display: none; }
+  .status .s-short { display: inline; }
+  .dock-coords:has(.dim) { display: none; }
+}
+@media (max-width: 1180px) { .mt-note { display: none; } }
