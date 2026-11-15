@@ -49,12 +49,9 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: 
         )}
       </div>
       {langs.length > 1 && (
-        <label className="langsel">
-          <span className="sr-only">{t('top.language')}</span>
-          <select className="picker lang" value={lang} onChange={(e) => { const l = e.target.value as Lang; rememberLang(l); setLang(l) }} aria-label={t('top.language')}>
-            {langs.map((l) => <option key={l} value={l}>{LANGS[l].native}</option>)}
-          </select>
-        </label>
+        <select className="picker lang" value={lang} onChange={(e) => { const l = e.target.value as Lang; rememberLang(l); setLang(l) }} aria-label={t('top.language')}>
+          {langs.map((l) => <option key={l} value={l}>{LANGS[l].native}</option>)}
+        </select>
       )}
       {machine && <span className="status mt" title={t('lang.machine.title')}>{t('lang.machine')}</span>}
       <div className="seg" role="group" aria-label={t('top.mode')}>

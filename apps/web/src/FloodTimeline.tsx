@@ -31,7 +31,9 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
   const short = (ms: number) => date(ms, { month: 'short', day: 'numeric', year: undefined })
 
   const rainPts = rain?.dates.map((d, i) => ({ x: t0(d), y: rain.mean_mm[i], tip: `${short(t0(d))}: ${num(rain.mean_mm[i], 1)} mm` })) ?? []
-  const peakRain = rain ? rainPeaks(rain) : []
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 700
+  // on a phone only the wettest day is labelled, so the labels never run into each other
+  const peakRain = rain ? rainPeaks(rain).slice(0, narrow ? 1 : 2) : []
   const passMarkers: ChartMarker[] = times.map((x) => ({ x, dashed: true }))
   const box = useRef<HTMLElement>(null)
   // Tell the page how tall the timeline is, so the side panel and map credit sit right above it.
@@ -69,7 +71,7 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
         </button>
         <div className="ftl-charts" tabIndex={0} role="group" aria-label={t('timeline.label')} aria-describedby="ftl-keys" onKeyDown={onKey}>
           {rain && (
-            <Chart label={t('timeline.rain')} height={58} hideY left={6} xDomain={[lo, hi]} xTicks={[]} xPad={14}
+            <Chart label={t('timeline.rain')} height={narrow ? 46 : 58} hideY left={6} xDomain={[lo, hi]} xTicks={[]} xPad={14}
               series={[{ id: 'rain', kind: 'bar', color: 'var(--d-rain)', points: rainPts, barUnit: 0.8 * DAY }]}
               markers={passMarkers}
               barLabels={(p) => {
@@ -77,7 +79,7 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
                 return pk ? `${short(p.x)}: ${num(p.y ?? 0)} mm` : null
               }} />
           )}
-          <Chart label={t('timeline.water')} height={104} hideY left={6} xDomain={[lo, hi]} xPad={14}
+          <Chart label={t('timeline.water')} height={narrow ? 86 : 104} hideY left={6} xDomain={[lo, hi]} xPad={14}
             xTicks={times.map((x, i) => ({ x, label: i === b || i === a || window.innerWidth > 700 ? short(x) : '' }))}
             series={[{
               id: 'water', kind: 'bar', color: 'var(--d-water)', barUnit: 6 * DAY,

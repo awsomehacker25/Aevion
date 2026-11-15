@@ -130,11 +130,12 @@
 
 @media (max-width: 760px) {
   .fside { width: auto; }
-  .ftag { top: 150px; }
+  /* the top bar grows a third row on phones: story picker, mode switch, then language and the machine-translation notice */
+  .picker.lang { grid-column: 1 / 3; grid-row: 3; max-width: none; height: 36px; }
+  .status.mt { grid-column: 3; grid-row: 3; height: 36px; font-size: 11px; padding: 0 8px; white-space: normal; line-height: 1.15; }
+  .ftag { top: 168px; }
   .ftag.left { left: 12px; }
   .ftag.right { right: 56px; }
   .fctl { top: 112px; }
   .ftl-play { margin-bottom: 10px; }
 }
-
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
