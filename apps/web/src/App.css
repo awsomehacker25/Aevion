@@ -454,3 +454,8 @@
 .side.sci .tool { margin-top: 16px; }
 .side.sci .more { margin-top: 14px; }
 .side-body .actions { margin-top: 12px; }
+
+/* recenter button, under the map's zoom buttons */
+.recenter { position: absolute; z-index: 5; top: 112px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px;
+  background: var(--panel); border: 1px solid var(--line); color: var(--ink); font-size: 12.5px; font-weight: 600; backdrop-filter: blur(10px); }
+.recenter:hover { background: rgba(255,255,255,.14); }

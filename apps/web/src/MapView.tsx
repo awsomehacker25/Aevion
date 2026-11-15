@@ -49,13 +49,11 @@ function styleFor(): StyleSpecification {
     sources: {
       sat: { type: 'raster', tiles: [BASEMAP.imageryTiles], tileSize: 256, maxzoom: 18, attribution: BASEMAP.imageryAttribution },
       dem: { type: 'raster-dem', tiles: [BASEMAP.terrainTiles], tileSize: 256, maxzoom: 14, encoding: BASEMAP.terrainEncoding, attribution: BASEMAP.terrainAttribution },
-      // separate source for hillshade, as MapLibre recommends when 3D terrain uses the same tiles
-      demShade: { type: 'raster-dem', tiles: [BASEMAP.terrainTiles], tileSize: 256, maxzoom: 14, encoding: BASEMAP.terrainEncoding },
     },
     layers: [
       { id: 'bg', type: 'background', paint: { 'background-color': '#05080f' } },
       { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-brightness-max': 0.78, 'raster-saturation': -0.35, 'raster-contrast': 0.1 } },
-      { id: 'hillshade', type: 'hillshade', source: 'demShade', paint: { 'hillshade-exaggeration': 0.4, 'hillshade-shadow-color': '#000000', 'hillshade-highlight-color': '#ffffff' } },
+      // No hillshade layer: it made panning and tilting crawl (about 1 frame per second against 30 without it). The 3D terrain still gives the relief.
     ],
     terrain: { source: 'dem', exaggeration: BASEMAP.terrainExaggeration },
     sky: {
@@ -168,7 +166,11 @@ export default function MapView(p: Props) {
       container: el.current!,
       style: styleFor(),
       center: aoi.center, zoom: aoi.zoom, pitch: aoi.pitch, bearing: aoi.bearing,
-      maxPitch: 82, attributionControl: { compact: true },
+      // Can't zoom out far from the story area, which also keeps the number of tiles to load and draw down.
+      minZoom: Math.max(2, aoi.zoom - 1.5),
+      maxPitch: 75, attributionControl: { compact: true },
+      // Lighter drawing: cap the pixel density on sharp screens (4x the work for little visible gain) and skip tile fade-ins.
+      pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5), fadeDuration: 0,
     })
     mapRef.current = map
     let cancelled = false // this map was replaced or removed before it finished starting

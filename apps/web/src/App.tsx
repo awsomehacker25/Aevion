@@ -304,6 +304,11 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         profile={profile} profileMode={picking}
         onProfilePoint={addProfilePoint}
         replayScale={replay} />
+      <button className="recenter" onClick={() => fly({ center: story.aoi.center, zoom: story.aoi.zoom, pitch: story.aoi.pitch, bearing: story.aoi.bearing })}
+        title="Fly back to the start of this story" aria-label="Recenter the map on this story">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+        Recenter
+      </button>
       <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} />
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}

@@ -193,8 +193,8 @@ function upsample(g: Grid, w: number, h: number): { vals: Float32Array; valid: U
 
 /** Draws the selected view onto a canvas, enlarged about 4x with cubic interpolation so it stays sharp when zoomed in. */
 export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasElement {
-  // aim for about 900 cells across (big grids need less enlarging); the replay draws smaller to stay fast
-  const S = o.low ? 1 : Math.max(2, Math.round(900 / defo.width))
+  // aim for about 720 cells across (big grids need less enlarging); the replay draws smaller to stay fast
+  const S = o.low ? 1 : Math.max(2, Math.round(720 / defo.width))
   const W = Math.round(defo.width * S)
   const H = Math.round(defo.height * S)
   const up = upsample(defo, W, H)
