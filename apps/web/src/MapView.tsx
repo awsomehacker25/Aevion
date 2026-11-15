@@ -11,6 +11,7 @@ import { changeProgress, eventReached, overlayOpacity } from './lib/progress'
 import { renderOverlay } from './lib/render'
 import type { MixOpts } from './lib/render'
 import { fmtDate } from './lib/data'
+import { padBounds } from './lib/bounds'
 import type { CameraReq, Grid, LayerDef, Overlays, QuakeCollection, Story, UsgsContext, ViewMode } from './types'
 
 interface Props {
@@ -196,6 +197,7 @@ export default function MapView(p: Props) {
       center: aoi.center, zoom: aoi.zoom, pitch: aoi.pitch, bearing: aoi.bearing,
       // Can't zoom out far from the story area, which also keeps the number of tiles to load and draw down.
       minZoom: Math.max(2, aoi.zoom - 1.5),
+      maxBounds: padBounds(aoi.bbox, 0.5),
       maxPitch: 75, attributionControl: { compact: true },
       // Lighter drawing: cap the pixel density on sharp screens (4x the work for little visible gain) and skip tile fade-ins.
       pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5), fadeDuration: 0,

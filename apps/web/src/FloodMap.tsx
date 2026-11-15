@@ -4,6 +4,7 @@ import * as maplibregl from 'maplibre-gl'
 import type { GeoJSONSource, ImageSource, MapMouseEvent, StyleSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { BASEMAP } from './config'
+import { padBounds } from './lib/bounds'
 import type { FloodView, LoadedFlood } from './types'
 
 /** The divider is straight on the flat map and leans this many degrees (top to the right) when the map is tilted in 3D. */
@@ -82,6 +83,20 @@ const imageReady = (map: maplibregl.Map, id: string) => new Promise<void>((res) 
 
 interface Slot { front: string; back: string; url: Record<string, string>; want: string }
 
+// how much of the map the side panel (left) and timeline (bottom) cover, in pixels; none on a phone, where they stack instead
+const insets = (el: HTMLElement) => {
+  const r = el.getBoundingClientRect()
+  const none = { top: 0, right: 0, left: 0, bottom: 0 }
+  if (window.innerWidth <= 760) return none
+  const side = document.querySelector('.side')?.getBoundingClientRect()
+  const tl = document.querySelector('.timeline')?.getBoundingClientRect()
+  return {
+    ...none,
+    left: side ? Math.round(Math.min(Math.max(0, side.right - r.left + 12), r.width * 0.5)) : 0,
+    bottom: tl ? Math.round(Math.min(Math.max(0, r.bottom - tl.top + 12), r.height * 0.4)) : 0,
+  }
+}
+
 export default function FloodMap(p: Props) {
   const wrap = useRef<HTMLDivElement>(null)
   const elA = useRef<HTMLDivElement>(null)
@@ -104,8 +119,9 @@ export default function FloodMap(p: Props) {
     const my = (lat: number) => (1 - Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) / Math.PI) / 2
     const bw = (mx(x1) - mx(x0)) * 512
     const bh = (my(y0) - my(y1)) * 512
+    const pad = insets(el)
     // a little past fully covering the window, so the picture's dashed frame is off screen when it first opens
-    const zoom = Math.log2(Math.max(el.clientWidth / bw, el.clientHeight / bh)) + 0.12
+    const zoom = Math.log2(Math.max((el.clientWidth - pad.left) / bw, (el.clientHeight - pad.bottom) / bh)) + 0.12
     const cy = (my(y0) + my(y1)) / 2
     return { center: [(x0 + x1) / 2, (Math.atan(Math.sinh(Math.PI * (1 - 2 * cy))) * 180) / Math.PI] as [number, number], zoom }
   }
@@ -170,11 +186,21 @@ export default function FloodMap(p: Props) {
     })
     const cam = d.startCamera ? { center: [d.startCamera.lng, d.startCamera.lat] as [number, number], zoom: d.startCamera.zoom } : coverCam()
     // like the other stories, you can't zoom out far from the study area, which also keeps the number of tiles down
-    const startOpts = { center: cam.center, zoom: cam.zoom, minZoom: Math.max(2, coverCam().zoom - 2.25), attributionControl: false as const, maxPitch: 75 }
+    const startOpts = { center: cam.center, zoom: cam.zoom, minZoom: Math.max(2, coverCam().zoom - 2.25), maxBounds: padBounds(flood.bbox, 1), attributionControl: false as const, maxPitch: 75 }
     const A = new maplibregl.Map({ container: elA.current!, style: style(d.a), ...startOpts })
     const B = new maplibregl.Map({ container: elB.current!, style: style(d.b), ...startOpts })
     B.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
     maps.current = { a: A, b: B }
+    // keep the middle of the map clear of the side panel and the timeline, measured from the real elements so it follows the window size and the panel collapsing
+    let lastPad = ''
+    const applyPad = () => {
+      const pad = insets(wrap.current!)
+      const key = `${pad.left}|${pad.bottom}`
+      if (key === lastPad) return
+      lastPad = key
+      for (const m of [A, B]) m.setPadding(pad)
+    }
+    applyPad()
 
     let syncing = false
     const sync = (src: maplibregl.Map, dst: maplibregl.Map) => src.on('move', () => {
@@ -225,7 +251,12 @@ export default function FloodMap(p: Props) {
       })
     }
     // the maps start unsized when the container is still laying out
-    const ro = new ResizeObserver(() => { A.resize(); B.resize(); setH(wrap.current?.clientHeight ?? 600) })
+    const ro = new ResizeObserver(() => {
+      A.resize(); B.resize(); setH(wrap.current?.clientHeight ?? 600)
+      applyPad()
+      // the panel and timeline can mount after the map, and change size without the window changing
+      for (const e of document.querySelectorAll('.side, .timeline')) ro.observe(e)
+    })
     ro.observe(wrap.current!)
     return () => { ro.disconnect(); A.remove(); B.remove(); maps.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
