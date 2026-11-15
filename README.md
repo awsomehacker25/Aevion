@@ -1,4 +1,4 @@
-<p align="center"><img src="apps/web/public/logo.png" alt="Aevion" width="640"></p>
+<p align="center"><picture><source media="(prefers-color-scheme: light)" srcset="apps/web/public/aevion-horizontal-dark.svg"><img src="apps/web/public/aevion-horizontal.svg" alt="Aevion" width="320"></picture></p>
 
 # Aevion
 

@@ -464,3 +464,8 @@
 
 /* the timeline is dense with small labels, so it reads like a panel rather than clear glass */
 .timeline { background: var(--panel-bg); }
+
+/* ---------- logo: one colour, follows the text colour ---------- */
+.logo { display: block; flex: none; background-color: currentColor; -webkit-mask: var(--logo) center / contain no-repeat; mask: var(--logo) center / contain no-repeat; }
+.brand { display: flex; align-items: center; height: 40px; padding: 0 14px; line-height: 0; border-radius: var(--radius-ctl); color: var(--ink); background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+.splash-logo { color: var(--ink); border-radius: 0; margin: 0 auto 16px; }

@@ -15,6 +15,7 @@ import type { MapExtras } from './MapView'
 import type { MixOpts } from './lib/render'
 import { Inspector, SidePanel, TopBar } from './Panels'
 import { useTheme } from './theme'
+import { Logo } from './Logo'
 import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
@@ -336,7 +337,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
 
   if (error) return <div className="splash"><b>{t('s.err.load')}</b><span>{error}</span></div>
   if (layers && 'error' in layers) return <div className="splash"><b>{t('s.err.invalid')}</b><span>{layers.error}</span></div>
-  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>{t('loading')}</span><small className="splash-team">{EVENT}</small><small className="splash-names">{t('s.builtBy')} {t('s.team', { names: TEAM.slice(0, -1).join(', '), last: TEAM[TEAM.length - 1] })}</small></div>
+  if (!data || !ok || !view) return <div className="splash"><Logo variant="stacked" height={150} className="splash-logo" /><span>{t('loading')}</span><small className="splash-team">{EVENT}</small><small className="splash-names">{t('s.builtBy')} {t('s.team', { names: TEAM.slice(0, -1).join(', '), last: TEAM[TEAM.length - 1] })}</small></div>
 
   const { story, flagship: viewPair } = view
   // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
@@ -539,7 +540,7 @@ export default function App() {
     setId(next)
   }
 
-  if (!stories) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /></div>
+  if (!stories) return <div className="splash"><Logo variant="stacked" height={150} className="splash-logo" /></div>
   // Upper Assam is the flagship: it opens first unless a story is asked for in the address.
   const entry = stories.find((s) => s.id === id) ?? stories[0]
   // A story only offers its own languages: anything else shows English until the viewer picks again.

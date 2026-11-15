@@ -7,6 +7,7 @@ import { EVENT, TEAM } from './config'
 import { LANGS, isLang, rememberLang, useI18n } from './i18n'
 import type { Lang } from './i18n'
 import { ThemeSwitch } from './ThemeSwitch'
+import { Logo } from './Logo'
 import type { ThemePref } from './theme'
 import type { AcquisitionPair, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
 
@@ -38,7 +39,7 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages, th
   const langs = (languages ?? ['en']).filter(isLang)
   return (
     <header className="topbar">
-      <div className="brand"><img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="Aevion" /></div>
+      <div className="brand"><Logo variant="horizontal" height={22} /></div>
       {stories.length > 1 && (
         <select className={`picker ${stories.find((x) => x.id === story.id)?.featured ? 'featured' : ''}`} value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label={t('top.chooseStory')}>
           {stories.map((s) => <option key={s.id} value={s.id} style={s.featured ? { color: '#86a9ff', fontWeight: 600 } : undefined}>{s.label ?? s.title}{s.featured ? ` - ${t('top.featured')}` : ''}</option>)}
