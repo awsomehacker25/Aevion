@@ -2,15 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { eventTime, periodDates, periodTitle, sortEpochs } from './lib/periods'
 import type { VentMotion } from './lib/periods'
 import type { Epoch, StoryCopy } from './types'
+import { useI18n } from './i18n'
 
 type Chart = NonNullable<StoryCopy['chart']>
-const DEFAULT_CHART: Chart = {
-  title: 'Ground motion at the vent, period by period', unit: 'mm', scale: 1000, minLim: 20,
-  ariaLabel: 'Mean line-of-sight motion near the vent for each 12-day period',
-  hint: 'Each bar is one 12-day NISAR period (start date shown). Orange is motion away from the satellite, blue toward it. A red dot marks an eruption episode in that period (USGS HVO timeline, to verify).',
-}
-const valText = (v: number | null | undefined, c: Chart) =>
-  v == null ? 'no data' : `${v > 0 ? '+' : ''}${v.toFixed(c.digits ?? 0)} ${c.unit}`
+const DEFAULT_CHART: Chart = { title: '', unit: 'mm', scale: 1000, minLim: 20, hint: '' }
+const valText = (v: number | null | undefined, c: Chart, none = 'no data') =>
+  v == null ? none : `${v > 0 ? '+' : ''}${v.toFixed(c.digits ?? 0)} ${c.unit}`
 
 interface PickProps {
   epochs: Epoch[]
@@ -23,10 +20,11 @@ interface PickProps {
 
 /** All periods as rows: title, dates, event time and the motion at the vent. */
 export function PeriodList({ epochs, motion, selected, onSelect, chart, role = 'list' }: PickProps & { role?: 'list' | 'listbox' }) {
+  const { t: tr } = useI18n()
   const rows = useMemo(() => sortEpochs(epochs), [epochs])
   const c = chart ?? DEFAULT_CHART
   return (
-    <div className="plist" role={role} aria-label="Measured periods">
+    <div className="plist" role={role} aria-label={tr('s.periods.list')}>
       {rows.map((e) => {
         const on = e.id === selected
         const mm = motion?.[e.id]
@@ -39,7 +37,7 @@ export function PeriodList({ epochs, motion, selected, onSelect, chart, role = '
               <b>{periodTitle(e)}</b> <span className="pdates">{periodDates(e)}</span>
               {t && <span className="ptime">{t}</span>}
             </span>
-            {motion && <span className={`pmm ${mm == null ? '' : mm < 0 ? 'neg' : 'pos'}`}>{valText(mm, c)}</span>}
+            {motion && <span className={`pmm ${mm == null ? '' : mm < 0 ? 'neg' : 'pos'}`}>{valText(mm, c, tr('s.nodata'))}</span>}
           </button>
         )
       })}
@@ -49,6 +47,7 @@ export function PeriodList({ epochs, motion, selected, onSelect, chart, role = '
 
 /** The always-visible control: previous, a menu of all periods, next. Lives in the timeline header. */
 export function PeriodSwitcher({ epochs, motion, selected, onSelect, onStep, chart }: PickProps & { onStep: (delta: number) => void }) {
+  const { t: tr } = useI18n()
   const rows = useMemo(() => sortEpochs(epochs), [epochs])
   const idx = rows.findIndex((e) => e.id === selected)
   const cur = rows[idx]
@@ -66,13 +65,13 @@ export function PeriodSwitcher({ epochs, motion, selected, onSelect, onStep, cha
 
   if (!cur) return null
   return (
-    <div className="pswitch" ref={box} role="group" aria-label="Measured period">
-      <button type="button" className="btn ps-step" onClick={() => onStep(-1)} disabled={idx <= 0} aria-label="Previous period" title="Previous period (left arrow)">&lsaquo;</button>
-      <button type="button" className="btn ps-label" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)} title="Choose a measured period">
+    <div className="pswitch" ref={box} role="group" aria-label={tr('s.periods.one')}>
+      <button type="button" className="btn ps-step" onClick={() => onStep(-1)} disabled={idx <= 0} aria-label={tr('s.periods.prev')} title={tr('s.periods.prevTip')}>&lsaquo;</button>
+      <button type="button" className="btn ps-label" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)} title={tr('s.periods.choose')}>
         <span className="ps-dates">{periodDates(cur)}</span>
         <i aria-hidden="true">&#9662;</i>
       </button>
-      <button type="button" className="btn ps-step" onClick={() => onStep(1)} disabled={idx >= rows.length - 1} aria-label="Next period" title="Next period (right arrow)">&rsaquo;</button>
+      <button type="button" className="btn ps-step" onClick={() => onStep(1)} disabled={idx >= rows.length - 1} aria-label={tr('s.periods.next')} title={tr('s.periods.nextTip')}>&rsaquo;</button>
       {open && (
         <div className="pmenu">
           <PeriodList epochs={epochs} motion={motion} selected={selected} chart={chart} onSelect={(id) => { onSelect(id); setOpen(false) }} role="listbox" />
@@ -88,13 +87,14 @@ const PAD = { l: 30, r: 6, t: 14, b: 34 }
 
 /** Mean ground motion near the vent for each 12-day period, as bars. Click a bar to view that period. */
 export function EpochChart({ epochs, motion, selected, onSelect, chart }: PickProps) {
-  const c = chart ?? DEFAULT_CHART
+  const { t: tr, date } = useI18n()
+  const c = chart ?? { ...DEFAULT_CHART, title: tr('s.epoch.title'), ariaLabel: tr('s.epoch.aria'), hint: tr('s.epoch.hint') }
   const rows = useMemo(() => sortEpochs(epochs).map((e) => ({ e, mm: motion?.[e.id] ?? null })), [epochs, motion])
   const lim = Math.max(c.minLim, ...rows.map((r) => Math.abs(r.mm ?? 0)))
   const tick = (x: number) => x.toFixed(lim < 10 ? 1 : 0)
   const slot = (W - PAD.l - PAD.r) / rows.length
   const y = (mm: number) => PAD.t + (1 - (mm + lim) / (2 * lim)) * (H - PAD.t - PAD.b)
-  const short = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  const short = (d: string) => date(d, { month: 'short', day: 'numeric', year: undefined })
 
   return (
     <div className="epochs">
@@ -113,7 +113,7 @@ export function EpochChart({ epochs, motion, selected, onSelect, chart }: PickPr
           const ht = mm == null ? 0 : Math.max(1.5, Math.abs(y(mm) - y(0)))
           return (
             <g key={e.id} role="button" tabIndex={0} className={`ep-bar ${on ? 'on' : ''}`}
-              aria-label={`${periodTitle(e)}, ${periodDates(e)}: ${valText(mm, c)}`}
+              aria-label={`${periodTitle(e)}, ${periodDates(e)}: ${valText(mm, c, tr('s.nodata'))}`}
               aria-pressed={on} onClick={() => onSelect(e.id)}
               onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onSelect(e.id) } }}>
               <rect x={PAD.l + i * slot} y={PAD.t} width={slot} height={H - PAD.t - PAD.b} fill="transparent" />

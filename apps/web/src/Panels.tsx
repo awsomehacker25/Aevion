@@ -3,7 +3,9 @@ import type { ReactNode } from 'react'
 import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
 import { EVENT, TEAM } from './config'
-import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
+import { LANGS, isLang, rememberLang, useI18n } from './i18n'
+import type { Lang } from './i18n'
+import type { AcquisitionPair, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
 
@@ -16,44 +18,44 @@ export function Badge({ kind, synthetic }: { kind: string; synthetic?: boolean }
   )
 }
 
-const STATUS_LABEL: Record<DataStatus, string> = {
-  placeholder: 'Placeholder data',
-  beta: 'Beta NISAR data',
-  provisional: 'Provisional NISAR data',
-  validated: 'Validated NISAR data',
-}
-
-const STATUS_SHORT: Record<DataStatus, string> = { placeholder: 'Placeholder', beta: 'Beta', provisional: 'Provisional', validated: 'Validated' }
-
 interface TopBarProps {
-  story: Story
+  story: Pick<Story, 'id' | 'dataStatus' | 'dataStatusNote' | 'statusDetail'>
   ui: UiMode
   setUi: (m: UiMode) => void
   stories: StoryIndexEntry[]
   onSwitchStory: (id: string) => void
+  /** Languages this story is offered in. The switcher is hidden when there is only English. */
+  languages?: string[]
 }
 
-export function TopBar({ story, ui, setUi, stories, onSwitchStory }: TopBarProps) {
+export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: TopBarProps) {
+  const { t, lang, setLang } = useI18n()
   const sci = ui === 'scientist'
+  const langs = (languages ?? ['en']).filter(isLang)
   return (
     <header className="topbar">
       <div className="brand"><img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="Aevion" /></div>
       {stories.length > 1 && (
-        <select className="picker" value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label="Choose a story">
+        <select className="picker" value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label={t('top.chooseStory')}>
           {stories.map((s) => <option key={s.id} value={s.id}>{s.label ?? s.title}</option>)}
         </select>
       )}
       <div className={`status s-${story.dataStatus}`} title={[story.dataStatusNote, story.statusDetail ? (sci ? story.statusDetail.scientist : story.statusDetail.story) : ''].filter(Boolean).join(' - ')}>
         <span className="dot" />
-        <span className="s-full">{STATUS_LABEL[story.dataStatus]}</span>
-        <span className="s-short">{STATUS_SHORT[story.dataStatus]}</span>
+        <span className="s-full">{t(`status.${story.dataStatus}`)}</span>
+        <span className="s-short">{t(`status.short.${story.dataStatus}`)}</span>
         {sci && (story.statusDetail || story.dataStatus === 'placeholder') && (
-          <em> &middot; {story.statusDetail ? story.statusDetail.scientist : 'LOS and coherence grids are synthetic placeholders'}</em>
+          <em> &middot; {story.statusDetail ? story.statusDetail.scientist : t('status.placeholderDetail')}</em>
         )}
       </div>
-      <div className="seg" role="group" aria-label="Mode">
-        <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>Story</button>
-        <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>Scientist</button>
+      {langs.length > 1 && (
+        <select className="picker lang" value={lang} onChange={(e) => { const l = e.target.value as Lang; rememberLang(l); setLang(l) }} aria-label={t('top.language')}>
+          {langs.map((l) => <option key={l} value={l}>{LANGS[l].native}</option>)}
+        </select>
+      )}
+      <div className="seg" role="group" aria-label={t('top.mode')}>
+        <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>{t('top.story')}</button>
+        <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>{t('top.scientist')}</button>
       </div>
     </header>
   )
@@ -73,6 +75,11 @@ interface SideProps {
   flagship?: AcquisitionPair
   /** Radar brightness (backscatter) change layers, when the story has them. */
   radar?: { hh?: LayerDef; hv?: LayerDef }
+  /** The HH/HV colour mix, when the story has both channels: which kind it is. */
+  mix?: 'echo' | 'change'
+  /** The tab to open first (from a shared link) and a callback when the open tab changes. */
+  initialTab?: string
+  onTab?: (id: string) => void
   /** Content blocks the app supplies; the panel decides which tab each one lives in. */
   slots: {
     /** Story: tour and replay buttons. */
@@ -84,10 +91,13 @@ interface SideProps {
     los?: ReactNode
     /** The period chart and list, shown as its own tab. */
     periods?: ReactNode
+    /** Charts of the data, shown as their own tab. */
+    charts?: ReactNode
   }
 }
 
 export function SidePanel(p: SideProps) {
+  const { t } = useI18n()
   const sci = p.ui === 'scientist'
   const bs = p.story.kind === 'backscatter'
   const tech = p.story.technical
@@ -97,7 +107,14 @@ export function SidePanel(p: SideProps) {
   const half = LAMBDA / 2
 
   // Story: friendly units and plain sentences. Scientist: raw units, numbers and the physics.
-  const legend = radarLayer
+  const legend = p.mode === 'mix' && p.mix
+    ? {
+        left: t(`s.mix.${p.mix}.left`),
+        right: t(`s.mix.${p.mix}.right`),
+        title: t(`s.mix.${p.mix}.title`),
+        hint: t(`s.mix.${p.mix}.hint`),
+      }
+    : radarLayer
     ? {
         left: `${fmtNum(lo)} dB`,
         right: `${fmtNum(hi)} dB`,
@@ -107,11 +124,11 @@ export function SidePanel(p: SideProps) {
     : p.mode === 'fringes'
       ? {
           left: '0',
-          right: sci ? `1 fringe = ${half.toFixed(3)} m` : '1 color cycle',
-          title: sci ? 'Wrapped phase (re-wrapped from displacement)' : 'Interferogram fringes',
+          right: sci ? `1 fringe = ${half.toFixed(3)} m` : t('s.cycle'),
+          title: sci ? 'Wrapped phase (re-wrapped from displacement)' : t('s.fringesTitle'),
           hint: sci
             ? `Derived by wrapping the displacement map. One full color cycle is a phase change of 2π, which is λ/2 = ${half.toFixed(4)} m of line-of-sight motion (λ = ${LAMBDA} m, L-band).`
-            : 'Each full color cycle is about 12 cm of motion toward or away from the satellite. More bands packed together means more motion.',
+            : t('s.fringesHint'),
         }
       : p.mode === 'coherence'
         ? {
@@ -119,62 +136,66 @@ export function SidePanel(p: SideProps) {
             right: '1',
             title: sci
               ? (p.coherence.titleScientist ?? 'Coherence magnitude (0 to 1)')
-              : (p.coherence.titleStory ?? 'How much we can trust it'),
+              : (p.coherence.titleStory ?? t('s.cohTitle')),
             hint: sci
               ? (p.coherence.hintScientist ?? `Unitless. Cells below the threshold (${p.threshold.toFixed(2)}) are faded and hatched when masking is on.`)
-              : (p.coherence.hintStory ?? 'Bright means the two radar passes matched well. Dark means the ground changed too much to trust the measurement.'),
+              : (p.coherence.hintStory ?? t('s.cohHint')),
           }
         : {
             left: sci ? fmtNum(lo) : fmtNum(lo * active.displayScale),
             right: sci ? fmtNum(hi) : fmtNum(hi * active.displayScale),
             title: bs
               ? (sci ? (p.displacement.titleScientist ?? p.displacement.name) : (p.displacement.titleStory ?? p.displacement.name))
-              : sci ? `LOS displacement (${active.units})` : `How far the ground moved (${active.displayUnits})`,
+              : sci ? `LOS displacement (${active.units})` : t('s.moved', { u: active.displayUnits }),
             hint: sci
               ? (p.displacement.hintScientist ?? 'Line-of-sight displacement in meters. Sign convention and reference point are listed under Data.')
-              : (p.displacement.hintStory ?? 'Blue and orange show the ground moving toward or away from the satellite, not up or down.'),
+              : (p.displacement.hintStory ?? t('s.movedHint')),
           }
 
   // What the colors mean in the view on screen: the story's own key if it has one, otherwise a standard one built from the layer's wording.
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
   const keyItems: { color: string; text: string }[] | undefined = p.story.copy?.key?.[p.mode] ?? (
-    p.mode === 'fringes'
-      ? [{ color: LEGEND_GRADIENTS.fringes, text: 'One full color cycle is about 12 cm of motion toward or away from the satellite' },
-         { color: '#f7f7f7', text: 'Many tight bands: a lot of motion. Wide bands: little.' }]
+    p.mode === 'mix' && p.mix
+      ? (p.mix === 'echo'
+        ? [{ color: '#f2f7a0', text: t('s.mix.echo.k1') }, { color: '#d35c8a', text: t('s.mix.echo.k2') }, { color: '#3b1f6b', text: t('s.mix.echo.k3') }]
+        : [{ color: '#f1d04a', text: t('s.mix.change.k1') }, { color: '#d9506a', text: t('s.mix.change.k2') }, { color: '#3fbf7f', text: t('s.mix.change.k3') }, { color: '#2a3fa0', text: t('s.mix.change.k4') }])
+      : p.mode === 'fringes'
+      ? [{ color: LEGEND_GRADIENTS.fringes, text: t('s.key.cycle') },
+         { color: '#f7f7f7', text: t('s.key.bands') }]
       : p.mode === 'coherence'
-        ? [{ color: '#ffd479', text: 'Bright: the two passes matched well, so it can be trusted' },
-           { color: '#3b1f6b', text: 'Dark: the ground changed too much, so it is unreliable' }]
+        ? [{ color: '#ffd479', text: t('s.key.cohHi') },
+           { color: '#3b1f6b', text: t('s.key.cohLo') }]
         : radarLayer
-          ? [{ color: '#f39237', text: cap(`echo got ${radarLayer.positiveMeans ?? 'brighter'}`) },
-             { color: '#3b8fd4', text: cap(`echo got ${radarLayer.negativeMeans ?? 'darker'}`) },
-             { color: '#f7f7f7', text: `Little change: left clear` }]
+          ? [{ color: '#f39237', text: cap(t('s.key.echo', { d: radarLayer.positiveMeans ?? t('s.brighter') })) },
+             { color: '#3b8fd4', text: cap(t('s.key.echo', { d: radarLayer.negativeMeans ?? t('s.darker') })) },
+             { color: '#f7f7f7', text: t('s.key.little') }]
           : bs
             ? undefined
-            : [{ color: '#f39237', text: cap(`moved ${p.displacement.positiveMeans ?? 'away from the satellite'}`) },
-               { color: '#3b8fd4', text: cap(`moved ${p.displacement.negativeMeans ?? 'toward the satellite'}`) },
-               { color: '#f7f7f7', text: 'Barely moved: left clear' }])
+            : [{ color: '#f39237', text: cap(t('s.key.moved', { d: p.displacement.positiveMeans ?? t('s.away') })) },
+               { color: '#3b8fd4', text: cap(t('s.key.moved', { d: p.displacement.negativeMeans ?? t('s.toward') })) },
+               { color: '#f7f7f7', text: t('s.key.barely') }])
 
   const pairLine = p.flagship
     ? `Track ${p.flagship.track} ${p.flagship.orbitDirection === 'A' ? 'ascending' : 'descending'} · ${p.story.flagshipPair.reference} → ${p.story.flagshipPair.secondary}`
     : ''
 
-  const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: 'overview', scientist: 'analysis' })
+  const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: p.initialTab ?? 'overview', scientist: p.initialTab ?? 'analysis' })
   const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760)
 
   const credits = (
     <p className="foot">
-      {p.story.credits ?? 'Imagery © Esri · Terrain: AWS Terrain Tiles · Earthquakes: USGS · NISAR pass dates: NASA CMR'}
+      {p.story.credits ?? t('s.credits')}
     </p>
   )
   const team = (
     <p className="foot team">
-      <b>Built by</b> {TEAM.slice(0, -1).join(', ')} and {TEAM[TEAM.length - 1]}<br />{EVENT}
+      <b>{t('s.builtBy')}</b> {t('s.team', { names: TEAM.slice(0, -1).join(', '), last: TEAM[TEAM.length - 1] })}<br />{EVENT}
     </p>
   )
   const sources = <><Resources items={p.story.resources} ui={p.ui} />{credits}{team}</>
   const caveats = tech?.caveats && tech.caveats.length > 0 && (
     <>
-      <h2>Limitations</h2>
+      <h2>{t('s.limits')}</h2>
       <ul className="caveats">
         {tech.caveats.map((c) => <li key={c}>{c}</li>)}
       </ul>
@@ -185,17 +206,18 @@ export function SidePanel(p: SideProps) {
   const all: { id: string; label: string; body: ReactNode }[] = sci
     ? [
         {
-          id: 'analysis', label: 'Analysis', body: (
+          id: 'analysis', label: t('s.tab.analysis'), body: (
             <>
               <p className="pair mono">{pairLine}</p>
               {p.slots.analysis}
-              {tech && <details className="more"><summary>Method and processing</summary><p className="lead tech">{tech.summary}</p></details>}
+              {tech && <details className="more"><summary>{t('s.method')}</summary><p className="lead tech">{tech.summary}</p></details>}
             </>
           ),
         },
-        ...(p.slots.periods ? [{ id: 'periods', label: 'Periods', body: p.slots.periods }] : []),
+        ...(p.slots.periods ? [{ id: 'periods', label: t('s.tab.periods'), body: p.slots.periods }] : []),
+        ...(p.slots.charts ? [{ id: 'charts', label: t('s.tab.charts'), body: p.slots.charts }] : []),
         {
-          id: 'data', label: 'Data', body: (
+          id: 'data', label: t('s.tab.data'), body: (
             <>
               <table className="prov">
                 <tbody>
@@ -212,46 +234,51 @@ export function SidePanel(p: SideProps) {
             </>
           ),
         },
-        { id: 'sources', label: 'Sources', body: sources },
+        { id: 'sources', label: t('s.tab.sources'), body: sources },
       ]
     : [
         {
-          id: 'overview', label: 'Overview', body: (
+          id: 'overview', label: t('s.tab.overview'), body: (
             <>
               <p className="lead">{p.story.storyText}</p>
               {p.slots.actions}
               <details className="howto">
-                <summary>How to use this</summary>
+                <summary>{t('s.howto')}</summary>
                 <ul>
                   {(p.story.copy?.howTo ?? [
-                    `Drag the timeline to the second ${p.story.sensor ?? 'NISAR'} pass to see the change appear.`,
-                    'Click anywhere on the map to see how far that spot moved.',
-                    'Switch to Scientist mode for exact values and sources.',
+                    t('s.howto.1', { sensor: p.story.sensor ?? 'NISAR' }),
+                    t('s.howto.2'),
+                    t('s.howto.3'),
                   ]).map((t) => <li key={t}>{t}</li>)}
                 </ul>
               </details>
             </>
           ),
         },
-        ...(p.slots.periods ? [{ id: 'periods', label: 'Periods', body: p.slots.periods }] : []),
-        ...(p.slots.impact ? [{ id: 'impact', label: 'Impact', body: p.slots.impact }] : []),
-        { id: 'learn', label: 'Learn', body: <>{why}{sources}</> },
+        ...(p.slots.periods ? [{ id: 'periods', label: t('s.tab.periods'), body: p.slots.periods }] : []),
+        ...(p.slots.charts ? [{ id: 'charts', label: t('s.tab.charts'), body: p.slots.charts }] : []),
+        ...(p.slots.impact ? [{ id: 'impact', label: t('s.tab.impact'), body: p.slots.impact }] : []),
+        { id: 'learn', label: t('s.tab.learn'), body: <>{why}{sources}</> },
       ]
   // how many view buttons sit in the switcher, so the grid can lay them out in even rows
-  const nViews = !sci ? 2 : bs ? 1 + (p.radar?.hv ? 1 : 0) + (p.radar?.hh ? 1 : 0) : 3 + (p.radar?.hh ? 1 : 0) + (p.radar?.hv ? 1 : 0)
+  const nViews = !sci ? 2 : bs ? 1 + (p.radar?.hv ? 1 : 0) + (p.radar?.hh ? 1 : 0) + (p.mix ? 1 : 0) : 3 + (p.radar?.hh ? 1 : 0) + (p.radar?.hv ? 1 : 0) + (p.mix ? 1 : 0)
   // Story mode keeps the first view simple: the other map views live in a menu that opens, picks one and closes again.
   const layerItems: LayerItem[] = bs
     ? [
-        ...(p.radar?.hv ? [{ id: 'hv' as const, title: 'Plants and rough ground', sub: 'Radar HV: rough surfaces and plants' }] : []),
-        ...(p.radar?.hh ? [{ id: 'hh' as const, title: 'What changed', sub: 'Difference from the previous pass' }] : []),
+        ...(p.radar?.hv ? [{ id: 'hv' as const, title: t('s.layer.hv'), sub: t('s.layer.hv.sub') }] : []),
+        ...(p.radar?.hh ? [{ id: 'hh' as const, title: t('s.layer.changed'), sub: t('s.layer.changed.sub') }] : []),
+        ...(p.mix ? [{ id: 'mix' as const, title: t('s.layer.mix'), sub: t('s.layer.mix.sub') }] : []),
       ]
     : [
-        { id: 'fringes', title: 'Fringes', sub: 'The raw radar pattern' },
-        { id: 'coherence', title: 'Confidence', sub: 'Where we can trust it' },
-        ...(p.radar?.hh ? [{ id: 'hh' as const, title: 'Surface change', sub: 'Radar HH: ground-sensitive brightness change' }] : []),
-        ...(p.radar?.hv ? [{ id: 'hv' as const, title: 'Plants and rough ground', sub: p.radar.hv.colormap === 'gray' ? 'Radar HV: rough surfaces and plants' : 'Radar HV: plant-sensitive brightness change' }] : []),
+        { id: 'fringes', title: t('s.layer.fringes'), sub: t('s.layer.fringes.sub') },
+        { id: 'coherence', title: t('s.layer.conf'), sub: t('s.layer.conf.sub') },
+        ...(p.radar?.hh ? [{ id: 'hh' as const, title: t('s.layer.surface'), sub: t('s.layer.surface.sub') }] : []),
+        ...(p.radar?.hv ? [{ id: 'hv' as const, title: t('s.layer.hv'), sub: p.radar.hv.colormap === 'gray' ? t('s.layer.hv.sub') : t('s.layer.hvchange.sub') }] : []),
+        ...(p.mix ? [{ id: 'mix' as const, title: t('s.layer.mix'), sub: t('s.layer.mix.sub') }] : []),
       ]
   const current = all.find((t) => t.id === tabs[p.ui]) ?? all[0]
+  const { onTab } = p
+  useEffect(() => { onTab?.(current.id) }, [current.id, onTab])
 
   return (
     <aside className={`side ${sci ? 'sci' : ''} ${collapsed ? 'collapsed' : ''}`}>
@@ -259,15 +286,15 @@ export function SidePanel(p: SideProps) {
         <div className="side-title">
           <h1>{sci && tech ? tech.title : p.story.title}</h1>
           <button className="collapse" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}
-            aria-label={collapsed ? 'Show the panel' : 'Hide the panel'} title={collapsed ? 'Show the panel' : 'Hide the panel to see the map'}>{collapsed ? '+' : '–'}</button>
+            aria-label={collapsed ? t('panel.show') : t('panel.hide')} title={collapsed ? t('panel.show') : t('panel.hide')}>{collapsed ? '+' : '–'}</button>
         </div>
         <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
         {!collapsed && <>
 
-        <div className="views" role="group" aria-label="Map view" data-n={nViews}>
+        <div className="views" role="group" aria-label={t('s.mapView')} data-n={nViews}>
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
-            title={(p.story.copy?.mainView ?? ['Ground motion', 'LOS displacement'])[sci ? 1 : 0]}
-            sub={bs ? (sci ? 'GCOV HHHH change, dB' : 'How much brighter or darker') : sci ? 'Unwrapped, meters' : 'How far the ground moved'} />
+            title={(p.story.copy?.mainView ?? [t('s.view.motion'), 'LOS displacement'])[sci ? 1 : 0]}
+            sub={bs ? (sci ? 'GCOV HHHH change, dB' : t('s.view.brighterDarker')) : sci ? 'Unwrapped, meters' : t('s.view.howFar')} />
           {!sci && <LayerMenu items={layerItems} mode={p.mode} setMode={p.setMode} />}
           {!bs && sci && <ViewBtn on={p.mode === 'fringes'} onClick={() => p.setMode('fringes')}
             title={sci ? 'Wrapped phase' : 'Fringes'} sub={sci ? 'One cycle per λ/2' : 'The raw radar pattern'} />}
@@ -277,6 +304,7 @@ export function SidePanel(p: SideProps) {
             title="Radar HV" sub={sci ? 'GCOV HVHV, dB' : 'Rough surfaces and plants'} />}
           {bs && sci && p.radar?.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
             title="What changed" sub={sci ? 'HH change vs the previous pass, dB' : 'Difference from the previous pass'} />}
+          {sci && p.mix && <ViewBtn on={p.mode === 'mix'} onClick={() => p.setMode('mix')} title={t('s.layer.mix')} sub={t('s.layer.mix.sub')} />}
           {!bs && sci && (p.radar?.hh || p.radar?.hv) && <>
             {p.radar.hh && <ViewBtn on={p.mode === 'hh'} onClick={() => p.setMode('hh')}
               title="Radar HH" sub={sci ? 'GCOV HHHH change, dB' : 'Ground-sensitive brightness change'} />}
@@ -292,7 +320,7 @@ export function SidePanel(p: SideProps) {
         </div>
 
         <details className="settings">
-          <summary>{sci ? 'About this layer and display settings' : 'What do the colors mean?'}</summary>
+          <summary>{sci ? 'About this layer and display settings' : t('s.colors')}</summary>
           {keyItems && (
             <ul className="key">
               {keyItems.map((k) => <li key={k.text}><i style={{ background: k.color }} />{k.text}</li>)}
@@ -301,7 +329,7 @@ export function SidePanel(p: SideProps) {
           <p className="hint">{legend.hint}</p>
           {!bs && <label className="check">
             <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
-            <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : 'Fade and hatch areas where the measurement is unreliable'}</span>
+            <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : t('s.fade')}</span>
           </label>}
           {sci && !bs && p.fadeLow && (
             <label className="slider">
@@ -311,7 +339,7 @@ export function SidePanel(p: SideProps) {
           )}
         </details>
 
-        <div className="tabs" role="tablist" aria-label="Panel sections">
+        <div className="tabs" role="tablist" aria-label={t('panel.tabs')}>
           {all.map((t) => (
             <button key={t.id} role="tab" aria-selected={t.id === current.id} className={t.id === current.id ? 'on' : ''}
               onClick={() => setTabs((s) => ({ ...s, [p.ui]: t.id }))}>{t.label}</button>
@@ -325,14 +353,10 @@ export function SidePanel(p: SideProps) {
   )
 }
 
-const GROUP_TITLE: Record<Resource['group'], string> = {
-  learn: 'Learn more',
-  data: 'Data and documentation',
-  partner: 'Other SAR missions',
-}
 
 /** Links from the challenge resource list. Story mode shows learning links; Scientist mode shows data links. */
 function Resources({ items, ui }: { items?: Resource[]; ui: UiMode }) {
+  const { t } = useI18n()
   if (!items?.length) return null
   const shown = items.filter((r) => r.audience === 'both' || r.audience === ui)
   const groups = (['learn', 'data', 'partner'] as const).filter((g) => shown.some((r) => r.group === g))
@@ -340,7 +364,7 @@ function Resources({ items, ui }: { items?: Resource[]; ui: UiMode }) {
     <div className="res">
       {groups.map((g) => (
         <details key={g}>
-          <summary>{GROUP_TITLE[g]}</summary>
+          <summary>{t(`s.res.${g}`)}</summary>
           <ul>
             {shown.filter((r) => r.group === g).map((r) => (
               <li key={r.url}>
@@ -359,6 +383,7 @@ interface LayerItem { id: ViewMode; title: string; sub: string }
 
 /** "More layers": a menu that opens on click, lists the other map views with a line each, and closes when one is picked. */
 function LayerMenu({ items, mode, setMode }: { items: LayerItem[]; mode: ViewMode; setMode: (m: ViewMode) => void }) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
   const active = items.find((i) => i.id === mode)
@@ -376,7 +401,7 @@ function LayerMenu({ items, mode, setMode }: { items: LayerItem[]; mode: ViewMod
   return (
     <div className="lmenu-wrap" ref={box}>
       <button className={`view layer-btn ${active ? 'on' : ''}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <b>{active ? active.title : 'More layers'}</b>
+        <b>{active ? active.title : t('s.moreLayers')}</b>
         <i aria-hidden="true" />
       </button>
       {open && (
@@ -423,6 +448,7 @@ interface InspectProps {
 }
 
 export function Inspector({ point, ui, displacement, coherence, threshold, showChange, sensor = 'NISAR', kind, radar, onJump, onClose }: InspectProps) {
+  const { t } = useI18n()
   const bs = kind === 'backscatter'
   const sci = ui === 'scientist'
   const g = displacement.grid
@@ -430,8 +456,8 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
   const c = sampleGrid(coherence.grid, point[0], point[1])
   const cm = d == null ? null : d * displacement.layer.displayScale
   const conf = c == null ? null : c >= 0.7 ? 'High' : c >= threshold ? 'Medium' : 'Low'
-  const pos = displacement.layer.positiveMeans ?? 'toward the satellite'
-  const neg = displacement.layer.negativeMeans ?? 'away from the satellite'
+  const pos = displacement.layer.positiveMeans ?? t('s.toward')
+  const neg = displacement.layer.negativeMeans ?? t('s.away')
   const dir = cm == null ? '' : cm > 0 ? pos : neg
   const [w, s, e, n] = g.bbox
   const col = Math.min(g.width - 1, Math.floor(((point[0] - w) / (e - w)) * g.width))
@@ -439,16 +465,16 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
   const sign = displacement.layer.provenance.signConvention
 
   return (
-    <div className={`inspector ${sci ? 'sci' : ''}`} role="dialog" aria-label="Point details">
-      <button className="x" onClick={onClose} aria-label="Close">&times;</button>
+    <div className={`inspector ${sci ? 'sci' : ''}`} role="dialog" aria-label={t('s.point')}>
+      <button className="x" onClick={onClose} aria-label={t('s.close')}>&times;</button>
       <div className="coords">{point[1].toFixed(sci ? 5 : 2)}&deg;, {point[0].toFixed(sci ? 5 : 2)}&deg;</div>
       {!showChange ? (
         <>
-          <p>{bs ? `No ${sensor} radar picture is shown yet at this date.` : sci ? `No second ${sensor} acquisition at the selected date.` : `The change has not appeared yet at this date.`} Move the timeline to the second pass to see it.</p>
-          {onJump && <button className="cta ghost" onClick={onJump}>Jump to the second pass</button>}
+          <p>{bs ? t('s.insp.noPicture', { sensor }) : sci ? t('s.insp.noSecond', { sensor }) : t('s.insp.notYet')} {t('s.insp.move')}</p>
+          {onJump && <button className="cta ghost" onClick={onJump}>{t('s.insp.jump')}</button>}
         </>
       ) : d == null ? (
-        <p>Outside the processed area.</p>
+        <p>{t('s.insp.outside')}</p>
       ) : sci ? (
         <>
           <div className="big mono">{d.toFixed(4)} <small>{displacement.layer.units}</small></div>
@@ -473,9 +499,9 @@ export function Inspector({ point, ui, displacement, coherence, threshold, showC
           <div className="big">{cm! > 0 ? '+' : ''}{cm!.toFixed(bs ? 1 : 0)} <small>{displacement.layer.displayUnits}</small></div>
           {bs
             ? (displacement.layer.colormap === 'gray'
-              ? <p>{cm! > -5 ? 'A strong echo: a rough or wet surface, such as fresh lava, bare rock or wet ground.' : cm! > -9 ? 'A typical echo for rough, bare ground.' : cm! > -14 ? 'A weak echo: a smoother surface, or ground covered by wet snow.' : 'A very weak echo: a smooth surface that mirrors the radar away, or wet snow.'} The radar picture does not say by itself which one it is.</p>
-              : <p>{Math.abs(cm!) < 1.5 ? 'The radar brightness here barely changed.' : `This spot looks ${dir} to the radar than on the first pass.`} Brightness changes can come from lava, but also from snow, wet ground and plants, so a change alone does not say which.</p>)
-            : <p>{Math.abs(cm!) < 1 ? 'The ground here barely moved.' : `The ground here moved ${dir}.`} {conf === 'Low' ? 'We are not very sure about this spot.' : conf === 'High' ? 'We are confident in this measurement.' : 'This measurement is fairly reliable.'}</p>}
+              ? <p>{cm! > -5 ? t('s.insp.echo1') : cm! > -9 ? t('s.insp.echo2') : cm! > -14 ? t('s.insp.echo3') : t('s.insp.echo4')} {t('s.insp.echoNote')}</p>
+              : <p>{Math.abs(cm!) < 1.5 ? t('s.insp.brightSame') : t('s.insp.brightDir', { dir })} {t('s.insp.brightNote')}</p>)
+            : <p>{Math.abs(cm!) < 1 ? t('s.insp.still') : t('s.insp.moved', { dir })} {conf === 'Low' ? t('s.insp.low') : conf === 'High' ? t('s.insp.high') : t('s.insp.mid')}</p>}
           <Badge kind={displacement.layer.badge} synthetic={displacement.layer.synthetic} />
         </>
       )}

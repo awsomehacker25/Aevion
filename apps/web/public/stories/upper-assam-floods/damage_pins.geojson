@@ -1,0 +1,77 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     94.752,
+     26.917
+    ]
+   },
+   "properties": {
+    "id": "simaluguri",
+    "date": "2026-07-20",
+    "approximate": false,
+    "source": "The Sentinel",
+    "url": "https://www.sentinelassam.com/breakingnews/train-services-in-upper-assam-remain-suspended-as-dikhow-river-floods-railway-tracks",
+    "location_note": "Simaluguri Junction station (Wikipedia coordinates)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     94.96,
+     27.06
+    ]
+   },
+   "properties": {
+    "id": "disang_mahmora",
+    "date": "2026-07-22",
+    "approximate": true,
+    "source": "India Today NE",
+    "url": "https://www.indiatodayne.in/assam/video/assam-floods-disang-embankment-breach-inundates-70-80-villages-in-mahmora-residents-take-shelter-on-roads-1428536-2026-07-22",
+    "location_note": "The report names only the Mahmora area. Pin is on the Disang channel (JRC surface water) south of Moranhat and may be off by about 10 km."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     94.665,
+     26.968
+    ]
+   },
+   "properties": {
+    "id": "betbari",
+    "date": "2026-07-20",
+    "approximate": true,
+    "source": "Assam Tribune",
+    "url": "https://assamtribune.com/assam/as-floods-recede-sivasagars-betbari-counts-losses-picks-up-pieces-1615037",
+    "location_note": "Between two fuel stations listed at Betbari, Sivasagar; village centre not mapped."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     94.73,
+     26.92
+    ]
+   },
+   "properties": {
+    "id": "nazira",
+    "date": "2026-07-19",
+    "approximate": true,
+    "source": "The Sentinel",
+    "url": "https://www.sentinelassam.com/north-east-india-news/assam-news/assam-massive-flooding-in-dikhow-river-brings-death-destruction-to-nazira",
+    "location_note": "Town centre. The report covers Nazira town and riverside areas (Amulapatti, Mesagarh, Rajapul)."
+   }
+  }
+ ]
+}

@@ -1,4 +1,4 @@
-import type { AcquisitionPair, Grid, LoadedStory, QuakeCollection, Story, StoryIndexEntry, UsgsContext } from '../types'
+import type { AcquisitionPair, FloodManifest, FloodRain, FloodSeries, FloodStory, Grid, LoadedFlood, LoadedStory, QuakeCollection, Story, StoryIndexEntry, UsgsContext } from '../types'
 
 const BASE = `${import.meta.env.BASE_URL}stories/`
 
@@ -65,6 +65,45 @@ export async function loadStory(id?: string): Promise<LoadedStory> {
   return { story, grids, pairs: acq.pairs, flagship, quakes, context, epochGrids }
 }
 
+/** Loads a flood story: its manifest, time series, rainfall, damage pins and outlines, all in parallel. */
+export async function loadFlood(id: string): Promise<LoadedFlood> {
+  const stories = await loadIndex()
+  const entry = stories.find((s) => s.id === id)
+  if (!entry) throw new Error(`Unknown story "${id}"`)
+  const dir = `${BASE}${entry.manifest.split('/')[0]}/`
+  const story = await getJson<FloodStory>(`${BASE}${entry.manifest}`)
+  const opt = <T,>(p: string | undefined) => (p ? getJson<T>(dir + p).catch(() => null) : Promise.resolve(null))
+  const [flood, series] = await Promise.all([getJson<FloodManifest>(dir + story.flood), getJson<FloodSeries>(dir + story.series)])
+  const [rain, pins, districts, validation] = await Promise.all([
+    opt<FloodRain>(flood.rainfall), opt<GeoJSON.FeatureCollection>(flood.pins), opt<GeoJSON.FeatureCollection>(flood.districts), opt<Record<string, unknown>>(story.validation),
+  ])
+  // image paths in the manifest are relative to the story folder
+  const abs = (p: string) => (p.startsWith('http') ? p : dir + p)
+  for (const d of flood.dates) {
+    d.layers.HH = abs(d.layers.HH); d.layers.HV = abs(d.layers.HV); d.layers.water = abs(d.layers.water)
+    if (d.layers.RGB) d.layers.RGB = abs(d.layers.RGB)
+  }
+  const c = flood.context
+  if (c.permanent_water) c.permanent_water.url = abs(c.permanent_water.url)
+  if (c.aftermath) c.aftermath.url = abs(c.aftermath.url)
+  if (c.sentinel1) c.sentinel1.url = abs(c.sentinel1.url)
+  if (c.sentinel2) c.sentinel2.url = abs(c.sentinel2.url)
+  if (c.population) {
+    c.population.url = abs(c.population.url)
+    for (const k of Object.keys(c.population.by_date)) c.population.by_date[k].url = abs(c.population.by_date[k].url)
+  }
+  return { story, flood, series, rain, pins, districts, validation }
+}
+
+/** Text overrides for one language of a story (stories/<id>/i18n/<lang>.json), or null when there are none. */
+export async function loadStoryText<T>(id: string, lang: string): Promise<T | null> {
+  if (lang === 'en') return null
+  try {
+    const r = await fetch(`${BASE}${id}/i18n/${lang}.json`)
+    return r.ok ? ((await r.json()) as T) : null
+  } catch { return null }
+}
+
 /** Nearest-cell lookup. Returns null outside the grid or on nodata. */
 export function sampleGrid(g: Grid, lon: number, lat: number): number | null {
   const [w, s, e, n] = g.bbox
@@ -77,9 +116,14 @@ export function sampleGrid(g: Grid, lon: number, lat: number): number | null {
 
 export const ms = (iso: string) => Date.parse(iso)
 
+let dateLocale = 'en-US'
+/** Called by the language provider so dates everywhere follow the chosen language. */
+export function setDateLocale(l: string) { dateLocale = l }
+export const getDateLocale = () => dateLocale
+
 export function fmtDate(t: number, withTime = false): string {
   const d = new Date(t)
-  const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+  const date = d.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
   if (!withTime) return date
-  return `${date}, ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })} UTC`
+  return `${date}, ${d.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })} UTC`
 }

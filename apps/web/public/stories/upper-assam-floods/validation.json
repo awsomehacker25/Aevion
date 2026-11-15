@@ -1,0 +1,107 @@
+{
+  "peak": "2026-07-22",
+  "aoi": "Sivasagar + Charaideo",
+  "figure_flood_frac": 0.121,
+  "otsu_hh_db": -11.1,
+  "otsu_hv_db": -17.6,
+  "vs_aus_fig14": {
+    "HH < -13 dB": {
+      "precision": 0.388,
+      "recall": 0.767,
+      "f1": 0.516,
+      "iou": 0.347,
+      "pred_frac": 0.239,
+      "ref_frac": 0.121
+    },
+    "HH < -14 dB": {
+      "precision": 0.416,
+      "recall": 0.717,
+      "f1": 0.527,
+      "iou": 0.357,
+      "pred_frac": 0.209,
+      "ref_frac": 0.121
+    },
+    "HH < -15 dB": {
+      "precision": 0.445,
+      "recall": 0.65,
+      "f1": 0.528,
+      "iou": 0.359,
+      "pred_frac": 0.177,
+      "ref_frac": 0.121
+    },
+    "HH < -16 dB": {
+      "precision": 0.477,
+      "recall": 0.536,
+      "f1": 0.505,
+      "iou": 0.338,
+      "pred_frac": 0.136,
+      "ref_frac": 0.121
+    },
+    "HH < -17 dB": {
+      "precision": 0.504,
+      "recall": 0.364,
+      "f1": 0.423,
+      "iou": 0.268,
+      "pred_frac": 0.087,
+      "ref_frac": 0.121
+    },
+    "HH < -18 dB": {
+      "precision": 0.555,
+      "recall": 0.239,
+      "f1": 0.334,
+      "iou": 0.2,
+      "pred_frac": 0.052,
+      "ref_frac": 0.121
+    },
+    "HH < Otsu (-11.1 dB)": {
+      "precision": 0.344,
+      "recall": 0.841,
+      "f1": 0.488,
+      "iou": 0.323,
+      "pred_frac": 0.296,
+      "ref_frac": 0.121
+    },
+    "HV < Otsu (-17.6 dB)": {
+      "precision": 0.309,
+      "recall": 0.885,
+      "f1": 0.458,
+      "iou": 0.297,
+      "pred_frac": 0.347,
+      "ref_frac": 0.121
+    }
+  },
+  "vs_jrc_dry": {
+    "HH < -13 dB": {
+      "precision": 0.351,
+      "recall": 0.645,
+      "f1": 0.455,
+      "iou": 0.294,
+      "pred_frac": 0.047,
+      "ref_frac": 0.026
+    },
+    "HH < -15 dB": {
+      "precision": 0.415,
+      "recall": 0.449,
+      "f1": 0.431,
+      "iou": 0.275,
+      "pred_frac": 0.028,
+      "ref_frac": 0.026
+    },
+    "HH < -17 dB": {
+      "precision": 0.447,
+      "recall": 0.383,
+      "f1": 0.413,
+      "iou": 0.26,
+      "pred_frac": 0.022,
+      "ref_frac": 0.026
+    },
+    "HH < -19 dB": {
+      "precision": 0.466,
+      "recall": 0.291,
+      "f1": 0.358,
+      "iou": 0.218,
+      "pred_frac": 0.016,
+      "ref_frac": 0.026
+    }
+  }
+}

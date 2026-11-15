@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import './Flood.css'
 import { DEFAULT_COHERENCE_THRESHOLD, EVENT, TEAM } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms } from './lib/data'
@@ -10,11 +11,18 @@ import { compareToModel } from './lib/physics'
 import { EpochChart, PeriodList, PeriodSwitcher } from './Epochs'
 import { ImpactPanel } from './Impact'
 import MapView from './MapView'
+import type { MixOpts } from './lib/render'
 import { Inspector, SidePanel, TopBar } from './Panels'
 import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
+import StoryCharts from './StoryCharts'
+import { epochCode, epochFromCode, readLink, shortDate, writeLink } from './lib/link'
+import FloodViewer from './FloodViewer'
+import { I18nProvider, initialLang, useI18n } from './i18n'
+import type { Lang } from './i18n'
+import { offers, useLocalizedStory } from './lib/localize'
 import type { Camera, CameraReq, City, EventMark, Grid, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
 
 function pickLayer(d: LoadedStory, role: LayerDef['role']) {
@@ -43,7 +51,8 @@ interface ViewerProps {
 
 /** One story. It is re-created (with fresh state) whenever the story changes. */
 function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerProps) {
-  const [data, setData] = useState<LoadedStory | null>(null)
+  const { t } = useI18n()
+  const [raw, setRaw] = useState<LoadedStory | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
   const [ui, setUi] = useState<UiMode>(initialUi)
@@ -61,20 +70,45 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const [note, setNote] = useState<string | null>(null) // a short message that fades out by itself
   const noteTimer = useRef(0)
   const [epochId, setEpochId] = useState<string | null>(null) // null = the featured period
+  const [panelTab, setPanelTab] = useState<string | null>(null) // the open side-panel tab, for the shared link
+  const [initialTab, setInitialTab] = useState<string | undefined>(undefined)
   const replayRaf = useRef(0)
   const prevMode = useRef<ViewMode>('los')
 
   useEffect(() => {
     loadStory(id)
       .then((d) => {
-        setData(d)
+        setRaw(d)
         setCursor(ms(d.story.timeline.initial))
         if (d.story.defaultThreshold != null) setThreshold(d.story.defaultThreshold)
+        // a shared link can carry the view (v), the date (d) and the measured period (p)
+        const h = readLink()
+        const epId = epochFromCode(h.p, (d.story.epochs ?? []).map((e) => e.id))
+        const ep = d.story.epochs?.find((e) => e.id === epId)
+        if (ep && !isFeatured(d.story, ep)) setEpochId(ep.id)
+        if (h.t) setInitialTab(h.t)
+        const v = h.v as ViewMode | null
+        if (v && ['los', 'fringes', 'coherence', 'hh', 'hv', 'mix'].includes(v)) setMode(v)
+        const t0 = Date.parse(`${h.d}T12:00:00Z`)
+        if (Number.isFinite(t0) && t0 >= ms(d.story.timeline.start) && t0 <= ms(d.story.timeline.end)) setCursor(t0)
       })
       .catch((e: Error) => setError(e.message))
   }, [id])
 
+  // the story in the viewer's language: the English story with that language's text laid over it
+  const localized = useLocalizedStory(raw?.story.id ?? '', raw?.story)
+  const data = useMemo(() => (raw && localized ? { ...raw, story: localized } : raw), [raw, localized])
+
   useEffect(() => () => cancelAnimationFrame(replayRaf.current), [])
+
+  // keep the link current (view, date, period) once the viewer stops moving
+  useEffect(() => {
+    if (!raw || replay != null) return
+    const h = window.setTimeout(() => {
+      writeLink({ v: mode, d: shortDate(new Date(cursor).toISOString().slice(0, 10)), t: panelTab, p: epochId ? epochCode(epochId) : null })
+    }, 400)
+    return () => window.clearTimeout(h)
+  }, [raw, mode, cursor, epochId, replay, panelTab])
 
   const layers = useMemo(() => {
     if (!data) return null
@@ -157,12 +191,12 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const selectedEpochId = data?.story.epochs?.find((e) => (shownEpochId ? e.id === shownEpochId : isFeatured(data.story, e)))?.id ?? ''
   const ventMotion = useMemo(() => (data ? computeVentMotion(data.story, data.epochGrids) : null), [data])
   // A click on an eruption dot: go to its NISAR period if one was processed, otherwise just go to the date and say so.
-  const onEpisode = useCallback((e: EventMark, t: number) => {
-    const ep = data ? epochFor(data.story, t) : undefined
+  const onEpisode = useCallback((e: EventMark, time: number) => {
+    const ep = data ? epochFor(data.story, time) : undefined
     if (ep) selectEpoch(ep.id)
-    setCursor(t)
-    if (!ep) flashNote(`No NISAR period has been processed for ${e.name}, so there is no measured change to show for it.`)
-  }, [data, selectEpoch, flashNote])
+    setCursor(time)
+    if (!ep) flashNote(t('s.note.noPeriod', { name: e.name }))
+  }, [data, selectEpoch, flashNote, t])
   const stepEpoch = useCallback((delta: number) => {
     const rows = data?.story.epochs ? sortEpochs(data.story.epochs) : []
     const i = rows.findIndex((e) => e.id === selectedEpochId)
@@ -240,7 +274,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const startReplay = () => {
     const radarStory = data?.story.kind === 'backscatter'
     // a radar-picture story replays its "what changed" view growing from nothing; it needs that view for this period
-    if (radarStory && !view?.radar.hh) { flashNote('There is no change picture for this pass, because there is no earlier pass to compare with.'); return }
+    if (radarStory && !view?.radar.hh) { flashNote(t('s.note.noChange')); return }
     prevMode.current = mode
     setMode(radarStory ? 'hh' : 'fringes')
     setReplay(0) // start from an empty map in the same render, so the finished picture never flashes first
@@ -264,13 +298,20 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     setPicked([c.lon, c.lat])
   }
 
-  if (error) return <div className="splash"><b>Could not load the story.</b><span>{error}</span></div>
-  if (layers && 'error' in layers) return <div className="splash"><b>Story is not valid.</b><span>{layers.error}</span></div>
-  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>Loading story&hellip;</span><small className="splash-team">{EVENT}</small><small className="splash-names">Built by {TEAM.slice(0, -1).join(', ')} and {TEAM[TEAM.length - 1]}</small></div>
+  if (error) return <div className="splash"><b>{t('s.err.load')}</b><span>{error}</span></div>
+  if (layers && 'error' in layers) return <div className="splash"><b>{t('s.err.invalid')}</b><span>{layers.error}</span></div>
+  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>{t('loading')}</span><small className="splash-team">{EVENT}</small><small className="splash-names">{t('s.builtBy')} {t('s.team', { names: TEAM.slice(0, -1).join(', '), last: TEAM[TEAM.length - 1] })}</small></div>
 
   const { story, flagship: viewPair } = view
   // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
-  const shownMode: ViewMode = (mode === 'hh' && !view.radar.hh) || (mode === 'hv' && !view.radar.hv) ? 'los' : mode
+  // the colour mix needs both channels: the echo pictures (radar-picture stories) or both change pictures
+  const mixKind: 'echo' | 'change' | undefined = view.displacement.layer.colormap === 'gray' ? (view.radar.hv ? 'echo' : undefined) : view.radar.hh && view.radar.hv ? 'change' : undefined
+  const mixOpts: MixOpts | undefined = mixKind === 'echo' && view.radar.hv
+    ? { kind: 'echo', hh: view.displacement.grid, hv: view.radar.hv.grid, rHH: view.displacement.layer.range, rHV: view.radar.hv.layer.range }
+    : mixKind === 'change' && view.radar.hh && view.radar.hv
+      ? { kind: 'change', hh: view.radar.hh.grid, hv: view.radar.hv.grid, rHH: view.radar.hh.layer.range, rHV: view.radar.hv.layer.range }
+      : undefined
+  const shownMode: ViewMode = (mode === 'hh' && !view.radar.hh) || (mode === 'hv' && !view.radar.hv) || (mode === 'mix' && !mixOpts) ? 'los' : mode
   const { context } = data
   const progress = changeProgress(story, cursor, viewPair?.secondary)
   const showChange = progress >= 1
@@ -281,19 +322,23 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     <button className="cta ghost" aria-pressed={swipe} onClick={() => {
       if (!swipe && progress < 1) setCursor(ms(story.timeline.initial)) // there must be a measured change to compare against
       setSwipe(!swipe)
-    }}>{swipe ? 'Hide swipe' : 'Before / after'}</button>
+    }}>{swipe ? t('s.swipe.hide') : t('s.swipe.show')}</button>
   )
   const epochs = data.story.epochs
   const periodsTab = epochs?.length ? (
     <>
       {ventMotion && <EpochChart epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} chart={story.copy?.chart} />}
-      <h2>{story.copy?.periodsHeading ?? 'All periods'}</h2>
+      <h2>{story.copy?.periodsHeading ?? t('s.periods.all')}</h2>
       <PeriodList epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} chart={story.copy?.chart} />
     </>
   ) : undefined
   const periodSwitcher = epochs?.length ? (
     <PeriodSwitcher epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} onStep={stepEpoch} chart={story.copy?.chart} />
   ) : undefined
+  const charts = (
+    <StoryCharts data={data} displacement={view.displacement.grid} coherence={view.coherence.grid} scale={view.displacement.layer.displayScale}
+      unit={view.displacement.layer.displayUnits} threshold={threshold} picked={picked} sci={sci} />
+  )
   const timelineData = { ...data, story, flagship: viewPair }
   const impact = context && (
     <ImpactPanel context={context} defo={view.displacement.grid} cov={view.coherence.grid} ui={ui}
@@ -303,22 +348,22 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   return (
     <div className="app">
       <MapView story={story} quakes={data.quakes} context={context} displacement={view.displacement} coherence={view.coherence}
-        radarHH={view.radar.hh} radarHV={view.radar.hv} next={view.next}
+        radarHH={view.radar.hh} radarHV={view.radar.hv} mix={mixOpts} next={view.next}
         mode={shownMode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={viewPair?.secondary} swipe={swipe} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
         onProfilePoint={addProfilePoint}
         replayScale={replay} />
       <button className="recenter" onClick={() => fly({ center: story.aoi.center, zoom: story.aoi.zoom, pitch: story.aoi.pitch, bearing: story.aoi.bearing })}
-        title="Fly back to the start of this story" aria-label="Recenter the map on this story">
+        title={t('s.recenter.tip')} aria-label={t('s.recenter.aria')}>
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-        Recenter
+        {t('s.recenter')}
       </button>
-      <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} />
+      <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} languages={stories.find((x) => x.id === story.id)?.languages} />
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}
-        radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }}
+        radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }} mix={mixKind} initialTab={initialTab} onTab={setPanelTab}
         slots={sci ? {
           analysis: (
             <>
@@ -331,6 +376,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
           ),
           impact,
           periods: periodsTab,
+          charts,
           los: bs ? undefined : <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />,
         } : {
           actions: (
@@ -342,21 +388,22 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
           ),
           impact,
           periods: periodsTab,
+          charts,
           why: <WhyCards items={story.why} />,
           los: bs ? undefined : <LosDiagram sci={false} />,
         }} />
       {replay != null && (
         <div className="replay-chip">{bs
-          ? 'Illustrative replay: NISAR took one picture every 12 days, not the change in between'
-          : 'Illustrative replay: the satellite measured the final result, not the motion as it happened'}</div>
+          ? t('s.replay.chipRadar')
+          : t('s.replay.chipMotion')}</div>
       )}
       {!bs && (
         <div className={`replay-chip fade ${replay == null && progress > 0 && progress < 0.97 ? 'on' : ''}`} aria-hidden={progress <= 0 || progress >= 0.97}>
-          Illustrative build-up: {story.sensor ?? 'NISAR'} measured only the final result, not the motion in between
+          {t('s.replay.buildup', { sensor: story.sensor ?? 'NISAR' })}
         </div>
       )}
       <div className={`replay-chip fade note ${note ? 'on' : ''}`} role="status" aria-hidden={!note}>{note}</div>
-      {picking && <div className="replay-chip">Click two points on the map to draw a cross-section</div>}
+      {picking && <div className="replay-chip">{t('s.picking')}</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={view.displacement} coherence={view.coherence}
           threshold={threshold} showChange={showChange} sensor={story.sensor} kind={story.kind} radar={view.radar}
@@ -378,18 +425,32 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
 }
 
 export default function App() {
-  const [stories, setStories] = useState<StoryIndexEntry[]>([])
+  const [stories, setStories] = useState<StoryIndexEntry[] | null>(null)
   const [ui, setUi] = useState<UiMode>('story')
   const [id, setId] = useState<string | undefined>(() => new URLSearchParams(location.search).get('story') ?? undefined)
+  const [lang, setLang] = useState<Lang>(initialLang)
 
   useEffect(() => { loadIndex().then(setStories).catch(() => setStories([])) }, [])
 
   const switchStory = (next: string) => {
     const url = new URL(location.href)
     url.searchParams.set('story', next)
+    url.hash = ''
     history.replaceState(null, '', url)
     setId(next)
   }
 
-  return <Viewer key={id ?? 'default'} id={id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />
+  if (!stories) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /></div>
+  // Upper Assam is the flagship: it opens first unless a story is asked for in the address.
+  const entry = stories.find((s) => s.id === id) ?? stories[0]
+  // A story only offers its own languages: anything else shows English until the viewer picks again.
+  const shown: Lang = offers(entry?.languages, lang) ? lang : 'en'
+
+  return (
+    <I18nProvider lang={shown} setLang={setLang}>
+      {entry?.kind === 'flood'
+        ? <FloodViewer key={entry.id} id={entry.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />
+        : <Viewer key={entry?.id ?? 'default'} id={entry?.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />}
+    </I18nProvider>
+  )
 }

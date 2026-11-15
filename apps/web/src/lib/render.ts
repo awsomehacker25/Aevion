@@ -32,6 +32,7 @@ export const LEGEND_GRADIENTS: Record<ViewMode, string> = {
   coherence: `linear-gradient(90deg, ${CONFIDENCE.join(',')})`,
   hh: `linear-gradient(90deg, ${DIVERGING.join(',')})`,
   hv: `linear-gradient(90deg, ${DIVERGING.join(',')})`,
+  mix: 'linear-gradient(90deg, #0a0f24, #3b1f6b, #d35c8a, #f1d04a, #f2f7a0)',
 }
 
 export interface RenderOpts {
@@ -47,6 +48,18 @@ export interface RenderOpts {
   quiet?: number
   /** 'gray' draws the values as a radar picture (low to high) instead of a change around zero. */
   colormap?: 'gray'
+  /** Colour mix of HH and HV (mode 'mix'). 'echo': R = HH, G = HV, B = HH minus HV. 'change': R = HH change, G = HV change. */
+  mix?: MixOpts
+}
+
+export interface MixOpts {
+  hh: Grid
+  hv: Grid
+  kind: 'echo' | 'change'
+  rHH: [number, number]
+  rHV: [number, number]
+  /** Range of HH minus HV for the blue channel (echo mix). */
+  rDiff?: [number, number]
 }
 
 const smooth = (a: number, b: number, x: number) => {
@@ -194,7 +207,49 @@ function upsample(g: Grid, w: number, h: number): { vals: Float32Array; valid: U
 const upCache = new WeakMap<Grid, { W: number; H: number; vals: Float32Array; valid: Uint8Array }>()
 
 /** Draws the selected view onto a canvas, enlarged about 4x with cubic interpolation so it stays sharp when zoomed in. */
+/**
+ * HH/HV colour mix. Echo pictures (a radar picture of each date) use red = HH, green = HV, blue = HH minus HV, the stretch used for
+ * flood mapping. Change pictures (how much each channel changed since the pass before) use red = HH change, green = HV change and blue
+ * as the opposite of both, so grey means little change, yellow means both got brighter, blue means both got darker.
+ */
+function renderMix(base: Grid, m: MixOpts): HTMLCanvasElement {
+  const S = Math.max(2, Math.round(720 / base.width))
+  const W = Math.round(base.width * S)
+  const H = Math.round(base.height * S)
+  const cv = document.createElement('canvas')
+  cv.width = W
+  cv.height = H
+  const ctx = cv.getContext('2d')!
+  const img = ctx.createImageData(W, H)
+  const d = img.data
+  const n = (v: number, r: [number, number]) => Math.min(1, Math.max(0, (v - r[0]) / (r[1] - r[0])))
+  const rd = m.rDiff ?? [2, 14]
+  const feather = Math.max(4, Math.round(Math.min(W, H) * 0.05))
+  for (let y = 0; y < H; y++) {
+    const fy = (y + 0.5) / S - 0.5
+    for (let x = 0; x < W; x++) {
+      const fx = (x + 0.5) / S - 0.5
+      const hh = bilinear(m.hh, fx, fy)
+      const hv = bilinear(m.hv, fx, fy)
+      if (Number.isNaN(hh) || Number.isNaN(hv)) continue
+      let r: number, g: number, b: number, a: number
+      if (m.kind === 'echo') {
+        r = n(hh, m.rHH); g = n(hv, m.rHV); b = n(hh - hv, rd); a = 0.95
+      } else {
+        r = n(hh, m.rHH); g = n(hv, m.rHV); b = 1 - Math.max(r, g)
+        a = 0.92 * smooth(0.04, 0.3, Math.max(Math.abs(2 * r - 1), Math.abs(2 * g - 1)))
+      }
+      a *= smooth(0, feather * 0.5, Math.min(x, y, W - 1 - x, H - 1 - y))
+      const i = (y * W + x) * 4
+      d[i] = r * 255; d[i + 1] = g * 255; d[i + 2] = b * 255; d[i + 3] = Math.round(a * 255)
+    }
+  }
+  ctx.putImageData(img, 0, 0)
+  return cv
+}
+
 export function renderOverlay(defo: Grid, coh: Grid, o: RenderOpts): HTMLCanvasElement {
+  if (o.mode === 'mix' && o.mix) return renderMix(defo, o.mix)
   // aim for about 720 cells across (big grids need less enlarging); the replay draws smaller to stay fast
   const S = o.low ? Math.min(1, 300 / defo.width) : Math.max(2, Math.round(720 / defo.width))
   const W = Math.round(defo.width * S)

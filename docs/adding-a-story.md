@@ -13,6 +13,7 @@ Everything below lives in `apps/web/public/stories/<story-id>/`. The data format
 
 | Id | Type | Radar source | Data status |
 |---|---|---|---|
+| `upper-assam-floods` | flood (flagship, opens first) | NISAR (GCOV, water masks) | provisional, real (7 dates) |
 | `venezuela-2026` | earthquake | NISAR (ARIA map) | provisional, real |
 | `kilauea-hawaii` | volcano | NISAR | provisional, real (one pair) |
 | `krasheninnikov-kamchatka` | volcano | NISAR (GCOV radar brightness) | provisional, real (11 passes) |
@@ -101,3 +102,9 @@ is drawn weak to strong echo, and the fringes, confidence, cross-section and rep
 differs from story to story (period text, chart units, how-to lines). `chain_to_story.py --stable-above <m>` fits the atmospheric ramp
 on the hills around a lake-bed city only (heights from the public AWS terrain tiles), and writes a steady-rate fit as well as the raw running totals.
 `build_next_stories.py` turns the processed series into the files under `apps/web/public/stories/<id>/`.
+
+## Flood stories and languages
+
+A flood story uses `"kind": "flood"` in `index.json` and a `flood.json` manifest instead of grids: for each NISAR date the HH, HV, colour-mix and water-mask images, plus context layers, a time series, rain and damage pins. See `public/stories/upper-assam-floods/` and `processing/assam/` for the pipeline that builds it.
+
+Each story lists its `languages` in `index.json`. For each language other than English add `<story>/i18n/<lang>.json` with only the fields that change; arrays of objects are matched by position. Mark it `"machine_translated": true` until a native speaker reviews it. Interface wording is in `apps/web/src/i18n/<lang>.ts`; missing keys fall back to English.

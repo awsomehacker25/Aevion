@@ -1,0 +1,54 @@
+{
+  "_meta": { "lang": "es", "machine_translated": true, "reviewed_by_native_speaker": false },
+  "title": "Dos sismos en un minuto",
+  "subtitle": "Terremotos de Venezuela, junio de 2026",
+  "storyText": "El 24 de junio de 2026, un terremoto de magnitud 7,2 y otro de magnitud 7,5 sacudieron el norte de Venezuela con menos de un minuto de diferencia. NISAR sobrevoló la zona el 13 de junio y otra vez el 25 de junio. El JPL de la NASA comparó esos dos pasos de radar para medir cuánto se movió el suelo a lo largo de la línea de visión del satélite, y este es su mapa.",
+  "statusDetail": { "story": "Mapa de movimiento del suelo del JPL de la NASA a partir de NISAR, aún sin validar" },
+  "event": { "name": "Terremotos de M7,2 y M7,5" },
+  "why": [
+    {
+      "title": "¿Por qué se movió el suelo?",
+      "body": "El norte de Venezuela está donde las placas del Caribe y de Sudamérica se deslizan una junto a la otra, sobre todo de lado. La tensión se acumula despacio y luego se libera. El 24 de junio se deslizaron dos fallas en menos de un minuto. El USGS concluye que ambas fueron de desplazamiento lateral derecho, sobre fallas aproximadamente este-oeste: un lado se deslizó hacia la derecha respecto al otro, hasta unos 1,8 m en el modelo del USGS para el terremoto mayor."
+    },
+    {
+      "title": "¿Cómo ve el radar que el suelo se mueve?",
+      "body": "NISAR envía pulsos de radar en banda L (unos 24 cm de longitud de onda) y registra el eco. Al comparar dos pasos separados por 12 días, un cambio minúsculo en la distancia al suelo desplaza la fase del eco. Un ciclo de color completo en la vista de Franjas equivale a unos 12 cm de movimiento. El radar funciona de noche y a través de las nubes."
+    },
+    {
+      "title": "¿Qué aportan las polarizaciones?",
+      "body": "Este mapa usa HH: el radar envía y recibe ondas polarizadas horizontalmente. Los canales copolarizados como HH conservan bien su fase, por eso los interferogramas los usan. Los canales de polarización cruzada como HV responden más a la estructura de la vegetación, así que sirven más para los cambios en bosques e incendios que para el movimiento del suelo."
+    },
+    {
+      "title": "¿Qué no puede decirnos el mapa?",
+      "body": "El radar solo mide el movimiento a lo largo de su línea de visión, hacia el satélite o alejándose de él, así que un solo paso no puede separar arriba, abajo, este y oeste. El mapa es relativo a una referencia desconocida y la NASA aún no lo ha validado. Cerca de la falla, las sacudidas alteran el eco del radar, así que algunas zonas no tienen datos."
+    },
+    {
+      "title": "¿Qué podría hacer NISAR después?",
+      "body": "NISAR obtiene imágenes de casi toda la tierra cada 12 días, así que el mismo método puede seguir deslizamientos tras tormentas, el abultamiento de volcanes, ciudades que se hunden, glaciares en movimiento, inundaciones y cambios en bosques o cultivos. NISAR también tiene productos de datos de respuesta urgente para desastres como este."
+    }
+  ],
+  "tour": [
+    { "title": "El norte de Venezuela", "text": "Esta es la costa del norte de Venezuela, hogar de millones de personas. El radar desde el espacio puede medir cómo se mueve el suelo aquí, incluso a través de las nubes." },
+    { "title": "NISAR mira una vez", "text": "El 13 de junio, NISAR, un satélite de radar de la NASA y la ISRO, pasó por encima y registró el suelo. Esta es la imagen de «antes»." },
+    { "title": "Dos grandes terremotos", "text": "El 24 de junio, un terremoto de magnitud 7,2 y otro de magnitud 7,5 ocurrieron con menos de un minuto de diferencia. Las pelotas de playa muestran cómo se deslizó la roca: de lado, a lo largo de fallas este-oeste." },
+    { "title": "NISAR mira otra vez", "text": "El 25 de junio, NISAR sobrevoló de nuevo. Comparar los dos pasos muestra cómo se movió el suelo. El naranja significa que se alejó del satélite, el azul que se acercó a él." },
+    { "title": "El suelo se deslizó de lado", "text": "Al sur de la falla el suelo se movió en un sentido; al norte, en el otro. Así se ve un deslizamiento lateral. Las manchas moradas son el modelo del USGS de dónde se deslizó la falla." },
+    { "title": "Contando las ondas", "text": "Cada banda de color equivale a unos 12 cm de movimiento hacia el satélite o alejándose de él. Muchas bandas juntas significan mucho movimiento." },
+    { "title": "¿Qué tan seguros estamos?", "text": "Las zonas oscuras tienen huecos en los datos, a menudo donde las sacudidas o la vegetación alteraron el radar. Ocultamos lo que no podemos creer." },
+    { "title": "Quiénes lo sintieron", "text": "Las ciudades de la costa sintieron sacudidas violentas. El USGS estima que millones de personas estuvieron expuestas a sacudidas muy fuertes." }
+  ],
+  "layers": [
+    {
+      "name": "Movimiento del suelo (línea de visión)",
+      "positiveMeans": "alejándose del satélite",
+      "negativeMeans": "acercándose al satélite",
+      "hintStory": "El naranja significa que el suelo se alejó del satélite; el azul, que se acercó. El satélite mira hacia el oeste-suroeste, así que el naranja es, a grandes rasgos, movimiento hacia el oeste."
+    },
+    {
+      "name": "Cobertura de la medición",
+      "label": "Cobertura",
+      "titleStory": "Qué tan completa es la medición",
+      "hintStory": "Brillante significa que el mapa tiene datos sólidos alrededor de este punto. Oscuro significa que hay huecos cerca, así que ten cuidado."
+    }
+  ]
+}
