@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import './Flood.css'
 import { DEFAULT_COHERENCE_THRESHOLD, EVENT, TEAM } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms } from './lib/data'
@@ -15,6 +16,10 @@ import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
+import FloodViewer from './FloodViewer'
+import { I18nProvider, initialLang } from './i18n'
+import type { Lang } from './i18n'
+import { offers } from './lib/localize'
 import type { Camera, CameraReq, City, EventMark, Grid, LayerDef, LoadedStory, Overlays, StoryIndexEntry, ViewMode } from './types'
 
 function pickLayer(d: LoadedStory, role: LayerDef['role']) {
@@ -378,18 +383,32 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
 }
 
 export default function App() {
-  const [stories, setStories] = useState<StoryIndexEntry[]>([])
+  const [stories, setStories] = useState<StoryIndexEntry[] | null>(null)
   const [ui, setUi] = useState<UiMode>('story')
   const [id, setId] = useState<string | undefined>(() => new URLSearchParams(location.search).get('story') ?? undefined)
+  const [lang, setLang] = useState<Lang>(initialLang)
 
   useEffect(() => { loadIndex().then(setStories).catch(() => setStories([])) }, [])
 
   const switchStory = (next: string) => {
     const url = new URL(location.href)
     url.searchParams.set('story', next)
+    url.hash = ''
     history.replaceState(null, '', url)
     setId(next)
   }
 
-  return <Viewer key={id ?? 'default'} id={id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />
+  if (!stories) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /></div>
+  // Upper Assam is the flagship: it opens first unless a story is asked for in the address.
+  const entry = stories.find((s) => s.id === id) ?? stories[0]
+  // A story only offers its own languages: anything else shows English until the viewer picks again.
+  const shown: Lang = offers(entry?.languages, lang) ? lang : 'en'
+
+  return (
+    <I18nProvider lang={shown} setLang={setLang}>
+      {entry?.kind === 'flood'
+        ? <FloodViewer key={entry.id} id={entry.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />
+        : <Viewer key={entry?.id ?? 'default'} id={entry?.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />}
+    </I18nProvider>
+  )
 }

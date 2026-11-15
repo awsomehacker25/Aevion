@@ -3,7 +3,9 @@ import type { ReactNode } from 'react'
 import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
 import { EVENT, TEAM } from './config'
-import type { AcquisitionPair, DataStatus, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
+import { LANGS, isLang, rememberLang, useI18n } from './i18n'
+import type { Lang } from './i18n'
+import type { AcquisitionPair, Grid, LayerDef, Resource, Story, StoryIndexEntry, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
 
@@ -16,44 +18,48 @@ export function Badge({ kind, synthetic }: { kind: string; synthetic?: boolean }
   )
 }
 
-const STATUS_LABEL: Record<DataStatus, string> = {
-  placeholder: 'Placeholder data',
-  beta: 'Beta NISAR data',
-  provisional: 'Provisional NISAR data',
-  validated: 'Validated NISAR data',
-}
-
-const STATUS_SHORT: Record<DataStatus, string> = { placeholder: 'Placeholder', beta: 'Beta', provisional: 'Provisional', validated: 'Validated' }
-
 interface TopBarProps {
-  story: Story
+  story: Pick<Story, 'id' | 'dataStatus' | 'dataStatusNote' | 'statusDetail'>
   ui: UiMode
   setUi: (m: UiMode) => void
   stories: StoryIndexEntry[]
   onSwitchStory: (id: string) => void
+  /** Languages this story is offered in. The switcher is hidden when there is only English. */
+  languages?: string[]
 }
 
-export function TopBar({ story, ui, setUi, stories, onSwitchStory }: TopBarProps) {
+export function TopBar({ story, ui, setUi, stories, onSwitchStory, languages }: TopBarProps) {
+  const { t, lang, setLang, machine } = useI18n()
   const sci = ui === 'scientist'
+  const langs = (languages ?? ['en']).filter(isLang)
   return (
     <header className="topbar">
       <div className="brand"><img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="Aevion" /></div>
       {stories.length > 1 && (
-        <select className="picker" value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label="Choose a story">
+        <select className="picker" value={story.id} onChange={(e) => onSwitchStory(e.target.value)} aria-label={t('top.chooseStory')}>
           {stories.map((s) => <option key={s.id} value={s.id}>{s.label ?? s.title}</option>)}
         </select>
       )}
       <div className={`status s-${story.dataStatus}`} title={[story.dataStatusNote, story.statusDetail ? (sci ? story.statusDetail.scientist : story.statusDetail.story) : ''].filter(Boolean).join(' - ')}>
         <span className="dot" />
-        <span className="s-full">{STATUS_LABEL[story.dataStatus]}</span>
-        <span className="s-short">{STATUS_SHORT[story.dataStatus]}</span>
+        <span className="s-full">{t(`status.${story.dataStatus}`)}</span>
+        <span className="s-short">{t(`status.short.${story.dataStatus}`)}</span>
         {sci && (story.statusDetail || story.dataStatus === 'placeholder') && (
-          <em> &middot; {story.statusDetail ? story.statusDetail.scientist : 'LOS and coherence grids are synthetic placeholders'}</em>
+          <em> &middot; {story.statusDetail ? story.statusDetail.scientist : t('status.placeholderDetail')}</em>
         )}
       </div>
-      <div className="seg" role="group" aria-label="Mode">
-        <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>Story</button>
-        <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>Scientist</button>
+      {langs.length > 1 && (
+        <label className="langsel">
+          <span className="sr-only">{t('top.language')}</span>
+          <select className="picker lang" value={lang} onChange={(e) => { const l = e.target.value as Lang; rememberLang(l); setLang(l) }} aria-label={t('top.language')}>
+            {langs.map((l) => <option key={l} value={l}>{LANGS[l].native}</option>)}
+          </select>
+        </label>
+      )}
+      {machine && <span className="status mt" title={t('lang.machine.title')}>{t('lang.machine')}</span>}
+      <div className="seg" role="group" aria-label={t('top.mode')}>
+        <button aria-pressed={ui === 'story'} className={ui === 'story' ? 'on' : ''} onClick={() => setUi('story')}>{t('top.story')}</button>
+        <button aria-pressed={ui === 'scientist'} className={ui === 'scientist' ? 'on' : ''} onClick={() => setUi('scientist')}>{t('top.scientist')}</button>
       </div>
     </header>
   )
