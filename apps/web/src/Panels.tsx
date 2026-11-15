@@ -11,16 +11,16 @@ export function Badge({ kind, synthetic }: { kind: string; synthetic?: boolean }
   return (
     <span className="badges">
       <span className={`badge b-${kind.toLowerCase().replace('-', '')}`}>{kind}</span>
-      {synthetic && <span className="badge b-placeholder">PLACEHOLDER</span>}
+      {synthetic && <span className="badge b-placeholder">Placeholder</span>}
     </span>
   )
 }
 
 const STATUS_LABEL: Record<DataStatus, string> = {
-  placeholder: 'PLACEHOLDER DATA',
-  beta: 'BETA NISAR DATA',
-  provisional: 'PROVISIONAL NISAR DATA',
-  validated: 'VALIDATED NISAR DATA',
+  placeholder: 'Placeholder data',
+  beta: 'Beta NISAR data',
+  provisional: 'Provisional NISAR data',
+  validated: 'Validated NISAR data',
 }
 
 interface TopBarProps {
@@ -137,19 +137,19 @@ export function SidePanel(p: SideProps) {
   const keyItems: { color: string; text: string }[] | undefined = p.story.copy?.key?.[p.mode] ?? (
     p.mode === 'fringes'
       ? [{ color: LEGEND_GRADIENTS.fringes, text: 'One full color cycle is about 12 cm of motion toward or away from the satellite' },
-         { color: '#f4f4f4', text: 'Many tight bands: a lot of motion. Wide bands: little.' }]
+         { color: '#f7f7f7', text: 'Many tight bands: a lot of motion. Wide bands: little.' }]
       : p.mode === 'coherence'
         ? [{ color: '#ffd479', text: 'Bright: the two passes matched well, so it can be trusted' },
            { color: '#3b1f6b', text: 'Dark: the ground changed too much, so it is unreliable' }]
         : radarLayer
           ? [{ color: '#f39237', text: cap(`echo got ${radarLayer.positiveMeans ?? 'brighter'}`) },
              { color: '#3b8fd4', text: cap(`echo got ${radarLayer.negativeMeans ?? 'darker'}`) },
-             { color: '#f4f4f4', text: `Little change: left clear` }]
+             { color: '#f7f7f7', text: `Little change: left clear` }]
           : bs
             ? undefined
             : [{ color: '#f39237', text: cap(`moved ${p.displacement.positiveMeans ?? 'away from the satellite'}`) },
                { color: '#3b8fd4', text: cap(`moved ${p.displacement.negativeMeans ?? 'toward the satellite'}`) },
-               { color: '#f4f4f4', text: 'Barely moved: left clear' }])
+               { color: '#f7f7f7', text: 'Barely moved: left clear' }])
 
   const pairLine = p.flagship
     ? `Track ${p.flagship.track} ${p.flagship.orbitDirection === 'A' ? 'ascending' : 'descending'} · ${p.story.flagshipPair.reference} → ${p.story.flagshipPair.secondary}`

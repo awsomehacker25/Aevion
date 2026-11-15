@@ -30,7 +30,7 @@ export function LosDiagram({ sci, incidence, azimuth }: { sci: boolean; incidenc
           <marker id="arrO" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#f39237" /></marker>
           <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#3b8fd4" /></marker>
         </defs>
-        <path d="M0 132 Q60 118 110 124 T220 128 T300 120 L300 160 L0 160 Z" fill="#2a3a2a" opacity="0.9" />
+        <path d="M0 132 Q60 118 110 124 T220 128 T300 120 L300 160 L0 160 Z" fill="#2a3a2a" />
         <g transform="translate(236 26)">
           <rect x="-9" y="-6" width="18" height="12" rx="2" fill="#cdd8ef" />
           <rect x="-34" y="-3" width="22" height="6" fill="#6aa5ff" />
@@ -41,7 +41,7 @@ export function LosDiagram({ sci, incidence, azimuth }: { sci: boolean; incidenc
         <line x1="128" y1="100" x2="86" y2="131" stroke="#f39237" strokeWidth="3" markerEnd="url(#arrO)" />
         <line x1="132" y1="148" x2="174" y2="117" stroke="#3b8fd4" strokeWidth="3" markerEnd="url(#arrB)" />
         <text x="14" y="104" fill="#f39237" fontSize="10.5" fontWeight="600">away = orange (+)</text>
-        <text x="150" y="150" fill="#3b8fd4" fontSize="10.5" fontWeight="600">toward = blue (-)</text>
+        <text x="150" y="150" fill="#74b6ff" fontSize="10.5" fontWeight="600">toward = blue (-)</text>
         <text x="196" y="64" fill="#9fb4d9" fontSize="10">line of sight</text>
       </svg>
       <p>

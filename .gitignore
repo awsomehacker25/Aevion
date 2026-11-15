@@ -13,3 +13,8 @@ __pycache__/
 # processing output for stories not built yet
 processing/pending/*/series/
 processing/pending/*/velocity.grid.json
+
+# Impeccable design skill and its local files
+.agents/
+.codex/
+.impeccable/

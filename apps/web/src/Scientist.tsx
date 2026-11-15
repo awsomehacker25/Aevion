@@ -63,15 +63,15 @@ export function ProfileCard({ points, totalKm, offset, threshold, a, b, onClose 
         {lows.map((p) => (
           <rect key={p.km} x={x(p.km) - (spacing / totalKm) * (W - PAD.l - PAD.r) / 2} y={PAD.t} width={Math.max(1, (spacing / totalKm) * (W - PAD.l - PAD.r))} height={H - PAD.t - PAD.b} fill="#ff8a3d" opacity="0.18" />
         ))}
-        <line x1={PAD.l} x2={W - PAD.r} y1={y(0)} y2={y(0)} stroke="#6b7a99" strokeDasharray="3 3" />
-        <line x1={PAD.l} x2={PAD.l} y1={PAD.t} y2={H - PAD.b} stroke="#6b7a99" />
-        <text x={4} y={y(lim) + 4} fontSize="9" fill="#93a3c4">+{lim.toFixed(0)}</text>
-        <text x={4} y={y(0) + 3} fontSize="9" fill="#93a3c4">0</text>
-        <text x={4} y={y(-lim) + 2} fontSize="9" fill="#93a3c4">-{lim.toFixed(0)}</text>
-        <text x={PAD.l} y={H - 6} fontSize="9" fill="#93a3c4">0 km</text>
-        <text x={W - PAD.r} y={H - 6} fontSize="9" fill="#93a3c4" textAnchor="end">{totalKm.toFixed(0)} km</text>
-        <text x={(PAD.l + W - PAD.r) / 2} y={H - 6} fontSize="9" fill="#93a3c4" textAnchor="middle">cm along line of sight</text>
-        <path d={path} fill="none" stroke="#6aa5ff" strokeWidth="1.8" />
+        <line x1={PAD.l} x2={W - PAD.r} y1={y(0)} y2={y(0)} stroke="#55637c" strokeDasharray="3 3" />
+        <line x1={PAD.l} x2={PAD.l} y1={PAD.t} y2={H - PAD.b} stroke="#55637c" />
+        <text x={4} y={y(lim) + 4} fontSize="9" fill="#98a5ba">+{lim.toFixed(0)}</text>
+        <text x={4} y={y(0) + 3} fontSize="9" fill="#98a5ba">0</text>
+        <text x={4} y={y(-lim) + 2} fontSize="9" fill="#98a5ba">-{lim.toFixed(0)}</text>
+        <text x={PAD.l} y={H - 6} fontSize="9" fill="#98a5ba">0 km</text>
+        <text x={W - PAD.r} y={H - 6} fontSize="9" fill="#98a5ba" textAnchor="end">{totalKm.toFixed(0)} km</text>
+        <text x={(PAD.l + W - PAD.r) / 2} y={H - 6} fontSize="9" fill="#98a5ba" textAnchor="middle">cm along line of sight</text>
+        <path d={path} fill="none" stroke="#86a9ff" strokeWidth="1.8" />
         {offset && <line x1={x(offset.atKm)} x2={x(offset.atKm)} y1={PAD.t} y2={H - PAD.b} stroke="#fff" strokeOpacity="0.55" strokeDasharray="2 3" />}
       </svg>
       {offset ? (

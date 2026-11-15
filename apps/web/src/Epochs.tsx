@@ -100,11 +100,11 @@ export function EpochChart({ epochs, motion, selected, onSelect, chart }: PickPr
     <div className="epochs">
       <b>{c.title}</b>
       <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={c.ariaLabel ?? c.title}>
-        <line x1={PAD.l} x2={W - PAD.r} y1={y(0)} y2={y(0)} stroke="#6b7a99" strokeDasharray="3 3" />
-        <text x={2} y={y(lim) + 4} fontSize="9" fill="#93a3c4">+{tick(lim)}</text>
-        <text x={2} y={y(0) + 3} fontSize="9" fill="#93a3c4">0</text>
-        <text x={2} y={y(-lim) + 4} fontSize="9" fill="#93a3c4">-{tick(lim)}</text>
-        <text x={2} y={9} fontSize="8" fill="#93a3c4">{c.unit}</text>
+        <line x1={PAD.l} x2={W - PAD.r} y1={y(0)} y2={y(0)} stroke="#55637c" strokeDasharray="3 3" />
+        <text x={2} y={y(lim) + 4} fontSize="9" fill="#98a5ba">+{tick(lim)}</text>
+        <text x={2} y={y(0) + 3} fontSize="9" fill="#98a5ba">0</text>
+        <text x={2} y={y(-lim) + 4} fontSize="9" fill="#98a5ba">-{tick(lim)}</text>
+        <text x={2} y={9} fontSize="8" fill="#98a5ba">{c.unit}</text>
         {rows.map(({ e, mm }, i) => {
           const x = PAD.l + i * slot + slot * 0.16
           const bw = slot * 0.68
@@ -118,10 +118,10 @@ export function EpochChart({ epochs, motion, selected, onSelect, chart }: PickPr
               onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onSelect(e.id) } }}>
               <rect x={PAD.l + i * slot} y={PAD.t} width={slot} height={H - PAD.t - PAD.b} fill="transparent" />
               <rect x={x} y={top} width={bw} height={ht} rx="2" fill={mm != null && mm < 0 ? '#3b8fd4' : '#f39237'} stroke={on ? '#fff' : 'none'} strokeWidth="2" />
-              <text x={x + bw / 2} y={H - 20} fontSize="8.5" textAnchor="middle" fill={on ? '#fff' : '#93a3c4'}>{short(c.label === 'end' ? e.pair.secondary : e.pair.reference)}</text>
+              <text x={x + bw / 2} y={H - 20} fontSize="8.5" textAnchor="middle" fill={on ? '#fff' : '#98a5ba'}>{short(c.label === 'end' ? e.pair.secondary : e.pair.reference)}</text>
               {e.event && (
                 <g>
-                  <circle cx={x + bw / 2} cy={H - 8} r="3.5" fill="#ff5a4d" />
+                  <circle cx={x + bw / 2} cy={H - 8} r="3.5" fill="#d92d20" />
                   <title>{e.event.name}</title>
                 </g>
               )}
