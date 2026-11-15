@@ -3,6 +3,7 @@ import type { Ref } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { GeoJSONSource, ImageSource, MapMouseEvent, StyleSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { BASEMAP } from './config'
 import type { FloodView, LoadedFlood } from './types'
 
 export interface FloodLayers {
@@ -121,10 +122,9 @@ export default function FloodMap(p: Props) {
     const style = (idx: number): StyleSpecification => ({
       version: 8,
       sources: {
-        imagery: { type: 'raster', tileSize: 256, maxzoom: 15, tiles: ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg'],
-          attribution: '<a href="https://cloudless.eox.at" target="_blank" rel="noopener">EOxCloudless 2024</a> by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2024), CC BY-NC-SA 4.0' },
-        labels: { type: 'raster', tileSize: 256, maxzoom: 15, tiles: ['https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png'],
-          attribution: 'Labels &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, rendering &copy; EOX' },
+        // the same Esri imagery as the other stories, so every map in Aevion looks alike
+        imagery: { type: 'raster', tileSize: 256, maxzoom: 18, tiles: [BASEMAP.imageryTiles], attribution: BASEMAP.imageryAttribution },
+        labels: { type: 'raster', tileSize: 256, maxzoom: 18, tiles: [BASEMAP.labelTiles], attribution: '' },
         sar: { type: 'image', url: url(idx, d.view), coordinates: corners },
         'sar-b': { type: 'image', url: url(idx, d.view), coordinates: corners },
         water: { type: 'image', url: url(idx, 'water'), coordinates: corners },
@@ -138,7 +138,7 @@ export default function FloodMap(p: Props) {
       },
       layers: [
         { id: 'bg', type: 'background', paint: { 'background-color': '#0c1118' } },
-        { id: 'imagery', type: 'raster', source: 'imagery', paint: { 'raster-saturation': -0.35, 'raster-brightness-max': 0.8 } },
+        { id: 'imagery', type: 'raster', source: 'imagery', paint: { 'raster-brightness-max': 0.78, 'raster-saturation': -0.35, 'raster-contrast': 0.1 } },
         { id: 'sar', type: 'raster', source: 'sar', paint: { 'raster-opacity': OPACITY.sar, 'raster-fade-duration': 0, 'raster-opacity-transition': { duration: 200, delay: 0 } } },
         { id: 'sar-b', type: 'raster', source: 'sar-b', paint: { 'raster-opacity': 0, 'raster-fade-duration': 0, 'raster-opacity-transition': { duration: 200, delay: 0 } } },
         ...(['sentinel1', 'optical', 'population', 'aftermath'] as const).filter((id) => (id === 'optical' ? ctx.sentinel2 : ctx[id])).map((id) =>
@@ -146,7 +146,7 @@ export default function FloodMap(p: Props) {
         { id: 'water', type: 'raster', source: 'water', paint: { 'raster-opacity': OPACITY.water, 'raster-fade-duration': 0, 'raster-resampling': 'nearest', 'raster-opacity-transition': { duration: 200, delay: 0 } } },
         { id: 'water-b', type: 'raster', source: 'water-b', paint: { 'raster-opacity': 0, 'raster-fade-duration': 0, 'raster-resampling': 'nearest', 'raster-opacity-transition': { duration: 200, delay: 0 } } },
         ...(ctx.permanent_water ? [{ id: 'permwater', type: 'raster' as const, source: 'permwater', paint: { 'raster-opacity': 1, 'raster-fade-duration': 0, 'raster-resampling': 'nearest' as const } }] : []),
-        { id: 'labels', type: 'raster', source: 'labels' },
+        { id: 'labels', type: 'raster', source: 'labels', paint: { 'raster-opacity': 0.9 } },
         { id: 'pt', type: 'circle', source: 'pt', paint: { 'circle-radius': 6, 'circle-color': '#ff5252', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } },
       ],
     })

@@ -14,6 +14,8 @@ export const BASEMAP = {
   terrainEncoding: 'terrarium' as const,
   terrainAttribution: 'Terrain: Mapzen / AWS Terrain Tiles',
   terrainExaggeration: 1.6,
+  // Place names drawn over the imagery (used by the flood map), also free for development.
+  labelTiles: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
 }
 
 /** Coherence below this is treated as unreliable by default. Users can change it in the UI. */

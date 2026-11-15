@@ -260,10 +260,10 @@ The interface uses solid dark panels, one blue accent, and keeps the data colour
 ## Data sources and credits
 
 - **NISAR** (NASA-ISRO Synthetic Aperture Radar) products, found through **NASA CMR**.
-- **Upper Assam flood pipeline** by Rui Sun (github.com/ruisbasement-code/Upper-Assam-India): NISAR L2 GCOV water masks, **GPM IMERG** rain (NASA GES DISC), **JRC Global Surface Water**, **WorldPop** 2025 population, **geoBoundaries** district outlines, **OPERA RTC-S1** Sentinel-1 C-band, Copernicus **Sentinel-2** optical, **EOxCloudless 2024** basemap (CC BY-NC-SA 4.0, non-commercial) with OpenStreetMap labels, and an independent flood map from Assam University for validation.
+- **Upper Assam flood pipeline** by Rui Sun (github.com/ruisbasement-code/Upper-Assam-India): NISAR L2 GCOV water masks, **GPM IMERG** rain (NASA GES DISC), **JRC Global Surface Water**, **WorldPop** 2025 population, **geoBoundaries** district outlines, **OPERA RTC-S1** Sentinel-1 C-band, Copernicus **Sentinel-2** optical and an independent flood map from Assam University for validation.
 - **NASA JPL ARIA** displacement map for Venezuela, via the NASA Disasters Mapping Portal.
 - **USGS** earthquake catalogue, moment tensors, PAGER, ShakeMap and finite-fault models.
-- **Esri** World Imagery for the satellite basemap and **Mapzen / AWS Terrain Tiles** for terrain.
+- **Esri** World Imagery (and place labels on the flood map) for the satellite basemap and **Mapzen / AWS Terrain Tiles** for terrain.
 - Built for the NASA Space Apps Challenge 2026, *Dancing with the SARs*.
 
 The detailed table of what is real, derived or placeholder, and how to reach each source, is in [docs/data-sources.md](docs/data-sources.md).
