@@ -3,7 +3,7 @@ export type DataStatus = 'placeholder' | 'beta' | 'provisional' | 'validated'
 export type ViewMode = 'los' | 'fringes' | 'coherence' | 'hh' | 'hv'
 
 /** What kind of event a story is about. Used for the story picker and for data-source hints. */
-export type StoryType = 'earthquake' | 'volcano' | 'landslide' | 'subsidence'
+export type StoryType = 'earthquake' | 'volcano' | 'landslide' | 'subsidence' | 'flood'
 
 /** One row of stories/index.json. */
 export interface StoryIndexEntry {
@@ -13,6 +13,10 @@ export interface StoryIndexEntry {
   /** Short name for the story picker. */
   label?: string
   type?: StoryType
+  /** 'flood' stories use the flood viewer (image overlays and a before/after swipe) instead of the interferometry viewer. */
+  kind?: 'flood'
+  /** Languages this story is offered in, English first. */
+  languages?: string[]
 }
 
 /** What a layer means to the app. A story needs one 'displacement' and one 'coherence' layer. */
@@ -277,4 +281,113 @@ export interface LoadedStory {
   quakes: QuakeCollection
   context?: UsgsContext
   epochGrids?: Record<string, { deformation: Grid; coherence: Grid; hv?: Grid; hh?: Grid }>
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Flood stories (Upper Assam). Radar pictures are pre-rendered images over one bounding box, one set per NISAR date.
+// ---------------------------------------------------------------------------------------------------------------------
+
+export type FloodView = 'HH' | 'HV' | 'RGB'
+
+export interface FloodDate {
+  date: string
+  label: string
+  layers: { HH: string; HV: string; water: string; RGB?: string }
+  water_km2: number
+  new_water_km2: number
+  coverage: number
+}
+
+export interface FloodPreset {
+  id: string
+  date: string
+  lat: number
+  lng: number
+  patch_fraction: number
+  hh_db: number
+  hv_db: number
+  hh_ref_db: number
+  hv_ref_db: number
+}
+
+export interface FloodContext {
+  permanent_water?: { url: string; pct: number; km2: number }
+  aftermath?: {
+    url: string; from: string; to: string; threshold_db: number; offset_db: number; corridor_km2: number
+    brighter_km2: number; darker_km2: number; brighter_pct: number; darker_pct: number
+    by_river: Record<string, { corridor_km2: number; brighter_km2: number; darker_km2: number; channel_km2: number; channel_brighter_km2: number; channel_darker_km2: number }>
+  }
+  population?: {
+    url: string; date: string; source_year: number; total: number; in_flood: number
+    by_date: Record<string, { url: string; in_flood: number }>
+    by_district: Record<string, { total: number; in_flood: number }>
+  }
+  sentinel2?: { url: string; date: string }
+  sentinel1?: { url: string; date: string; pol: string; coverage: number }
+}
+
+/** The flood data manifest (flood.json). */
+export interface FloodManifest {
+  bbox: [number, number, number, number]
+  reference: string
+  peak_date: string
+  threshold_db: number
+  dates: FloodDate[]
+  districts?: string
+  context: FloodContext
+  rgb?: { range_db: Record<string, [number, number]>; swatches: Record<string, [number, number, number]>; swatch_date: string }
+  presets: FloodPreset[]
+  pins?: string
+  rainfall?: string
+}
+
+export interface FloodSeries {
+  bbox: [number, number, number, number]
+  rows: number
+  cols: number
+  cell_deg: number
+  dates: string[]
+  scale: number
+  values: { HH: (number[][] | null)[]; HV: (number[][] | null)[] }
+}
+
+export interface FloodRain {
+  source: string
+  box: [number, number, number, number]
+  dates: string[]
+  mean_mm: number[]
+  max_cell_mm: number[]
+}
+
+/** One block of story text. Paragraphs use the inline markup in lib/rich.tsx. */
+export interface TextSection { id: string; title: string; body: string[] }
+
+/** story.json of a flood story. */
+export interface FloodStory {
+  id: string
+  kind: 'flood'
+  type?: StoryType
+  title: string
+  subtitle: string
+  dataStatus: DataStatus
+  dataStatusNote: string
+  credits: string
+  aoi: { bbox: [number, number, number, number]; center: [number, number]; zoom: number; pitch: number; bearing: number }
+  flood: string
+  series: string
+  validation: string
+  sections: TextSection[]
+  dateLabels: Record<string, string>
+  pinText: Record<string, string>
+  pinMissing: string
+}
+
+export interface LoadedFlood {
+  story: FloodStory
+  flood: FloodManifest
+  series: FloodSeries
+  rain: FloodRain | null
+  pins: GeoJSON.FeatureCollection | null
+  districts: GeoJSON.FeatureCollection | null
+  validation: Record<string, unknown> | null
 }

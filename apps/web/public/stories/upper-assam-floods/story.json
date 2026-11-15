@@ -1,0 +1,78 @@
+{
+  "id": "upper-assam-floods",
+  "kind": "flood",
+  "type": "flood",
+  "title": "The July 2026 floods in Upper Assam",
+  "subtitle": "Sivasagar and Charaideo, seen by NISAR radar",
+  "dataStatus": "provisional",
+  "dataStatusNote": "Flood water is mapped from NISAR L2 GCOV radar brightness (HH below -15 dB). The threshold was checked against an independent Assam University map, but the areas are upper bounds: rice paddies flooded on purpose count too.",
+  "credits": "Radar: contains modified NISAR data (NASA/ISRO), distributed by the ASF DAAC · Basemap: EOxCloudless 2024 by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2024), CC BY-NC-SA 4.0 · Labels: © OpenStreetMap contributors, rendering © EOX · Districts: geoBoundaries (ODbL) · Permanent water: JRC Global Surface Water · People: WorldPop 2025 (CC BY 4.0) · Rain: GPM IMERG (NASA GES DISC) · C-band: OPERA RTC-S1 from Copernicus Sentinel-1 data 2026 · Optical: Copernicus Sentinel-2 2026 · Pipeline by Rui Sun (github.com/ruisbasement-code/Upper-Assam-India)",
+  "aoi": {
+    "bbox": [94.3, 26.6, 95.1, 27.3],
+    "center": [94.7, 26.95],
+    "zoom": 9.3,
+    "pitch": 0,
+    "bearing": 0
+  },
+  "flood": "flood.json",
+  "series": "timeseries.json",
+  "validation": "validation.json",
+  "dateLabels": {
+    "2026-06-16": "Before the first wave",
+    "2026-06-28": "First flood wave",
+    "2026-07-10": "Between waves",
+    "2026-07-22": "Near the flood peak",
+    "2026-08-15": "Retreat",
+    "2026-09-20": "Late monsoon",
+    "2026-10-26": "Dry season"
+  },
+  "sections": [
+    {
+      "id": "what",
+      "title": "What happened",
+      "body": [
+        "On 18 to 20 July 2026, extreme rain fell on the Naga Hills just south of Upper Assam, and a landslide struck Mon in Nagaland. The Dikhow, Disang and Jhanji rivers carried the surge down onto the plains of Sivasagar and Charaideo. Embankments breached, villages such as Betbari were cut off, and the railway at Simaluguri went under water.",
+        "Clouds covered the region for most of the event, so optical satellites saw almost nothing. NISAR's L-band radar sees through cloud. It imaged this area every 12 days on the same orbit (track 40), including on **22 July, near the flood peak**. The Red Cross puts the emergency peak at 27 to 28 July, between two passes.",
+        "**Try it:** drag the white divider to compare dates, step through the timeline under the map, and click any spot to see how its radar signal changed over the season."
+      ]
+    },
+    {
+      "id": "radar",
+      "title": "What radar sees",
+      "body": [
+        "**HH (horizontal send, horizontal receive)** is the clearest flood signal. Calm open water acts like a mirror and bounces the radar pulse away from the satellite, so flooded fields turn **dark**. On 22 July, large dark patches appear along the river corridors that were bright on 10 July.",
+        "**HV (horizontal send, vertical receive)** responds to vegetation volume. Where water lies under standing crops or trees, HH can actually get *brighter*: the pulse bounces between the water surface and the stems (double bounce). Comparing HH with HV helps separate open floodwater from flooded vegetation.",
+        "**Caveat: rice paddies.** July is transplanting season, and farmers flood paddies on purpose. Some dark pixels are crop water, not flood water. New water is measured against the 26 October dry-season image, when paddies are drained, so paddies count as new water and every area is an upper bound.",
+        "**Seasonal change:** by October the water is gone. Along the Dikhow, Disang and Jhanji, the radar shows brighter ground, mostly rice and wetland plants growing, with no clear sign of new sand, silt or shifted channels at this resolution."
+      ]
+    },
+    {
+      "id": "why",
+      "title": "Why it flooded",
+      "body": [
+        "These are hypotheses. The radar supports some of them and cannot prove others.",
+        "**1. Extreme rain upstream.** The rivers that flooded rise in the Naga Hills. Three days of very heavy rain there (18 to 20 July) and the Mon landslide sent a sudden surge onto flat, low ground. The rain chart shows the rain peak just before the 22 July pass.",
+        "**2. Embankment failure.** Earthen embankments along the Jhanji and Disang breached. A breach floods a sharply bounded area next to the river. Look for dark areas that start at a single point on a riverbank.",
+        "**3. Riverbed and coal mining (contested).** Local groups argue that sand and coal mining in the hills filled riverbeds with debris and weakened banks. Radar alone cannot prove this, so treat it as an open question.",
+        "**4. Exposure.** A World Weather Attribution study points to high exposure and structural vulnerability: many people and farms sit on low floodplain land with little protection."
+      ]
+    },
+    {
+      "id": "next",
+      "title": "What's next",
+      "body": [
+        "**Routine flood maps through monsoon cloud.** NISAR images every 12 days, day or night, through cloud. State disaster agencies such as ASDMA could get a water map for each pass during the monsoon.",
+        "**Watching embankments and riverbeds.** Repeated radar can flag channel shifts, bank erosion and new sediment bars, which helps target embankment repairs and monitor riverbed mining.",
+        "**Crops and soil moisture.** L-band penetrates crop canopies, so the same data can track paddy flooding and transplanting dates, which also helps separate farming water from disaster water.",
+        "**Data:** NISAR Level-2 GCOV, ascending track 40, frame 15, from the ASF DAAC. Method and code: [GitHub](https://github.com/ruisbasement-code/Upper-Assam-India)."
+      ]
+    }
+  ],
+  "pinText": {
+    "simaluguri": "Dikhow floodwater over the Simaluguri station yard and tracks; Simaluguri–Namtiali and Simaluguri–Selenghat trains suspended.",
+    "disang_mahmora": "Disang embankment breach in Mahmora: 70–80 villages flooded, families sheltering on roadsides.",
+    "betbari": "Flooded from 20 July, nearly 7 ft deep in some homes; about 500 houses still under water 13 days later.",
+    "nazira": "Dikhow surge on 19 July flooded Nazira town and left knee-deep silt."
+  },
+  "pinMissing": "Not pinned: the Jhanji breach (no located 2026 report) and a Nazira road washout (reports describe silt, not a washout)."
+}

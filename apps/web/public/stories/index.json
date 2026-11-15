@@ -1,32 +1,61 @@
 {
   "stories": [
     {
+      "id": "upper-assam-floods",
+      "title": "The July 2026 floods in Upper Assam",
+      "manifest": "upper-assam-floods/story.json",
+      "label": "Upper Assam floods",
+      "type": "flood",
+      "kind": "flood",
+      "languages": [
+        "en",
+        "as",
+        "hi"
+      ]
+    },
+    {
       "id": "venezuela-2026",
       "title": "Venezuela earthquakes, June 2026",
       "manifest": "venezuela-2026/story.json",
       "label": "Venezuela earthquakes",
-      "type": "earthquake"
+      "type": "earthquake",
+      "languages": [
+        "en",
+        "es"
+      ]
     },
     {
       "id": "kilauea-hawaii",
       "title": "A volcano that breathes (Kīlauea, Hawaiʻi)",
       "manifest": "kilauea-hawaii/story.json",
       "label": "Kīlauea volcano",
-      "type": "volcano"
+      "type": "volcano",
+      "languages": [
+        "en",
+        "haw"
+      ]
     },
     {
       "id": "krasheninnikov-kamchatka",
       "title": "A volcano that woke up after 500 years (Krasheninnikov, Kamchatka)",
       "manifest": "krasheninnikov-kamchatka/story.json",
       "label": "Krasheninnikov volcano",
-      "type": "volcano"
+      "type": "volcano",
+      "languages": [
+        "en",
+        "ru"
+      ]
     },
     {
       "id": "mexico-city-subsidence",
       "title": "A city sinking, slowly (Mexico City)",
       "manifest": "mexico-city-subsidence/story.json",
       "label": "Mexico City subsidence",
-      "type": "subsidence"
+      "type": "subsidence",
+      "languages": [
+        "en",
+        "es"
+      ]
     }
   ]
 }
