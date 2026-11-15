@@ -7,6 +7,7 @@ import { epochFor, periodDates } from './lib/periods'
 import { buildWindow, playClock } from './lib/progress'
 import type { AcquisitionPair, EventMark, LoadedStory } from './types'
 import { useI18n } from './i18n'
+import { PauseIcon, PlayIcon } from './Icons'
 
 interface Props {
   data: LoadedStory
@@ -206,7 +207,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
           if (cursorRef.current >= end) setCursor(start)
           setPlaying(true)
         }} aria-label={playing ? tr('controls.pause') : tr('s.tl.play')}>
-          {playing ? `❚❚ ${tr('controls.pause')}` : `▶ ${tr('s.tl.play')}`}
+          {playing ? <><PauseIcon /> {tr('controls.pause')}</> : <><PlayIcon /> {tr('s.tl.play')}</>}
         </button>
         {headExtra}
         <div className="tl-date" title={tr('s.tl.now')}>{fmtDate(cursor, true)}</div>

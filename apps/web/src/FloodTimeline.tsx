@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from 'react'
 import Chart from './charts/Chart'
 import { useI18n } from './i18n'
+import { PauseIcon, PlayIcon } from './Icons'
 import type { FloodRain, FloodStory, LoadedFlood } from './types'
 
 const DAY = 86400000
@@ -64,7 +65,7 @@ export default function FloodTimeline({ data, story, a, b, setA, setB, playing, 
     <section ref={box} className="timeline ftl" aria-label={t('timeline.region')}>
       <div className="tl-head">
         <button className="btn" onClick={onPlay} aria-pressed={playing} aria-label={playing ? t('controls.pause') : t('controls.animate')}>
-          {playing ? `❚❚ ${t('controls.pause')}` : `▶ ${t('s.tl.play')}`}
+          {playing ? <><PauseIcon /> {t('controls.pause')}</> : <><PlayIcon /> {t('s.tl.play')}</>}
         </button>
         <div className="tl-date" title={t('timeline.label')}>{date(dates[b].date)}</div>
         <div className="ftl-keys">

@@ -4,6 +4,7 @@ import type { GeoJSONSource, ImageSource, MapMouseEvent, StyleSpecification } fr
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { BASEMAP } from './config'
+import { CHEVRONS_HTML } from './Icons'
 import { beachball } from './lib/beachball'
 import { playhead } from './lib/playhead'
 import { changeProgress, eventReached, overlayOpacity } from './lib/progress'
@@ -347,7 +348,7 @@ export default function MapView(p: Props) {
     const el = document.createElement('div')
     el.className = 'swipe-handle'
     el.title = 'Drag to compare before and after'
-    el.innerHTML = '<span>Before</span><b>&lsaquo; &rsaquo;</b><span>After</span>'
+    el.innerHTML = `<span>Before</span><b>${CHEVRONS_HTML}</b><span>After</span>`
     const marker = new maplibregl.Marker({ element: el, draggable: true }).setLngLat([lng0, lat0]).addTo(map)
     marker.on('dragstart', () => { dragging.current = true })
     marker.on('dragend', () => { dragging.current = false; paintOverlay() }) // sharp again once let go

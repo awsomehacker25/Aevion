@@ -3,6 +3,7 @@ import { eventTime, periodDates, periodTitle, sortEpochs } from './lib/periods'
 import type { VentMotion } from './lib/periods'
 import type { Epoch, StoryCopy } from './types'
 import { useI18n } from './i18n'
+import { ChevronDown, ChevronLeft, ChevronRight } from './Icons'
 
 type Chart = NonNullable<StoryCopy['chart']>
 const DEFAULT_CHART: Chart = { title: '', unit: 'mm', scale: 1000, minLim: 20, hint: '' }
@@ -66,12 +67,12 @@ export function PeriodSwitcher({ epochs, motion, selected, onSelect, onStep, cha
   if (!cur) return null
   return (
     <div className="pswitch" ref={box} role="group" aria-label={tr('s.periods.one')}>
-      <button type="button" className="btn ps-step" onClick={() => onStep(-1)} disabled={idx <= 0} aria-label={tr('s.periods.prev')} title={tr('s.periods.prevTip')}>&lsaquo;</button>
+      <button type="button" className="btn ps-step" onClick={() => onStep(-1)} disabled={idx <= 0} aria-label={tr('s.periods.prev')} title={tr('s.periods.prevTip')}><ChevronLeft /></button>
       <button type="button" className="btn ps-label" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)} title={tr('s.periods.choose')}>
         <span className="ps-dates">{periodDates(cur)}</span>
-        <i aria-hidden="true">&#9662;</i>
+        <ChevronDown />
       </button>
-      <button type="button" className="btn ps-step" onClick={() => onStep(1)} disabled={idx >= rows.length - 1} aria-label={tr('s.periods.next')} title={tr('s.periods.nextTip')}>&rsaquo;</button>
+      <button type="button" className="btn ps-step" onClick={() => onStep(1)} disabled={idx >= rows.length - 1} aria-label={tr('s.periods.next')} title={tr('s.periods.nextTip')}><ChevronRight /></button>
       {open && (
         <div className="pmenu">
           <PeriodList epochs={epochs} motion={motion} selected={selected} chart={chart} onSelect={(id) => { onSelect(id); setOpen(false) }} role="listbox" />
@@ -117,7 +118,7 @@ export function EpochChart({ epochs, motion, selected, onSelect, chart }: PickPr
               aria-pressed={on} onClick={() => onSelect(e.id)}
               onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onSelect(e.id) } }}>
               <rect x={PAD.l + i * slot} y={PAD.t} width={slot} height={H - PAD.t - PAD.b} fill="transparent" />
-              <rect x={x} y={top} width={bw} height={ht} rx="2" fill={mm != null && mm < 0 ? '#3b8fd4' : '#f39237'} stroke={on ? '#fff' : 'none'} strokeWidth="2" />
+              <rect x={x} y={top} width={bw} height={ht} fill={mm != null && mm < 0 ? '#3b8fd4' : '#f39237'} stroke={on ? '#fff' : 'none'} strokeWidth="2" />
               <text x={x + bw / 2} y={H - 20} fontSize="8.5" textAnchor="middle" fill={on ? '#fff' : '#98a5ba'}>{short(c.label === 'end' ? e.pair.secondary : e.pair.reference)}</text>
               {e.event && (
                 <g>

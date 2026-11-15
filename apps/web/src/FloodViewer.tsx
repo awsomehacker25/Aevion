@@ -9,6 +9,7 @@ import { loadFlood } from './lib/data'
 import { useLocalizedStory } from './lib/localize'
 import { useI18n } from './i18n'
 import { TopBar } from './Panels'
+import { CHEVRONS_HTML } from './Icons'
 import type { UiMode } from './Panels'
 import type { FloodView, LoadedFlood, StoryIndexEntry } from './types'
 
@@ -232,7 +233,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
             else return
             e.preventDefault()
           }}>
-          <span className="swipe-handle" style={{ transform: `translate(-50%, -50%) rotate(${-swipeAngle(terrain)}deg)` }} aria-hidden="true"><span>{leftDate}</span><b>&lsaquo; &rsaquo;</b><span>{rightDate}</span></span>
+          <span className="swipe-handle" style={{ transform: `translate(-50%, -50%) rotate(${-swipeAngle(terrain)}deg)` }} aria-hidden="true"><span>{leftDate}</span><b dangerouslySetInnerHTML={{ __html: CHEVRONS_HTML }} /><span>{rightDate}</span></span>
         </div>
       )}
 

@@ -179,7 +179,7 @@ export default function Chart(p: ChartProps) {
                 const lbl = p.barLabels?.(q)
                 return (
                   <g key={i}>
-                    <rect x={X(q.x) - bw / 2} y={top} width={bw} height={h} rx={1.5} fill={q.color ?? s.color} fillOpacity={sel || p.selectedX == null ? 1 : 0.7}
+                    <rect x={X(q.x) - bw / 2} y={top} width={bw} height={h} fill={q.color ?? s.color} fillOpacity={sel || p.selectedX == null ? 1 : 0.7}
                       stroke={sel ? 'var(--ink)' : 'none'} strokeWidth={sel ? 1.5 : 0}
                       className={p.onSelect ? 'c-click' : undefined} onClick={p.onSelect ? () => p.onSelect!(q.x) : undefined}>
                       {q.tip && <title>{q.tip}</title>}

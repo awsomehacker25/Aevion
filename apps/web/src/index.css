@@ -38,10 +38,10 @@
   --away-ink: #ffa65a;
   --toward-ink: #74b6ff;
 
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 0 0 1px rgba(255, 255, 255, .06), 0 10px 30px rgba(0, 0, 0, .45);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --radius: 4px;
+  --radius-sm: 3px;
+  --shadow: 0 0 0 1px var(--line);
+  --shadow-sm: none;
 
   color-scheme: dark;
 }
@@ -58,5 +58,5 @@ button { font: inherit; color: inherit; cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
 * { scrollbar-width: thin; scrollbar-color: #3a475c transparent; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: #3a475c; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb { background: #3a475c; border-radius: var(--radius-sm); border: 2px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background: #51617a; background-clip: padding-box; border: 2px solid transparent; }

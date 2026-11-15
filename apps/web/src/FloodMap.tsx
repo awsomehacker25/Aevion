@@ -104,7 +104,8 @@ export default function FloodMap(p: Props) {
     const my = (lat: number) => (1 - Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) / Math.PI) / 2
     const bw = (mx(x1) - mx(x0)) * 512
     const bh = (my(y0) - my(y1)) * 512
-    const zoom = Math.log2(Math.max(el.clientWidth / bw, el.clientHeight / bh))
+    // a little past fully covering the window, so the picture's dashed frame is off screen when it first opens
+    const zoom = Math.log2(Math.max(el.clientWidth / bw, el.clientHeight / bh)) + 0.12
     const cy = (my(y0) + my(y1)) / 2
     return { center: [(x0 + x1) / 2, (Math.atan(Math.sinh(Math.PI * (1 - 2 * cy))) * 180) / Math.PI] as [number, number], zoom }
   }

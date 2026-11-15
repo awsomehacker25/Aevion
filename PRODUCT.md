@@ -33,7 +33,7 @@ A full-screen web app: a 3D map with a left information panel, a bottom timeline
 
 - Name and logo: Aevion (assets in `apps/web/public/logo*`).
 - Team credit and challenge credit stay in the app and README.
-- Binding visual constraints from the user: a clean, modern, sleek look that does not look vibe-coded; solid dark panels (the user rejected white panels) with Ascend-app discipline (`Documents/GitHub/ascend`: soft surfaces, Inter/Geist type, 12px radius, one elevation cue); blue accent kept but refined.
+- Binding visual constraints from the user: a clean, modern, sleek look that does not look vibe-coded; solid dark panels (the user rejected white panels) with Ascend-app discipline (`Documents/GitHub/ascend`: flat surfaces, Inter/Geist type, a small 3 to 4px radius, one elevation cue: a hairline border, no floating shadows); blue accent kept but refined.
 
 ## Product Principles
 

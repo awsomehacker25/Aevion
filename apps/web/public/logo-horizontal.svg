@@ -11,7 +11,7 @@
       <stop offset="1" stop-color="#5eb0ff"/>
     </linearGradient>
   </defs>
-  <rect width="740" height="160" rx="22" fill="url(#bg)"/>
+  <rect width="740" height="160" fill="url(#bg)"/>
 
   <!-- mark: two radar arcs and a peak, forming an A (same as the stacked logo) -->
   <g transform="translate(26 9) scale(0.72)">
