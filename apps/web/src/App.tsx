@@ -276,7 +276,7 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
     <button className="cta ghost" aria-pressed={swipe} onClick={() => {
       if (!swipe && progress < 1) setCursor(ms(story.timeline.initial)) // there must be a measured change to compare against
       setSwipe(!swipe)
-    }}>{swipe ? 'Hide the before/after swipe' : 'Swipe: before / after'}</button>
+    }}>{swipe ? 'Hide swipe' : 'Before / after'}</button>
   )
   const epochs = data.story.epochs
   const periodsTab = epochs?.length ? (
@@ -325,10 +325,9 @@ function Viewer({ id, stories, onSwitchStory }: ViewerProps) {
         } : {
           actions: (
             <div className="actions">
-              {!bs && <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />}
               <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
-              {swipeBtn}
-              {replayBtn}
+              <div className="row-btns">{swipeBtn}{replayBtn}</div>
+              {!bs && <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />}
             </div>
           ),
           impact,

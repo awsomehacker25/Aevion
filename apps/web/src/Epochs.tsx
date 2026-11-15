@@ -69,9 +69,7 @@ export function PeriodSwitcher({ epochs, motion, selected, onSelect, onStep, cha
     <div className="pswitch" ref={box} role="group" aria-label="Measured period">
       <button type="button" className="btn ps-step" onClick={() => onStep(-1)} disabled={idx <= 0} aria-label="Previous period" title="Previous period (left arrow)">&lsaquo;</button>
       <button type="button" className="btn ps-label" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)} title="Choose a measured period">
-        <span className="ps-title">{periodTitle(cur)}</span>
         <span className="ps-dates">{periodDates(cur)}</span>
-        <span className="ps-count">{idx + 1} of {rows.length}</span>
         <i aria-hidden="true">&#9662;</i>
       </button>
       <button type="button" className="btn ps-step" onClick={() => onStep(1)} disabled={idx >= rows.length - 1} aria-label="Next period" title="Next period (right arrow)">&rsaquo;</button>

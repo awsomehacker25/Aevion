@@ -25,7 +25,7 @@ const DAY_MS = 86400000
 const HOUR_MS = 3600000
 /** Candidate spacings for the axis labels, in days. The smallest one that keeps the axis readable is used. */
 const TICK_STEPS_DAYS = [1, 2, 4, 7, 14]
-const MAX_TICKS = 12
+const MAX_TICKS = 6
 
 /** Quake marker diameter in px, scaled by magnitude. */
 const quakeSize = (mag: number) => 4 + (mag - 3.5) * 2.6
@@ -151,7 +151,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
   const marks = useMemo(() => (
     <>
       {passes.length > 0 && <div className="tl-row tl-passes">
-        <span className="tl-label">{sensor} passes</span>
+        <span className="tl-label">Satellite passes</span>
         {passes.map((p, i) => (
           <button key={i} className={`pass ${p.flagship ? 'flag' : ''}`} style={{ left: pct(p.t) }}
             title={`${fmtDate(p.t, true)} · track ${p.track} ${p.dir === 'A' ? 'ascending' : 'descending'}${p.flagship ? ' · used in this story' : ''}`}
@@ -159,14 +159,14 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
         ))}
       </div>}
       {quakes.features.length > 0 && <div className="tl-row tl-quakes">
-        <span className="tl-label">{story.eventsLabel ?? 'Earthquakes (USGS)'}</span>
+        <span className="tl-label">{story.eventsLabel ?? 'Earthquakes'}</span>
         {quakes.features.map((q) => (
           <i key={q.id} className="qdot" style={{ left: pct(q.properties.time), width: quakeSize(q.properties.mag), height: quakeSize(q.properties.mag) }}
             title={`M${q.properties.mag} · ${q.properties.place}`} />
         ))}
       </div>}
       {hasEpisodes && <div className="tl-row tl-eps">
-        <span className="tl-label">Eruptions (HVO)</span>
+        <span className="tl-label">Eruptions</span>
         {episodes.map(({ e, t }) => {
           const ep = epochFor(story, t) // the processed NISAR period this event falls in, if any
           return (
@@ -179,7 +179,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
       </div>}
       <div className="tl-axis">
         {ticks.times.map((t) => (
-          <span key={t} style={{ left: pct(t) }}>{new Date(t).toLocaleDateString('en-US', ticks.monthly ? { month: 'short', year: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
+          <span key={t} style={{ left: pct(t), ...(pctNum(t) > 94 ? { transform: 'translateX(-100%)' } : pctNum(t) < 3 ? { transform: 'none' } : null) }}>{new Date(t).toLocaleDateString('en-US', ticks.monthly ? { month: 'short', year: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
         ))}
       </div>
       {story.event && <div className="tl-event" style={{ left: pct(ms(story.event.datetime)) }}><span>{story.event.shortLabel}</span></div>}
@@ -191,10 +191,10 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
   const ref = ms(story.flagshipPair.reference + 'T00:00:00Z')
   const status =
     story.kind === 'backscatter'
-      ? (cursor < sec ? `No ${sensor} radar picture yet at this date.` : `Showing the ${sensor} radar picture from the pass on ${fmtDate(sec)}.`)
-    : cursor < ref ? `Before the first ${sensor} pass of the pair. Nothing to compare yet.`
-    : cursor < sec ? 'Reference pass collected. Waiting for the second pass.'
-    : `Showing ${sensor} change between ${fmtDate(ref)} and ${fmtDate(sec)}.`
+      ? (cursor < sec ? 'No radar picture yet.' : `Radar picture from ${fmtDate(sec)}.`)
+    : cursor < ref ? 'Move forward to see the change.'
+    : cursor < sec ? 'Waiting for the second pass.'
+    : `Change from ${fmtDate(ref)} to ${fmtDate(sec)}.`
 
   return (
     <div className="timeline" role="group" aria-label="Timeline" ref={boxRef}>

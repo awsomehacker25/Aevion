@@ -63,7 +63,7 @@ export function TourButton({ onStart, available }: { onStart: () => void; availa
 export function ReplayButton({ running, onStart, onStop }: { running: boolean; onStart: () => void; onStop: () => void }) {
   return (
     <button className="cta ghost" onClick={running ? onStop : onStart} aria-pressed={running}>
-      {running ? 'Stop replay' : 'Replay the change (illustrative)'}
+      {running ? 'Stop replay' : 'Replay'}
     </button>
   )
 }

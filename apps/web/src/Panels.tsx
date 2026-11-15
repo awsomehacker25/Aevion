@@ -41,13 +41,11 @@ export function TopBar({ story, ui, setUi, stories, onSwitchStory }: TopBarProps
           {stories.map((s) => <option key={s.id} value={s.id}>{s.label ?? s.title}</option>)}
         </select>
       )}
-      <div className={`status s-${story.dataStatus}`} title={story.dataStatusNote}>
+      <div className={`status s-${story.dataStatus}`} title={[story.dataStatusNote, story.statusDetail ? (sci ? story.statusDetail.scientist : story.statusDetail.story) : ''].filter(Boolean).join(' - ')}>
         <span className="dot" />
         {STATUS_LABEL[story.dataStatus]}
-        {(story.statusDetail || story.dataStatus === 'placeholder') && (
-          <em> &middot; {story.statusDetail
-            ? (sci ? story.statusDetail.scientist : story.statusDetail.story)
-            : sci ? 'LOS and coherence grids are synthetic placeholders' : 'ground motion is a synthetic placeholder'}</em>
+        {sci && (story.statusDetail || story.dataStatus === 'placeholder') && (
+          <em> &middot; {story.statusDetail ? story.statusDetail.scientist : 'LOS and coherence grids are synthetic placeholders'}</em>
         )}
       </div>
       <div className="seg" role="tablist" aria-label="Mode">
@@ -158,6 +156,7 @@ export function SidePanel(p: SideProps) {
     : ''
 
   const [tabs, setTabs] = useState<Record<UiMode, string>>({ story: 'overview', scientist: 'analysis' })
+  const [collapsed, setCollapsed] = useState(false)
 
   const credits = (
     <p className="foot">
@@ -239,10 +238,15 @@ export function SidePanel(p: SideProps) {
   const current = all.find((t) => t.id === tabs[p.ui]) ?? all[0]
 
   return (
-    <aside className={`side ${sci ? 'sci' : ''}`}>
+    <aside className={`side ${sci ? 'sci' : ''} ${collapsed ? 'collapsed' : ''}`}>
       <div className="side-head">
-        <h1>{sci && tech ? tech.title : p.story.title}</h1>
+        <div className="side-title">
+          <h1>{sci && tech ? tech.title : p.story.title}</h1>
+          <button className="collapse" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}
+            aria-label={collapsed ? 'Show the panel' : 'Hide the panel'} title={collapsed ? 'Show the panel' : 'Hide the panel to see the map'}>{collapsed ? '+' : '–'}</button>
+        </div>
         <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
+        {!collapsed && <>
 
         <div className={`views ${bs ? (p.radar?.hh && p.radar?.hv ? '' : 'two') : ''}`}>
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
@@ -267,18 +271,18 @@ export function SidePanel(p: SideProps) {
         )}
 
         <div className="legend">
-          <div className="legend-title">{legend.title} <Badge kind={active.badge} synthetic={active.synthetic} /></div>
+          <div className="legend-title">{legend.title} {(sci || active.synthetic) && <Badge kind={active.badge} synthetic={active.synthetic} />}</div>
           <div className="bar" style={{ background: (radarLayer ?? (p.mode === 'los' ? p.displacement : undefined))?.colormap === 'gray' ? GRAY_GRADIENT : LEGEND_GRADIENTS[p.mode] }} />
           <div className="ends"><span>{legend.left}</span><span>{legend.right}</span></div>
+        </div>
+
+        <details className="settings">
+          <summary>{sci ? 'About this layer and display settings' : 'What do the colors mean?'}</summary>
           {keyItems && (
             <ul className="key">
               {keyItems.map((k) => <li key={k.text}><i style={{ background: k.color }} />{k.text}</li>)}
             </ul>
           )}
-        </div>
-
-        <details className="settings">
-          <summary>About this layer and display settings</summary>
           <p className="hint">{legend.hint}</p>
           {!bs && <label className="check">
             <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
@@ -298,9 +302,10 @@ export function SidePanel(p: SideProps) {
               onClick={() => setTabs((s) => ({ ...s, [p.ui]: t.id }))}>{t.label}</button>
           ))}
         </div>
+        </>}
       </div>
 
-      <div className="side-body" role="tabpanel">{current.body}</div>
+      {!collapsed && <div className="side-body" role="tabpanel">{current.body}</div>}
     </aside>
   )
 }
