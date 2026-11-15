@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import FloodMap from './FloodMap'
+import FloodMap, { swipeAngle, swipeSlope } from './FloodMap'
 import type { FloodLayers, FloodMapHandle } from './FloodMap'
 import FloodTimeline from './FloodTimeline'
 import { ChartsTab, EvidenceTab, LayersTab, MethodsDialog, StoryTab } from './FloodPanels'
@@ -33,6 +33,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
   const [methods, setMethods] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [terrain, setTerrain] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760)
   const [startCam, setStartCam] = useState<FloodState['cam']>(null)
@@ -151,7 +152,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
   const nSwipePct = Math.round(swipe * 100)
   return (
     <div className="app flood" ref={wrap}>
-      <FloodMap ref={map} data={data} a={st.a} b={st.b} view={st.view} water={st.water} swipeOn={st.swipeOn} swipe={swipe} layers={st.layers}
+      <FloodMap ref={map} data={data} a={st.a} b={st.b} view={st.view} water={st.water} swipeOn={st.swipeOn} terrain={terrain} swipe={swipe} layers={st.layers}
         point={point} startCamera={startCam} onPick={onPick} onPin={(p) => { setPin(p); setTab('evidence') }}
         onLoading={setBusy} onMissing={(w) => flash(t('error.layer', { name: w }))} onMoveEnd={syncHash} />
       {busy && <div className="floadbar" aria-hidden="true" />}
@@ -160,13 +161,15 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
       {st.swipeOn && (
         <div className="fdivider" role="slider" tabIndex={0} aria-orientation="horizontal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={nSwipePct}
           aria-label={t('divider.label')} aria-valuetext={t('divider.value', { pct: nSwipePct, left: lab(st.a), right: lab(st.b) })}
-          style={{ left: `${swipe * 100}%` }}
+          style={{ left: `${swipe * 100}%`, top: '-20%', height: '140%', transform: `rotate(${swipeAngle(terrain)}deg)` }}
           onPointerDown={(e) => {
             const el = e.currentTarget
             el.setPointerCapture(e.pointerId)
             const mv = (ev: PointerEvent) => {
               const r = wrap.current!.getBoundingClientRect()
-              setSwipe(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)))
+              // the line leans, so find where it crosses the middle of the map from wherever it is grabbed
+              const cx = ev.clientX - r.left - (r.height / 2 - (ev.clientY - r.top)) * swipeSlope(terrain)
+              setSwipe(Math.min(1, Math.max(0, cx / r.width)))
             }
             const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up) }
             el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up)
@@ -189,6 +192,9 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
         <button onClick={() => map.current?.zoomOut()} aria-label={t('map.zoomOut')} title={t('map.zoomOut')}>−</button>
         <button onClick={() => map.current?.reset()} aria-label={t('map.reset')} title={t('map.resetTitle')}>
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+        </button>
+        <button onClick={() => setTerrain(!terrain)} aria-pressed={terrain} aria-label={t('map.tilt')} title={t('map.tiltTitle')} className={terrain ? 'on' : ''}>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 18l6-9 4 5 3-4 5 8z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
         </button>
         <button onClick={() => update({ swipeOn: !st.swipeOn })} aria-pressed={st.swipeOn} aria-label={t('controls.swipe')} title={t('map.swipeTitle')} className={st.swipeOn ? 'on' : ''}>
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 5v14" stroke="currentColor" strokeWidth="2" /></svg>

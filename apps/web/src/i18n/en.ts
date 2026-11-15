@@ -39,6 +39,8 @@ const en: Record<string, string> = {
   'map.zoomOut': 'Zoom out',
   'map.reset': 'Reset view',
   'map.resetTitle': 'Zoom back out to the whole study area',
+  'map.tilt': '3D terrain',
+  'map.tiltTitle': 'Tilt the map and show the radar over 3D terrain',
   'map.swipeTitle': 'Turn the before and after divider on or off',
   'divider.label': 'Comparison divider: left date versus right date',
   'divider.value': '{pct}% of the map shows the left date ({left}), the rest shows {right}',

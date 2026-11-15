@@ -1,10 +1,14 @@
-import { useEffect, useImperativeHandle, useRef } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import type { Ref } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { GeoJSONSource, ImageSource, MapMouseEvent, StyleSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { BASEMAP } from './config'
 import type { FloodView, LoadedFlood } from './types'
+
+/** The divider is straight on the flat map and leans this many degrees (top to the right) when the map is tilted in 3D. */
+export const swipeAngle = (terrain: boolean) => (terrain ? 14 : 0)
+export const swipeSlope = (terrain: boolean) => Math.tan((swipeAngle(terrain) * Math.PI) / 180)
 
 export interface FloodLayers {
   districts: boolean
@@ -34,6 +38,8 @@ interface Props {
   view: FloodView
   water: boolean
   swipeOn: boolean
+  /** Tilt the map and drape the radar over 3D terrain. */
+  terrain: boolean
   /** Divider position across the map, 0 to 1. */
   swipe: number
   layers: FloodLayers
@@ -83,6 +89,7 @@ export default function FloodMap(p: Props) {
   const shown = useRef(new WeakMap<maplibregl.Map, Record<string, string>>())
   const pending = useRef(0)
   const live = useRef(p)
+  const [h, setH] = useState(600)
   useEffect(() => { live.current = p })
 
   const { flood, story } = p.data
@@ -103,7 +110,7 @@ export default function FloodMap(p: Props) {
   useImperativeHandle(p.ref, () => ({
     zoomIn: () => maps.current?.b.zoomIn(),
     zoomOut: () => maps.current?.b.zoomOut(),
-    reset: () => maps.current?.b.easeTo({ ...coverCam(), bearing: 0, pitch: 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 500, essential: true }),
+    reset: () => maps.current?.b.easeTo({ ...coverCam(), bearing: 0, pitch: p.terrain ? 58 : 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 500, essential: true }),
     flyTo: (lng, lat, zoom) => maps.current?.b.easeTo({ center: [lng, lat], zoom: zoom ?? Math.max(maps.current.b.getZoom(), 11.5), duration: 600, essential: true }),
     camera: () => {
       const m = maps.current?.b
@@ -124,6 +131,7 @@ export default function FloodMap(p: Props) {
       sources: {
         // the same Esri imagery as the other stories, so every map in Aevion looks alike
         imagery: { type: 'raster', tileSize: 256, maxzoom: 18, tiles: [BASEMAP.imageryTiles], attribution: BASEMAP.imageryAttribution },
+        dem: { type: 'raster-dem', tileSize: 256, maxzoom: 14, tiles: [BASEMAP.terrainTiles], encoding: BASEMAP.terrainEncoding, attribution: BASEMAP.terrainAttribution },
         labels: { type: 'raster', tileSize: 256, maxzoom: 18, tiles: [BASEMAP.labelTiles], attribution: '' },
         sar: { type: 'image', url: url(idx, d.view), coordinates: corners },
         'sar-b': { type: 'image', url: url(idx, d.view), coordinates: corners },
@@ -151,7 +159,7 @@ export default function FloodMap(p: Props) {
       ],
     })
     const cam = d.startCamera ? { center: [d.startCamera.lng, d.startCamera.lat] as [number, number], zoom: d.startCamera.zoom } : coverCam()
-    const startOpts = { center: cam.center, zoom: cam.zoom, attributionControl: false as const, dragRotate: false, pitchWithRotate: false, maxPitch: 0 }
+    const startOpts = { center: cam.center, zoom: cam.zoom, attributionControl: false as const, maxPitch: 75 }
     const A = new maplibregl.Map({ container: elA.current!, style: style(d.a), ...startOpts })
     const B = new maplibregl.Map({ container: elB.current!, style: style(d.b), ...startOpts })
     B.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
@@ -161,7 +169,7 @@ export default function FloodMap(p: Props) {
     const sync = (src: maplibregl.Map, dst: maplibregl.Map) => src.on('move', () => {
       if (syncing) return
       syncing = true
-      dst.jumpTo({ center: src.getCenter(), zoom: src.getZoom() })
+      dst.jumpTo({ center: src.getCenter(), zoom: src.getZoom(), bearing: src.getBearing(), pitch: src.getPitch() })
       syncing = false
     })
     sync(A, B); sync(B, A)
@@ -200,7 +208,7 @@ export default function FloodMap(p: Props) {
       })
     }
     // the maps start unsized when the container is still laying out
-    const ro = new ResizeObserver(() => { A.resize(); B.resize() })
+    const ro = new ResizeObserver(() => { A.resize(); B.resize(); setH(wrap.current?.clientHeight ?? 600) })
     ro.observe(wrap.current!)
     return () => { ro.disconnect(); A.remove(); B.remove(); maps.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -282,12 +290,27 @@ export default function FloodMap(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.a, p.b, p.view, p.water, p.layers, p.point, p.data])
 
+  // 3D terrain: both maps get the same relief and tilt, so the clipped divider still lines up on screen
+  useEffect(() => {
+    const m = maps.current
+    if (!m) return
+    const go = () => {
+      for (const map of [m.a, m.b]) {
+        if (!map.getSource('dem')) continue
+        map.setTerrain(p.terrain ? { source: 'dem', exaggeration: BASEMAP.terrainExaggeration } : null)
+      }
+      m.b.easeTo(p.terrain ? { pitch: 58, bearing: -12, duration: 900 } : { pitch: 0, bearing: 0, duration: 600 })
+    }
+    if (m.b.getLayer('sar')) go()
+    else m.b.once('styledata', go)
+  }, [p.terrain])
+
   // the left map is only needed while the swipe is on
   const px = p.swipeOn ? p.swipe * 100 : 0
   return (
     <div className="fmap" ref={wrap}>
       <div className="fmap-a" ref={elA} style={{ visibility: p.swipeOn ? 'visible' : 'hidden' }} aria-label={story.title} />
-      <div className="fmap-b" ref={elB} style={{ clipPath: p.swipeOn ? `inset(0 0 0 ${px}%)` : 'none' }} />
+      <div className="fmap-b" ref={elB} style={{ clipPath: p.swipeOn ? `polygon(calc(${px}% + ${(h / 2) * swipeSlope(p.terrain)}px) 0, 100% 0, 100% 100%, calc(${px}% - ${(h / 2) * swipeSlope(p.terrain)}px) 100%)` : 'none' }} />
     </div>
   )
 }
