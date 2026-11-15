@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { BUILD_SECONDS, PLAY_SECONDS } from './config'
-import { fmtDate, getDateLocale, ms } from './lib/data'
+import { fmtDate, fmtTick, ms } from './lib/data'
 import { playhead } from './lib/playhead'
 import { epochFor, periodDates } from './lib/periods'
 import { buildWindow, playClock } from './lib/progress'
@@ -181,7 +181,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
       </div>}
       <div className="tl-axis">
         {ticks.times.map((t) => (
-          <span key={t} style={{ left: pct(t), ...(pctNum(t) > 94 ? { transform: 'translateX(-100%)' } : pctNum(t) < 3 ? { transform: 'none' } : null) }}>{new Date(t).toLocaleDateString(getDateLocale(), ticks.monthly ? { month: 'short', year: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
+          <span key={t} style={{ left: pct(t), ...(pctNum(t) > 94 ? { transform: 'translateX(-100%)' } : pctNum(t) < 3 ? { transform: 'none' } : null) }}>{fmtTick(t, ticks.monthly)}</span>
         ))}
       </div>
       {story.event && <div className="tl-event" style={{ left: pct(ms(story.event.datetime)) }}><span>{story.event.shortLabel}</span></div>}

@@ -116,14 +116,23 @@ export function sampleGrid(g: Grid, lon: number, lat: number): number | null {
 
 export const ms = (iso: string) => Date.parse(iso)
 
+import { formatCustomDate } from './months'
+
 let dateLocale = 'en-US'
+let dateLang = 'en'
 /** Called by the language provider so dates everywhere follow the chosen language. */
-export function setDateLocale(l: string) { dateLocale = l }
+export function setDateLocale(l: string, lang = 'en') { dateLocale = l; dateLang = lang }
 export const getDateLocale = () => dateLocale
+
+/** A timeline axis label: "Jul 22" (or month and two-digit year on long axes), in the current language's month names. */
+export function fmtTick(t: number, monthly: boolean): string {
+  return formatCustomDate(t, dateLang, monthly ? { month: 'short', year: '2-digit' } : { month: 'short', day: 'numeric' })
+    ?? new Date(t).toLocaleDateString(dateLocale, monthly ? { month: 'short', year: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' })
+}
 
 export function fmtDate(t: number, withTime = false): string {
   const d = new Date(t)
-  const date = d.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+  const date = formatCustomDate(t, dateLang) ?? d.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
   if (!withTime) return date
   return `${date}, ${d.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })} UTC`
 }
