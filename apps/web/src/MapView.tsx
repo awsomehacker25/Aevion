@@ -237,7 +237,9 @@ export default function MapView(p: Props) {
 
       // AOI outline
       map.addSource('aoi', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[...corners(aoi.bbox), corners(aoi.bbox)[0]]] } } })
-      map.addLayer({ id: 'aoi-line', type: 'line', source: 'aoi', paint: { 'line-color': '#9fb4d9', 'line-width': 1, 'line-opacity': 0.5, 'line-dasharray': [3, 3] } })
+      // the frame of the picture is also the limit of the before/after divider, so it is drawn clearly: a dark casing under a bright dashed line
+      map.addLayer({ id: 'aoi-casing', type: 'line', source: 'aoi', paint: { 'line-color': '#000', 'line-width': 4, 'line-opacity': 0.45 } })
+      map.addLayer({ id: 'aoi-line', type: 'line', source: 'aoi', paint: { 'line-color': '#ffffff', 'line-width': 1.8, 'line-opacity': 0.95, 'line-dasharray': [3, 2] } })
 
       // USGS context layers (hidden until switched on)
       map.addSource('fault', { type: 'geojson', data: (p.context?.fault ?? EMPTY) as FeatureCollection })

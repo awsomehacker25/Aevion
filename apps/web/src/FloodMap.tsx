@@ -169,7 +169,7 @@ export default function FloodMap(p: Props) {
     })
     const cam = d.startCamera ? { center: [d.startCamera.lng, d.startCamera.lat] as [number, number], zoom: d.startCamera.zoom } : coverCam()
     // like the other stories, you can't zoom out far from the study area, which also keeps the number of tiles down
-    const startOpts = { center: cam.center, zoom: cam.zoom, minZoom: Math.max(2, coverCam().zoom - 1.5), attributionControl: false as const, maxPitch: 75 }
+    const startOpts = { center: cam.center, zoom: cam.zoom, minZoom: Math.max(2, coverCam().zoom - 2.25), attributionControl: false as const, maxPitch: 75 }
     const A = new maplibregl.Map({ container: elA.current!, style: style(d.a), ...startOpts })
     const B = new maplibregl.Map({ container: elB.current!, style: style(d.b), ...startOpts })
     B.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
@@ -192,6 +192,12 @@ export default function FloodMap(p: Props) {
     }
     const addVector = (m: maplibregl.Map) => {
       const L = live.current.layers
+      // the frame of the radar picture, which is also the limit of the swipe divider
+      if (!m.getSource('frame')) {
+        m.addSource('frame', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[...corners, corners[0]]] } } })
+        m.addLayer({ id: 'frame-casing', type: 'line', source: 'frame', paint: { 'line-color': '#000', 'line-width': 4, 'line-opacity': 0.45 } }, 'pt')
+        m.addLayer({ id: 'frame-line', type: 'line', source: 'frame', paint: { 'line-color': '#ffffff', 'line-width': 1.8, 'line-opacity': 0.95, 'line-dasharray': [3, 2] } }, 'pt')
+      }
       if (live.current.data.districts && !m.getSource('districts')) {
         m.addSource('districts', { type: 'geojson', data: live.current.data.districts })
         m.addLayer({ id: 'districts-casing', type: 'line', source: 'districts', paint: { 'line-color': '#000', 'line-width': 3.5, 'line-opacity': 0.5 }, layout: { visibility: L.districts ? 'visible' : 'none' } }, 'pt')

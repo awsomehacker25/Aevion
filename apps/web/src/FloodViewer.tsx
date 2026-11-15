@@ -232,7 +232,7 @@ export default function FloodViewer({ id, stories, onSwitchStory, initialUi, onU
             else return
             e.preventDefault()
           }}>
-          <span className="swipe-handle" style={{ transform: `rotate(${-swipeAngle(terrain)}deg)` }} aria-hidden="true"><span>{leftDate}</span><b>&lsaquo; &rsaquo;</b><span>{rightDate}</span></span>
+          <span className="swipe-handle" style={{ transform: `translate(-50%, -50%) rotate(${-swipeAngle(terrain)}deg)` }} aria-hidden="true"><span>{leftDate}</span><b>&lsaquo; &rsaquo;</b><span>{rightDate}</span></span>
         </div>
       )}
 
