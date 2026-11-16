@@ -302,8 +302,7 @@ export function SidePanel(p: SideProps) {
           {legend.hint && <p className="hint">{legend.hint}</p>}
         </div>
 
-        <details className="settings">
-          <summary>{sci ? 'About this layer and display settings' : t('s.colors')}</summary>
+        {(sci || !bs) && <SettingsBox sci={sci}>
           {!bs && <label className="check">
             <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
             <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : t('s.fade')}</span>
@@ -314,7 +313,7 @@ export function SidePanel(p: SideProps) {
               <input type="range" min={0.1} max={0.9} step={0.05} value={p.threshold} onChange={(e) => p.setThreshold(Number(e.target.value))} />
             </label>
           )}
-        </details>
+        </SettingsBox>}
 
         <div className="tabs" role="tablist" aria-label={t('panel.tabs')}>
           {all.map((t) => (
@@ -332,6 +331,13 @@ export function SidePanel(p: SideProps) {
 
 
 /** Links from the challenge resource list. Story mode shows learning links; Scientist mode shows data links. */
+// Scientist mode keeps its collapsible settings; story mode shows them plainly, with no "what do the colors mean" menu.
+function SettingsBox({ sci, children }: { sci: boolean; children: React.ReactNode }) {
+  return sci
+    ? <details className="settings"><summary>About this layer and display settings</summary>{children}</details>
+    : <div className="settings">{children}</div>
+}
+
 function Resources({ items, ui }: { items?: Resource[]; ui: UiMode }) {
   const { t } = useI18n()
   if (!items?.length) return null
