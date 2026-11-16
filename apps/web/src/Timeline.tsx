@@ -15,6 +15,8 @@ interface Props {
   setCursor: (t: number) => void
   /** Extra controls shown in the header, next to the play button (the period switcher). */
   headExtra?: ReactNode
+  /** A row under the passes (the flood story's rain and new-water chart), on the same date axis. */
+  extraRow?: ReactNode
   /** Called when an eruption dot is clicked, with the moment it refers to. */
   onEpisode?: (e: EventMark, t: number) => void
 }
@@ -32,7 +34,7 @@ const MAX_TICKS = 6
 /** Quake marker diameter in px, scaled by magnitude. */
 const quakeSize = (mag: number) => 4 + (mag - 3.5) * 2.6
 
-export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode }: Props) {
+export default function Timeline({ data, cursor, setCursor, headExtra, extraRow, onEpisode }: Props) {
   const { t: tr } = useI18n()
   const { story, pairs, quakes } = data
   const sensor = story.sensor ?? 'NISAR'
@@ -220,6 +222,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, onEpisode
         <input className="tl-range" type="range" min={start} max={end} step={HOUR_MS} value={cursor}
           onChange={(e) => { setPlaying(false); setCursor(Number(e.target.value)) }} aria-label={tr('s.tl.date')} />
       </div>
+      {extraRow && <div className="tl-extra">{extraRow}</div>}
     </div>
   )
 }

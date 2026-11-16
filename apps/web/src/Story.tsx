@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { Grid, LayerDef, Story, TourStep } from './types'
 import { useI18n } from './i18n'
+import { Paras } from './lib/rich'
 
 export function WhyCards({ items }: { items?: Story['why'] }) {
   const { t } = useI18n()
@@ -11,7 +12,7 @@ export function WhyCards({ items }: { items?: Story['why'] }) {
       {items.map((c) => (
         <details key={c.title}>
           <summary>{c.title}</summary>
-          <p>{c.body}</p>
+          <Paras items={c.body.split(/\n\n/)} />
         </details>
       ))}
     </div>

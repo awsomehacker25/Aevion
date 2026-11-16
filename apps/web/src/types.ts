@@ -13,8 +13,6 @@ export interface StoryIndexEntry {
   /** Short name for the story picker. */
   label?: string
   type?: StoryType
-  /** 'flood' stories use the flood viewer (image overlays and a before/after swipe) instead of the interferometry viewer. */
-  kind?: 'flood'
   /** The story the app opens on and highlights in the picker. */
   featured?: boolean
   /** Languages this story is offered in, English first. */
@@ -93,6 +91,12 @@ export interface Epoch {
 export interface StoryCopy {
   /** Label of the main view button: [Story mode, Scientist mode]. */
   mainView?: [string, string]
+  /** Id of the period shown west of the swipe line by default (a before/after between two dates); leave out for 'plain imagery'. */
+  compareDefault?: string
+  /** The view the story opens on (default: the main view). */
+  defaultView?: ViewMode
+  /** Wording for the 'what changed' view when it is not 'difference from the previous pass'. `inspector` names the value in the point card. */
+  changeView?: { title: string; sub: string; subTech: string; inspector: string }
   /** Lines under "How to read this" in Story mode. */
   howTo?: string[]
   /** Text for a selected period. {from} and {to} are the two pass dates, {between} the event phrase. */
@@ -132,6 +136,14 @@ export interface Story {
   credits?: string
   /** Starting coherence threshold for fading unreliable cells. Defaults to 0.5. */
   defaultThreshold?: number
+  /** Flood analysis files (Upper Assam): the flood manifest (dates, areas, context layers, presets), the coarse HH/HV time series and the threshold check. */
+  flood?: { manifest: string; series: string; validation?: string }
+  /** Short name of each flood pass by date, for example "Near the flood peak". */
+  dateLabels?: Record<string, string>
+  /** What was reported at each damage pin, by pin id. */
+  pinText?: Record<string, string>
+  /** Which reported sites could not be pinned, and why. */
+  pinMissing?: string
   /** Labels pinned on the map, for example the vent or the strongest motion. */
   annotations?: { lon: number; lat: number; label: string; kind?: 'vent' | 'note'; appears?: 'event' | 'change' }[]
   dataStatus: DataStatus
@@ -139,6 +151,8 @@ export interface Story {
   /** Short text next to the status pill, per mode. */
   statusDetail?: { story: string; scientist: string }
   storyText: string
+  /** A short personal note shown above the story text (for example why the team started with this place). */
+  personal?: { title: string; body: string[] }
   /** Optional text shown in Scientist mode instead of the plain-language story. */
   technical?: { title: string; subtitle?: string; summary: string; caveats?: string[] }
   aoi: { bbox: [number, number, number, number]; center: [number, number]; zoom: number; pitch: number; bearing: number }
@@ -283,18 +297,17 @@ export interface LoadedStory {
   quakes: QuakeCollection
   context?: UsgsContext
   epochGrids?: Record<string, { deformation: Grid; coherence: Grid; hv?: Grid; hh?: Grid }>
+  /** The flood analysis (areas, rain, people, damage pins, point time series), for stories that have one. */
+  floodData?: FloodData
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Flood stories (Upper Assam). Radar pictures are pre-rendered images over one bounding box, one set per NISAR date.
 // ---------------------------------------------------------------------------------------------------------------------
 
-export type FloodView = 'HH' | 'HV' | 'RGB'
-
 export interface FloodDate {
   date: string
   label: string
-  layers: { HH: string; HV: string; water: string; RGB?: string }
   water_km2: number
   new_water_km2: number
   coverage: number
@@ -361,33 +374,8 @@ export interface FloodRain {
   max_cell_mm: number[]
 }
 
-/** One block of story text. Paragraphs use the inline markup in lib/rich.tsx. */
-export interface TextSection { id: string; title: string; body: string[] }
-
-/** story.json of a flood story. */
-export interface FloodStory {
-  id: string
-  kind: 'flood'
-  type?: StoryType
-  title: string
-  subtitle: string
-  dataStatus: DataStatus
-  dataStatusNote: string
-  credits: string
-  aoi: { bbox: [number, number, number, number]; center: [number, number]; zoom: number; pitch: number; bearing: number }
-  flood: string
-  series: string
-  validation: string
-  sections: TextSection[]
-  /** A short note from the team about why this story is theirs. */
-  personal?: { title: string; body: string[] }
-  dateLabels: Record<string, string>
-  pinText: Record<string, string>
-  pinMissing: string
-}
-
-export interface LoadedFlood {
-  story: FloodStory
+/** Everything the flood analysis adds to a story. */
+export interface FloodData {
   flood: FloodManifest
   series: FloodSeries
   rain: FloodRain | null

@@ -6,7 +6,6 @@
       "manifest": "upper-assam-floods/story.json",
       "label": "Upper Assam floods",
       "type": "flood",
-      "kind": "flood",
       "languages": [
         "en",
         "as",

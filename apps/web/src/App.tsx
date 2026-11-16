@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
-import './Flood.css'
-import { DEFAULT_COHERENCE_THRESHOLD, EVENT, TEAM } from './config'
+import './Shell.css'
+import './Extras.css'
+import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
-import { loadIndex, loadStory, ms } from './lib/data'
+import { loadIndex, loadStory, ms, sampleGrid } from './lib/data'
 import { epochLayer, epochStory, isFeatured, labelledStory } from './lib/epochs'
 import { computeVentMotion, epochFor, sortEpochs } from './lib/periods'
 import { changeProgress } from './lib/progress'
@@ -11,15 +12,21 @@ import { compareToModel } from './lib/physics'
 import { EpochChart, PeriodList, PeriodSwitcher } from './Epochs'
 import { ImpactPanel } from './Impact'
 import MapView from './MapView'
+import type { MapExtras } from './MapView'
 import type { MixOpts } from './lib/render'
-import { Inspector, SidePanel, TopBar } from './Panels'
+import { Inspector, SidePanel } from './Panels'
+import { Dock } from './Dock'
+import { useTheme } from './theme'
+import { Splash } from './Splash'
+import { ShellSkeleton } from './Skeleton'
 import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
 import Timeline from './Timeline'
 import StoryCharts from './StoryCharts'
 import { epochCode, epochFromCode, readLink, shortDate, writeLink } from './lib/link'
-import FloodViewer from './FloodViewer'
+import { DEFAULT_LAYERS, EXCLUSIVE, FloodImpact, FloodLayersPanel, FloodLegendKey, FloodMethods, FloodPointExtra, FloodSummary, FloodTimelineRow, FloodCharts } from './FloodExtras'
+import type { FloodLayers } from './FloodExtras'
 import { I18nProvider, initialLang, useI18n } from './i18n'
 import type { Lang } from './i18n'
 import { offers, useLocalizedStory } from './lib/localize'
@@ -47,11 +54,16 @@ interface ViewerProps {
   /** The mode (Story or Scientist) carries over when another story is chosen. */
   initialUi: UiMode
   onUiChange: (m: UiMode) => void
+  /** True while the opening splash still covers the app: nothing to draw yet. */
+  booting: boolean
+  /** Called once the story is on screen (or failed), so the splash can fade. */
+  onReady: () => void
 }
 
 /** One story. It is re-created (with fresh state) whenever the story changes. */
-function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerProps) {
+function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange, booting, onReady }: ViewerProps) {
   const { t } = useI18n()
+  const theme = useTheme()
   const [raw, setRaw] = useState<LoadedStory | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
@@ -70,6 +82,12 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const [note, setNote] = useState<string | null>(null) // a short message that fades out by itself
   const noteTimer = useRef(0)
   const [epochId, setEpochId] = useState<string | null>(null) // null = the featured period
+  const [compareId, setCompareId] = useState<string | null>(null) // the period west of the swipe line, when the story compares two dates
+  const [fl, setFl] = useState<FloodLayers>(DEFAULT_LAYERS) // the flood story's extra map layers
+  const [preset, setPreset] = useState<string | null>(null)
+  const [pin, setPin] = useState<string | null>(null)
+  const [methods, setMethods] = useState(false)
+  const [tabReq, setTabReq] = useState<{ id: string; nonce: number } | null>(null)
   const [panelTab, setPanelTab] = useState<string | null>(null) // the open side-panel tab, for the shared link
   const [initialTab, setInitialTab] = useState<string | undefined>(undefined)
   const replayRaf = useRef(0)
@@ -81,6 +99,8 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
         setRaw(d)
         setCursor(ms(d.story.timeline.initial))
         if (d.story.defaultThreshold != null) setThreshold(d.story.defaultThreshold)
+        if (d.story.copy?.defaultView) setMode(d.story.copy.defaultView)
+        setCompareId(d.story.copy?.compareDefault ?? null)
         // a shared link can carry the view (v), the date (d) and the measured period (p)
         const h = readLink()
         const epId = epochFromCode(h.p, (d.story.epochs ?? []).map((e) => e.id))
@@ -190,6 +210,30 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
 
   const selectedEpochId = data?.story.epochs?.find((e) => (shownEpochId ? e.id === shownEpochId : isFeatured(data.story, e)))?.id ?? ''
   const ventMotion = useMemo(() => (data ? computeVentMotion(data.story, data.epochGrids) : null), [data])
+  // the flood story's extra layers, passed to the map; the people layer follows the date on screen
+  const bIso = data?.story.epochs?.find((e) => e.id === selectedEpochId)?.pair.secondary
+  const openTab = useCallback((id: string) => setTabReq((r) => ({ id, nonce: (r?.nonce ?? 0) + 1 })), [])
+  const onPinClick = useCallback((id: string) => { setPin(id); setFl((l) => ({ ...l, pins: true })); openTab('impact') }, [openTab])
+  const extras: MapExtras | undefined = useMemo(() => {
+    const fd = data?.floodData
+    if (!fd) return undefined
+    const ctx = fd.flood.context
+    const pop = ctx.population
+    const images: MapExtras['images'] = [
+      ...(ctx.sentinel1 ? [{ id: 'sentinel1', url: ctx.sentinel1.url, opacity: 1, above: false }] : []),
+      ...(ctx.sentinel2 ? [{ id: 'optical', url: ctx.sentinel2.url, opacity: 1, above: false }] : []),
+      ...(pop ? [{ id: 'population', url: (bIso && pop.by_date[bIso]?.url) || pop.url, opacity: 0.9, resampling: 'nearest' as const, above: false }] : []),
+      ...(ctx.aftermath ? [{ id: 'aftermath', url: ctx.aftermath.url, opacity: 0.9, resampling: 'nearest' as const, above: true }] : []),
+      ...(ctx.permanent_water ? [{ id: 'permwater', url: ctx.permanent_water.url, opacity: 1, resampling: 'nearest' as const, above: true }] : []),
+    ]
+    const whole = fl.optical || fl.sentinel1 || fl.population
+    return { districts: fd.districts ?? undefined, pins: fd.pins ?? undefined, images, visible: fl as unknown as Record<string, boolean>, onPin: onPinClick, hideData: whole && mode !== 'hh' }
+  }, [data, fl, bIso, mode, onPinClick])
+  const setLayer = (l: keyof FloodLayers, on: boolean) => setFl((cur) => {
+    const next = { ...cur, [l]: on }
+    if (on && (EXCLUSIVE as readonly string[]).includes(l)) for (const o of EXCLUSIVE) if (o !== l) next[o] = false
+    return next
+  })
   // A click on an eruption dot: go to its NISAR period if one was processed, otherwise just go to the date and say so.
   const onEpisode = useCallback((e: EventMark, time: number) => {
     const ep = data ? epochFor(data.story, time) : undefined
@@ -260,7 +304,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   )
 
   const switchUi = (m: UiMode) => {
-    if (m === 'story') { setPicking(false); setProfile({ a: null, b: null }) } else { setTour(null) }
+    if (m === 'story') { setPicking(false); setProfile({ a: null, b: null }); setFl((l) => ({ ...l, sentinel1: false })) } else { setTour(null) }
     setUi(m)
     onUiChange(m)
   }
@@ -298,9 +342,12 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     setPicked([c.lon, c.lat])
   }
 
+  const settled = !!error || !!(layers && 'error' in layers) || !!(data && ok && view)
+  useEffect(() => { if (settled) onReady() }, [settled, onReady])
+
   if (error) return <div className="splash"><b>{t('s.err.load')}</b><span>{error}</span></div>
   if (layers && 'error' in layers) return <div className="splash"><b>{t('s.err.invalid')}</b><span>{layers.error}</span></div>
-  if (!data || !ok || !view) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /><span>{t('loading')}</span><small className="splash-team">{EVENT}</small><small className="splash-names">{t('s.builtBy')} {t('s.team', { names: TEAM.slice(0, -1).join(', '), last: TEAM[TEAM.length - 1] })}</small></div>
+  if (!data || !ok || !view) return booting ? <div className="app" /> : <ShellSkeleton label={t('loading')} />
 
   const { story, flagship: viewPair } = view
   // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
@@ -325,6 +372,60 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     }}>{swipe ? t('s.swipe.hide') : t('s.swipe.show')}</button>
   )
   const epochs = data.story.epochs
+  // Two-date compare: the period chosen in the picker is drawn west of the swipe line, the selected period east of it.
+  const cmpEpoch = compareId && compareId !== selectedEpochId ? epochs?.find((e) => e.id === compareId) : undefined
+  const cg = cmpEpoch ? data.epochGrids?.[cmpEpoch.id] : undefined
+  const selLabel = epochs?.find((e) => e.id === selectedEpochId)?.label ?? ''
+  const compare = cmpEpoch && cg
+    ? {
+        displacement: { layer: view.displacement.layer, grid: cg.deformation },
+        coherence: view.coherence,
+        radarHH: cg.hh && view.radar.hh ? { layer: view.radar.hh.layer, grid: cg.hh } : undefined,
+        radarHV: cg.hv && view.radar.hv ? { layer: view.radar.hv.layer, grid: cg.hv } : undefined,
+        mix: mixKind === 'echo' && cg.hv && view.radar.hv
+          ? { kind: 'echo' as const, hh: cg.deformation, hv: cg.hv, rHH: view.displacement.layer.range, rHV: view.radar.hv.layer.range }
+          : mixKind === 'change' && cg.hh && cg.hv && view.radar.hh && view.radar.hv
+            ? { kind: 'change' as const, hh: cg.hh, hv: cg.hv, rHH: view.radar.hh.layer.range, rHV: view.radar.hv.layer.range }
+            : undefined,
+        labels: [cmpEpoch.label, selLabel] as [string, string],
+      }
+    : undefined
+  const compareSelect = story.copy?.compareDefault && swipe && epochs ? (
+    <label className="compare-pick">
+      <span>{t('s.compare.with')}</span>
+      <select value={compareId ?? ''} onChange={(e) => setCompareId(e.target.value)}>
+        {epochs.filter((e) => e.id !== selectedEpochId).map((e) => <option key={e.id} value={e.id}>{e.label}{e.title ? ` · ${e.title}` : ''}</option>)}
+      </select>
+    </label>
+  ) : null
+  // The flood analysis (Upper Assam): index of the pass on screen and of the compare pass in the flood manifest
+  const fd = data.floodData
+  const fdates = fd?.flood.dates ?? []
+  const bIdx = Math.max(0, fdates.findIndex((d) => d.date === bIso))
+  const aIdx = Math.max(0, fdates.findIndex((d) => d.date === (cmpEpoch?.pair.secondary ?? fd?.flood.reference)))
+  const fcommon = fd ? { data: fd, story: data.story, expert: sci, b: bIdx } : null
+  const onPreset = (id: string) => {
+    const pr = fd?.flood.presets.find((x) => x.id === id)
+    if (!pr) return
+    const ep = epochs?.find((e) => e.pair.secondary === pr.date)
+    if (ep) selectEpoch(ep.id)
+    setPreset(id)
+    setPicked([pr.lng, pr.lat])
+    fly({ center: [pr.lng, pr.lat], zoom: 12, pitch: story.aoi.pitch, bearing: 0 })
+  }
+  const onShowPin = (id: string) => {
+    const f = fd?.pins?.features.find((x) => (x.properties as { id: string }).id === id)
+    if (!f) return
+    const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
+    setPin(id)
+    setFl((l) => ({ ...l, pins: true }))
+    fly({ center: [lng, lat], zoom: 12, pitch: story.aoi.pitch, bearing: 0 })
+  }
+  const waterAt = (iso: string) => {
+    const g = data.epochGrids?.[`ep-${iso}`]?.hh
+    return g && picked ? sampleGrid(g, picked[0], picked[1]) : null
+  }
+  const methodsBtn = fd ? <button className="cta ghost" onClick={() => setMethods(true)}>{t('methods.button')}</button> : null
   const periodsTab = epochs?.length ? (
     <>
       {ventMotion && <EpochChart epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} chart={story.copy?.chart} />}
@@ -335,12 +436,12 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   const periodSwitcher = epochs?.length ? (
     <PeriodSwitcher epochs={epochs} motion={ventMotion} selected={selectedEpochId} onSelect={selectEpoch} onStep={stepEpoch} chart={story.copy?.chart} />
   ) : undefined
-  const charts = (
+  const charts = fcommon ? <FloodCharts {...fcommon} point={picked} onPreset={onPreset} activePreset={preset} /> : (
     <StoryCharts data={data} displacement={view.displacement.grid} coherence={view.coherence.grid} scale={view.displacement.layer.displayScale}
       unit={view.displacement.layer.displayUnits} threshold={threshold} picked={picked} sci={sci} />
   )
   const timelineData = { ...data, story, flagship: viewPair }
-  const impact = context && (
+  const impact = fcommon ? <FloodImpact {...fcommon} onShow={onShowPin} selectedPin={pin} /> : context && (
     <ImpactPanel context={context} defo={view.displacement.grid} cov={view.coherence.grid} ui={ui}
       overlays={overlays} setOverlays={setOverlays} onCity={onCity} />
   )
@@ -348,7 +449,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
   return (
     <div className="app">
       <MapView story={story} quakes={data.quakes} context={context} displacement={view.displacement} coherence={view.coherence}
-        radarHH={view.radar.hh} radarHV={view.radar.hv} mix={mixOpts} next={view.next}
+        radarHH={view.radar.hh} radarHV={view.radar.hv} mix={mixOpts} compare={compare} extras={extras} next={view.next}
         mode={shownMode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={viewPair?.secondary} swipe={swipe} cursor={cursor}
         overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
         profile={profile} profileMode={picking}
@@ -359,15 +460,18 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         {t('s.recenter')}
       </button>
-      <TopBar story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} languages={stories.find((x) => x.id === story.id)?.languages} />
+      <Dock story={story} ui={ui} setUi={switchUi} stories={stories} onSwitchStory={onSwitchStory} languages={stories.find((x) => x.id === story.id)?.languages} theme={theme} coords={picked} />
       <SidePanel story={story} ui={ui} mode={shownMode} setMode={setMode} fadeLow={fadeLow} setFadeLow={setFadeLow}
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}
         radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }} mix={mixKind} initialTab={initialTab} onTab={setPanelTab}
+        tabRequest={tabReq ?? undefined} keyExtra={fd ? <FloodLegendKey data={fd} layers={fl} /> : undefined}
         slots={sci ? {
           analysis: (
             <>
-              <div className="row-btns">{swipeBtn}{replayBtn}</div>
+              {fcommon && <FloodSummary {...fcommon} a={aIdx} swipeOn={swipe} />}
+              <div className="row-btns">{swipeBtn}{replayBtn}</div>{compareSelect}
+              {methodsBtn}
               {!bs && <ProfileControls picking={picking} hasLine={!!profileData}
                 onStart={() => { setProfile({ a: null, b: null }); setPicking(true); setPicked(null) }}
                 onClear={() => { setProfile({ a: null, b: null }); setPicking(false) }} />}
@@ -376,20 +480,23 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
           ),
           impact,
           periods: periodsTab,
+          layers: fcommon ? <FloodLayersPanel {...fcommon} layers={fl} setLayer={setLayer} /> : undefined,
           charts,
           los: bs ? undefined : <LosDiagram sci incidence={story.geometry?.incidenceDeg} azimuth={story.geometry?.lookAzimuthDeg} />,
         } : {
           actions: (
             <div className="actions">
+              {fcommon && <FloodSummary {...fcommon} a={aIdx} swipeOn={swipe} />}
               {!bs && <ChangeStat layer={view.displacement.layer} grid={view.displacement.grid} coherence={view.coherence.grid} threshold={threshold} />}
               <TourButton available={!!story.tour?.length} onStart={() => goTour(0)} />
-              <div className="row-btns">{swipeBtn}{replayBtn}</div>
+              <div className="row-btns">{swipeBtn}{replayBtn}</div>{compareSelect}
             </div>
           ),
           impact,
           periods: periodsTab,
+          layers: fcommon ? <FloodLayersPanel {...fcommon} layers={fl} setLayer={setLayer} /> : undefined,
           charts,
-          why: <WhyCards items={story.why} />,
+          why: <><WhyCards items={story.why} />{methodsBtn}</>,
           los: bs ? undefined : <LosDiagram sci={false} />,
         }} />
       {replay != null && (
@@ -406,7 +513,8 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
       {picking && <div className="replay-chip">{t('s.picking')}</div>}
       {picked && !picking && (
         <Inspector point={picked} ui={ui} displacement={view.displacement} coherence={view.coherence}
-          threshold={threshold} showChange={showChange} sensor={story.sensor} kind={story.kind} radar={view.radar}
+          threshold={threshold} showChange={showChange} sensor={story.sensor} kind={story.kind} radar={view.radar} changeLabel={story.copy?.changeView?.inspector}
+          extra={fcommon ? <FloodPointExtra {...fcommon} point={picked} waterAt={waterAt} onChart={() => openTab('charts')} /> : undefined}
           onJump={viewPair?.secondary ? () => setCursor(ms(`${viewPair.secondary}T12:00:00Z`)) : undefined} onClose={() => setPicked(null)} />
       )}
       {sci && profileData && profile.a && profile.b && (
@@ -419,7 +527,9 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
           onNext={() => goTour(Math.min(story.tour!.length - 1, tour + 1))}
           onExit={() => setTour(null)} />
       )}
-      <Timeline data={timelineData} cursor={cursor} setCursor={setCursor} headExtra={periodSwitcher} onEpisode={onEpisode} />
+      <Timeline data={timelineData} cursor={cursor} setCursor={setCursor} headExtra={periodSwitcher} onEpisode={onEpisode}
+        extraRow={fcommon ? <FloodTimelineRow {...fcommon} a={aIdx} start={ms(story.timeline.start)} end={ms(story.timeline.end)} onPick={(iso) => { const ep = epochs?.find((e) => e.pair.secondary === iso); if (ep) selectEpoch(ep.id) }} /> : undefined} />
+      {methods && fd && <FloodMethods data={fd} onClose={() => setMethods(false)} />}
     </div>
   )
 }
@@ -429,6 +539,10 @@ export default function App() {
   const [ui, setUi] = useState<UiMode>('story')
   const [id, setId] = useState<string | undefined>(() => new URLSearchParams(location.search).get('story') ?? undefined)
   const [lang, setLang] = useState<Lang>(initialLang)
+  const [ready, setReady] = useState(false) // the first story is on screen
+  const [booted, setBooted] = useState(false) // the opening splash has finished
+  const onReady = useCallback(() => setReady(true), [])
+  const onBooted = useCallback(() => setBooted(true), [])
 
   useEffect(() => { loadIndex().then(setStories).catch(() => setStories([])) }, [])
 
@@ -440,17 +554,19 @@ export default function App() {
     setId(next)
   }
 
-  if (!stories) return <div className="splash"><img className="splash-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="Aevion" /></div>
   // Upper Assam is the flagship: it opens first unless a story is asked for in the address.
-  const entry = stories.find((s) => s.id === id) ?? stories[0]
+  const entry = stories?.find((s) => s.id === id) ?? stories?.[0]
   // A story only offers its own languages: anything else shows English until the viewer picks again.
   const shown: Lang = offers(entry?.languages, lang) ? lang : 'en'
 
   return (
-    <I18nProvider lang={shown} setLang={setLang}>
-      {entry?.kind === 'flood'
-        ? <FloodViewer key={entry.id} id={entry.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />
-        : <Viewer key={entry?.id ?? 'default'} id={entry?.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />}
-    </I18nProvider>
+    <>
+      {stories && (
+        <I18nProvider lang={shown} setLang={setLang}>
+          <Viewer key={entry?.id ?? 'default'} id={entry?.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} booting={!booted} onReady={onReady} />
+        </I18nProvider>
+      )}
+      {!booted && <Splash ready={ready} onDone={onBooted} />}
+    </>
   )
 }

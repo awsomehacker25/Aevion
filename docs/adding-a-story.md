@@ -13,7 +13,7 @@ Everything below lives in `apps/web/public/stories/<story-id>/`. The data format
 
 | Id | Type | Radar source | Data status |
 |---|---|---|---|
-| `upper-assam-floods` | flood (flagship, opens first) | NISAR (GCOV, water masks) | provisional, real (7 dates) |
+| `upper-assam-floods` | flood (flagship, opens first) | NISAR (GCOV, water masks), as grids | provisional, real (7 dates) |
 | `venezuela-2026` | earthquake | NISAR (ARIA map) | provisional, real |
 | `kilauea-hawaii` | volcano | NISAR | provisional, real (one pair) |
 | `krasheninnikov-kamchatka` | volcano | NISAR (GCOV radar brightness) | provisional, real (11 passes) |
@@ -105,6 +105,6 @@ on the hills around a lake-bed city only (heights from the public AWS terrain ti
 
 ## Flood stories and languages
 
-A flood story uses `"kind": "flood"` in `index.json` and a `flood.json` manifest instead of grids: for each NISAR date the HH, HV, colour-mix and water-mask images, plus context layers, a time series, rain and damage pins. See `public/stories/upper-assam-floods/` and `processing/assam/` for the pipeline that builds it.
+A flood story is a normal radar-picture story (`"kind": "backscatter"`, one epoch per NISAR date) that also has a `"flood"` block in `story.json` pointing at a `flood.json` manifest (dates and areas, context layers, check spots, rain and damage pins), a coarse HH/HV time series and the threshold check. The new-water change for each date is the epoch's "what changed" grid. See `public/stories/upper-assam-floods/`, `tools/assam-to-grids.mjs` for how its grids were made and `processing/assam/` for the pipeline behind the numbers.
 
 Each story lists its `languages` in `index.json`. For each language other than English add `<story>/i18n/<lang>.json` with only the fields that change; arrays of objects are matched by position. Mark it `"machine_translated": true` until a native speaker reviews it. Interface wording is in `apps/web/src/i18n/<lang>.ts`; missing keys fall back to English.

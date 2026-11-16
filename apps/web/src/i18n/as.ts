@@ -25,6 +25,7 @@ const d: Dict = {
   'panel.hide': 'পেনেল লুকুৱাওক',
   'panel.tabs': 'পেনেলৰ অংশ',
   'panel.story': 'কাহিনী',
+  's.compare.with': 'ইয়াৰ লগত তুলনা কৰক',
   'panel.layers': 'স্তৰ',
   'panel.charts': 'চাৰ্ট',
   'panel.evidence': 'প্ৰমাণ',

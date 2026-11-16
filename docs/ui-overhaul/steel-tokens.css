@@ -1,0 +1,50 @@
+/*
+ * Aevion colour scheme: Steel (chosen 2026-11-15).
+ * Near-black base, muted blue-grey accent, soft glow.
+ * Map data colours are unchanged and are not part of the UI palette.
+ */
+:root {
+  --bg: #080c10;
+  --surface: #121820;
+  --ink: #edf2f7;
+  --muted: #8f9cab;
+  --accent: #b9c8d8;
+  --on-accent: #080c10;
+  --glow: #a3b8cc;
+  --line: color-mix(in srgb, var(--ink) 11%, transparent);
+
+  /* data colours, fixed */
+  --away: #f39237;
+  --toward: #3b8fd4;
+}
+
+/* Clean transparency for nav menus and floating panels (not full liquid glass) */
+.glass {
+  background: color-mix(in srgb, var(--surface) 58%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent), 0 8px 30px rgba(0, 0, 0, .25);
+}
+
+/* Soft glow for the primary action */
+.glow { box-shadow: 0 0 18px color-mix(in srgb, var(--glow) 20%, transparent); }
+
+/* Light Steel, for the theme switcher (System / Dark / Light). The map imagery does not change. */
+:root[data-theme="light"] {
+  --bg: #eef2f6;
+  --surface: #ffffff;
+  --ink: #0e141b;
+  --muted: #5b6876;
+  --accent: #3e5468;
+  --on-accent: #ffffff;
+  --glow: #6d859c;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg: #eef2f6; --surface: #ffffff; --ink: #0e141b; --muted: #5b6876;
+    --accent: #3e5468; --on-accent: #ffffff; --glow: #6d859c;
+    color-scheme: light;
+  }
+}

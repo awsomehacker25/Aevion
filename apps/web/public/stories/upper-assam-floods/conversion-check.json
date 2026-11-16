@@ -1,0 +1,47 @@
+{
+ "note": "new-water area implied by the grids vs the published figure",
+ "rows": [
+  {
+   "date": "2026-06-16",
+   "cellsWithWater": 5016,
+   "approxKm2": 141,
+   "publishedNewKm2": 200.7
+  },
+  {
+   "date": "2026-06-28",
+   "cellsWithWater": 13701,
+   "approxKm2": 384,
+   "publishedNewKm2": 464.1
+  },
+  {
+   "date": "2026-07-10",
+   "cellsWithWater": 7295,
+   "approxKm2": 205,
+   "publishedNewKm2": 285.7
+  },
+  {
+   "date": "2026-07-22",
+   "cellsWithWater": 22548,
+   "approxKm2": 633,
+   "publishedNewKm2": 729.4
+  },
+  {
+   "date": "2026-08-15",
+   "cellsWithWater": 9157,
+   "approxKm2": 257,
+   "publishedNewKm2": 342.7
+  },
+  {
+   "date": "2026-09-20",
+   "cellsWithWater": 2051,
+   "approxKm2": 58,
+   "publishedNewKm2": 122.2
+  },
+  {
+   "date": "2026-10-26",
+   "cellsWithWater": 0,
+   "approxKm2": 0,
+   "publishedNewKm2": 0
+  }
+ ]
+}

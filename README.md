@@ -1,4 +1,4 @@
-<p align="center"><img src="apps/web/public/logo.png" alt="Aevion" width="640"></p>
+<p align="center"><picture><source media="(prefers-color-scheme: light)" srcset="apps/web/public/aevion-horizontal-dark.svg"><img src="apps/web/public/aevion-horizontal.svg" alt="Aevion" width="320"></picture></p>
 
 # Aevion
 
@@ -35,7 +35,7 @@ The audience is judges and the curious public first. Scientists and analysts are
 
 What it gives you:
 
-- A **flagship flood story** (Upper Assam, July 2026): a before/after swipe between any two NISAR dates, a flood timeline with the rain above it, point charts, damage reports and the method behind the numbers.
+- A **flagship flood story** (Upper Assam, July 2026) on the same map, panel and timeline as every other story: new flood water in blue, a before/after divider between any two NISAR dates, a flood timeline with the rain, point charts, damage reports and the method behind the numbers.
 - A **3D terrain map** with the measured change draped over it for the interferometry and volcano stories, and a Recenter button if you wander off.
 - A **timeline of real satellite passes** (from NASA's CMR catalogue) with earthquakes or eruptions marked on it.
 - **Story mode**: a headline, what happened, who was affected, a guided tour and a replay of the change building up.
@@ -87,16 +87,19 @@ Your mode is kept when you switch stories.
 
 ### Flood story
 
-The Upper Assam story opens first. It is a different kind of map from the others: flat, two dates side by side, because floods are read by comparing a dry and a wet picture.
+The Upper Assam story opens first. It uses the same map, side panel and timeline as the other stories, with the flood analysis added to them.
 
-- **Swipe**: drag (or use the arrow keys on) the white divider to compare the left and right dates. The swipe button on the map turns it off.
-- **Timeline**: bars show new water per NISAR date, placed by true date, with the daily rain above. Click a bar or use the arrow keys to set the right-hand date; Shift with the arrow keys sets the left-hand date. Play steps through the season.
-- **Water view and Plant view** (HH and HV): open water is dark in HH. In Scientist mode there is also an HH/HV colour mix and three spots where the two channels disagree.
-- **Layers**: permanent water, seasonal change along the rivers, district outlines, damage reports, people under the new water, an optical photo and, in Scientist mode, Sentinel-1 C-band radar on the left side.
-- **Charts**: click the map to chart a spot's HH and HV over the season; daily rainfall with the NISAR passes marked.
-- **Evidence**: damage reports with their sources, and the people exposed by district.
-- **How this was made**: the processing steps, the -15 dB threshold check against an independent Assam University map, and the known limits. Every flooded area is an **upper bound**, because rice paddies flooded on purpose count too.
-- The view (dates, radar view, tab, mode and map position) is kept in the address, so a copied link reopens the same view.
+- **Views**: **New flood water** (blue, compared with the dry-season pass of 26 October) is the opening view. **Radar picture** (HH) and, in Scientist mode, **Radar HV** and a **Colour mix** sit beside it. Open water is dark in HH.
+- **Divider**: drag the white divider to compare any two dates (the other date is picked under the button). It shows the dry season on the left by default.
+- **Timeline**: the shared timeline has the NISAR passes, and under it bars of new water per pass, placed by true date, with the daily rain. Click a bar to go to that pass; Play steps through the season.
+- **Layers tab**: permanent water, seasonal change along the rivers, district outlines, damage reports, people under the new water, an optical photo and, in Scientist mode, Sentinel-1 C-band radar. Optical, C-band and people show one at a time.
+- **Charts tab**: click the map to chart a spot's HH (and HV in Scientist mode) over the season; in Scientist mode also three spots where the two channels disagree; daily rainfall with the NISAR passes marked.
+- **Impact tab**: damage reports with their sources, and the people exposed by district.
+- **Point card**: whether the spot is under new water on this date and on how many passes, any reported damage close by, and the HH, HV and dry-season values in Scientist mode.
+- **How this was made** (Learn tab or Scientist mode): the processing steps, the -15 dB threshold check against an independent Assam University map, and the known limits. Every flooded area is an **upper bound**, because rice paddies flooded on purpose count too.
+- The view (date, radar view, tab, mode and map position) is kept in the address, so a copied link reopens the same view.
+
+**About the grids.** The radar values on the map are derived from the published radar pictures (8-bit, so about 0.1 dB steps plus compression noise) at about 160 m per cell; the original NISAR files are not in this repository. The exact flooded areas, the dB values of the three check spots and the threshold check come from the original analysis. `tools/assam-to-grids.mjs` rebuilds the grids and writes `conversion-check.json`.
 
 ### Languages
 
@@ -204,12 +207,9 @@ Aevion/
   apps/web/              the web app
     public/stories/      one folder per story (story.json + grids)
     src/
-      App.tsx            the interferometry viewer: state, tour, replay, layout, and the story router
-      FloodViewer.tsx    the flood viewer: swipe, controls, tabs, shareable link
-      FloodMap.tsx       two synced maps with a divider, image overlays and context layers
-      FloodTimeline.tsx  rain and flooded area on one date axis
-      FloodPanels.tsx    flood story, layers, charts, evidence and methods dialog
-      MapView.tsx        the 3D map, overlays, swipe, annotations
+      App.tsx            the viewer: state, tour, replay, layout, and the story router
+      FloodExtras.tsx    the flood analysis in the shared panels: layers, charts, impact, methods, point card, rain row
+      MapView.tsx        the 3D map: globe and flat view, overlays, swipe, extra layers, annotations
       StoryCharts.tsx    charts for the interferometry and radar-picture stories
       charts/Chart.tsx   the one SVG chart every story uses (bars, lines, dots)
       i18n/              the language system and one dictionary per language
@@ -219,7 +219,8 @@ Aevion/
       Scientist.tsx      Scientist-mode tabs and analysis
       Epochs.tsx         the period picker
       Impact.tsx         who was affected
-      lib/               rendering, playback clock, analysis, physics, data loading, statistics, flood state, story text overlays
+      lib/               rendering, playback clock, analysis, physics, data loading, statistics, story text overlays
+  tools/                 offline data tooling (Assam pictures to grids)
   processing/            Python scripts that build story data
     assam/               the Upper Assam flood pipeline (NISAR GCOV to water masks, rain, context layers, threshold validation)
   data/                  working data for processing (git-ignored stacks)
@@ -246,7 +247,7 @@ Stories are data, not code, so a new one needs no app changes.
 
 **Translations.** Put each language in `<story>/i18n/<lang>.json`: only the fields that change (title, subtitle, `storyText`, `why`, `tour` text, layer wording, period labels). Arrays of objects are matched by position, so a translated tour step keeps the English camera and date. Mark the file `"machine_translated": true` until a native speaker has reviewed it. Interface wording lives in `apps/web/src/i18n/<lang>.ts`; any key left out falls back to English.
 
-**Flood stories** use `"kind": "flood"` in the index and a `flood.json` manifest (dates with their HH, HV, colour-mix and water images, context layers, rain and damage pins) instead of grids. See `public/stories/upper-assam-floods/`.
+**Flood analysis.** A story can add a flood analysis to the normal grids: `"flood": { "manifest", "series", "validation" }` in `story.json` points at a manifest (dates and areas, context layers, check spots, rain and damage pins), the coarse HH/HV time series and the threshold check. The new-water change for each pass is the "what changed" grid. See `public/stories/upper-assam-floods/`.
 
 The full walkthrough, including how to swap placeholder data for real NISAR data, is in [docs/adding-a-story.md](docs/adding-a-story.md).
 
