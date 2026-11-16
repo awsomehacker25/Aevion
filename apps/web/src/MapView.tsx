@@ -245,6 +245,10 @@ export default function MapView(p: Props) {
       pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5), fadeDuration: 0,
     })
     mapRef.current = map
+    // fade the map in once the first picture is ready (a data attribute, so React's className updates never remove it)
+    const reveal = () => { map.getContainer().dataset.ready = '1' }
+    map.once('idle', reveal)
+    const revealTimer = window.setTimeout(reveal, 2500)
     if (import.meta.env.DEV) (window as unknown as { __map: maplibregl.Map }).__map = map
     let cancelled = false // this map was replaced or removed before it finished starting
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
@@ -470,7 +474,7 @@ export default function MapView(p: Props) {
       setIntro('wait')
       setReady(true)
     })
-    return () => { cancelled = true; lensRef.current?.(); revealRef.current = 0; setFxOn(false); beaconRef.current?.destroy(); introRef.current?.(); map.remove(); mapRef.current = null; markerRef.current = null; beachRef.current = []; setReady(false) }
+    return () => { cancelled = true; window.clearTimeout(revealTimer); lensRef.current?.(); revealRef.current = 0; setFxOn(false); beaconRef.current?.destroy(); introRef.current?.(); map.remove(); mapRef.current = null; markerRef.current = null; beachRef.current = []; setReady(false) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.story.id])
 

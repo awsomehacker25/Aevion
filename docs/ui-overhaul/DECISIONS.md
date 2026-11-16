@@ -14,3 +14,7 @@ One line each: what was chosen and why.
 - The old UI had no live coordinates readout, only coordinates on the clicked point. The dock readout shows the clicked point in Scientist mode, with a hint when nothing is picked.
 - Story and language menus are one custom Menu component (listbox pattern, keyboard and screen-reader accessible) rather than a new dependency.
 - The timeline uses the near-opaque panel background rather than clear glass, because its small labels failed contrast over bright imagery in light mode.
+- Loading: the app only renders once a story is fully loaded, so skeletons appear where data actually loads: a story switch (full shell skeleton: side panel text, change box, tabs, timeline rows, dock). The brief's layer thumbnails and methods tables are not loaded asynchronously today (no thumbnails exist; the methods data arrives with the story), so no skeleton is faked for them.
+- The opening splash is one overlay mounted by App: it holds at least 1.0s so the pixel half finishes, fades for 0.35s once the first story is ready, and never replays. Reduced motion shows the finished logo for 0.3s and removes it with no fade.
+- The map fades in on its first idle, with a 2.5s fallback so a slow or failing tile never leaves it hidden. A data attribute is used because React's className updates would remove a class.
+- Extra map overlays already fade with the timeline cursor (their opacity is driven per frame), so no separate overlay fade was added; changing it would touch MapView's replay logic.

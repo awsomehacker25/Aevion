@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import './Shell.css'
 import './Extras.css'
-import { DEFAULT_COHERENCE_THRESHOLD, EVENT, TEAM } from './config'
+import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms, sampleGrid } from './lib/data'
 import { epochLayer, epochStory, isFeatured, labelledStory } from './lib/epochs'
@@ -17,7 +17,8 @@ import type { MixOpts } from './lib/render'
 import { Inspector, SidePanel } from './Panels'
 import { Dock } from './Dock'
 import { useTheme } from './theme'
-import { Logo } from './Logo'
+import { Splash } from './Splash'
+import { ShellSkeleton } from './Skeleton'
 import type { UiMode } from './Panels'
 import { PhysicsCheck, ProfileCard, ProfileControls } from './Scientist'
 import { ChangeStat, LosDiagram, ReplayButton, TourButton, TourCard, WhyCards } from './Story'
@@ -53,10 +54,14 @@ interface ViewerProps {
   /** The mode (Story or Scientist) carries over when another story is chosen. */
   initialUi: UiMode
   onUiChange: (m: UiMode) => void
+  /** True while the opening splash still covers the app: nothing to draw yet. */
+  booting: boolean
+  /** Called once the story is on screen (or failed), so the splash can fade. */
+  onReady: () => void
 }
 
 /** One story. It is re-created (with fresh state) whenever the story changes. */
-function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerProps) {
+function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange, booting, onReady }: ViewerProps) {
   const { t } = useI18n()
   const theme = useTheme()
   const [raw, setRaw] = useState<LoadedStory | null>(null)
@@ -337,9 +342,12 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange }: ViewerPro
     setPicked([c.lon, c.lat])
   }
 
+  const settled = !!error || !!(layers && 'error' in layers) || !!(data && ok && view)
+  useEffect(() => { if (settled) onReady() }, [settled, onReady])
+
   if (error) return <div className="splash"><b>{t('s.err.load')}</b><span>{error}</span></div>
   if (layers && 'error' in layers) return <div className="splash"><b>{t('s.err.invalid')}</b><span>{layers.error}</span></div>
-  if (!data || !ok || !view) return <div className="splash"><Logo variant="stacked" height={150} className="splash-logo" /><span>{t('loading')}</span><small className="splash-team">{EVENT}</small><small className="splash-names">{t('s.builtBy')} {t('s.team', { names: TEAM.slice(0, -1).join(', '), last: TEAM[TEAM.length - 1] })}</small></div>
+  if (!data || !ok || !view) return booting ? <div className="app" /> : <ShellSkeleton label={t('loading')} />
 
   const { story, flagship: viewPair } = view
   // A radar view that this period does not have (for example HV on a period without it) falls back to the main view.
@@ -531,6 +539,10 @@ export default function App() {
   const [ui, setUi] = useState<UiMode>('story')
   const [id, setId] = useState<string | undefined>(() => new URLSearchParams(location.search).get('story') ?? undefined)
   const [lang, setLang] = useState<Lang>(initialLang)
+  const [ready, setReady] = useState(false) // the first story is on screen
+  const [booted, setBooted] = useState(false) // the opening splash has finished
+  const onReady = useCallback(() => setReady(true), [])
+  const onBooted = useCallback(() => setBooted(true), [])
 
   useEffect(() => { loadIndex().then(setStories).catch(() => setStories([])) }, [])
 
@@ -542,15 +554,19 @@ export default function App() {
     setId(next)
   }
 
-  if (!stories) return <div className="splash"><Logo variant="stacked" height={150} className="splash-logo" /></div>
   // Upper Assam is the flagship: it opens first unless a story is asked for in the address.
-  const entry = stories.find((s) => s.id === id) ?? stories[0]
+  const entry = stories?.find((s) => s.id === id) ?? stories?.[0]
   // A story only offers its own languages: anything else shows English until the viewer picks again.
   const shown: Lang = offers(entry?.languages, lang) ? lang : 'en'
 
   return (
-    <I18nProvider lang={shown} setLang={setLang}>
-      <Viewer key={entry?.id ?? 'default'} id={entry?.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} />
-    </I18nProvider>
+    <>
+      {stories && (
+        <I18nProvider lang={shown} setLang={setLang}>
+          <Viewer key={entry?.id ?? 'default'} id={entry?.id} stories={stories} onSwitchStory={switchStory} initialUi={ui} onUiChange={setUi} booting={!booted} onReady={onReady} />
+        </I18nProvider>
+      )}
+      {!booted && <Splash ready={ready} onDone={onBooted} />}
+    </>
   )
 }
