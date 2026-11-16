@@ -3,6 +3,11 @@ import * as maplibregl from 'maplibre-gl'
 import type { GeoJSONSource, ImageSource, MapMouseEvent, StyleSpecification } from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
+
+// MapLibre 6 looks for its worker next to the page, which only works in dev. In a production build (Vercel) the file is missing, so every
+// GeoJSON layer (the glowing ring, the region outlines, pins, districts) silently fails. Ship the worker as a hashed asset and point at it.
+maplibregl.setWorkerUrl(workerUrl)
 import { BASEMAP, LOD } from './config'
 import { addBeacon, addSweep } from './AoiBeacon'
 import { attachLens, contours } from './vfx'
