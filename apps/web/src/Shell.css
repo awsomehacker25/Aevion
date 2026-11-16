@@ -106,3 +106,8 @@
 .app .map { opacity: 0; transition: opacity .45s ease-out; }
 .app .map[data-ready] { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .app .map { transition: none; } }
+
+/* Menus that open inside a blurred parent (the timeline, the side panel) cannot blur the map behind them, so they are solid. */
+.pmenu, .lmenu { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* Cards with reading text sit between clear glass and the side panel. */
+.tour, .inspector, .profile-card { background: color-mix(in srgb, var(--surface) 84%, transparent); }
