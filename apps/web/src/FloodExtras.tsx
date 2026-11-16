@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import Chart from './charts/Chart'
 import { useI18n } from './i18n'
 import { dayMs, kmBetween, pointValues } from './lib/flood'
@@ -367,41 +367,74 @@ export function FloodPointExtra({ data, story, expert, b, point, waterAt, onChar
 }
 
 /** Rain and new flood water on one true-date axis, to sit under the shared timeline. Click a bar to move to that pass. */
-export function FloodTimelineRow({ data, story, b, a, onPick, start, end }: Common & { a: number; onPick: (dateIso: string) => void; start: number; end: number }) {
+type TimelineRowProps = Common & { a: number; onPick: (dateIso: string) => void; start: number; end: number }
+
+/** Only redraws when what it shows changes, not on every tick of the playing timeline. */
+export const FloodTimelineRow = memo(FloodTimelineRowInner, (p, n) =>
+  p.data === n.data && p.story === n.story && p.b === n.b && p.a === n.a && p.start === n.start && p.end === n.end && p.expert === n.expert)
+
+function FloodTimelineRowInner({ data, story, b, a, onPick, start, end }: TimelineRowProps) {
   const { t, num, date } = useI18n()
   const { flood, rain } = data
   const dates = flood.dates
   const DAY = 86400000
-  const t0 = (iso: string) => Date.parse(`${iso}T00:00:00Z`)
-  const times = dates.map((d) => t0(d.date))
-  const short = (ms: number) => date(ms, { month: 'short', day: 'numeric', year: undefined })
   const narrow = typeof window !== 'undefined' && window.innerWidth < 700
+  const box = useRef<HTMLDivElement>(null)
+  const pick = useRef(onPick)
+  useEffect(() => { pick.current = onPick })
+  const times = useMemo(() => dates.map((d) => Date.parse(`${d.date}T00:00:00Z`)), [dates])
+
+  // The chart itself never changes while the timeline plays: it is built once, and the highlighted bar is switched on the bars
+  // directly (below), so passing a satellite pass costs a few style changes instead of a redraw of every bar.
+  const { series, xTicks } = useMemo(() => {
+    const t0 = (iso: string) => Date.parse(`${iso}T00:00:00Z`)
+    const short = (ms: number) => date(ms, { month: 'short', day: 'numeric', year: undefined })
+    // rain is drawn faintly behind the bars, scaled to sit in the lower part of the same small chart
+    const maxWater = Math.max(1, ...dates.map((d) => d.new_water_km2))
+    const maxRain = rain ? Math.max(1, ...rain.mean_mm) : 1
+    const rainScale = (maxWater * 0.4) / maxRain
+    const rainSeries = rain ? [{
+      id: 'rain', kind: 'bar' as const, color: 'rgba(86, 180, 233, .55)', barUnit: 0.8 * DAY,
+      points: rain.dates.map((d, i) => ({ x: t0(d), y: rain.mean_mm[i] * rainScale, color: 'rgba(86, 180, 233, .55)', tip: `${short(t0(d))}: ${num(rain.mean_mm[i], 1)} mm` })),
+    }] : []
+    return {
+      xTicks: times.map((x) => ({ x, label: short(x) })),
+      series: [...rainSeries, {
+        id: 'water', kind: 'bar' as const, color: 'var(--d-water)', barUnit: 6 * DAY,
+        points: dates.map((d, i) => ({ x: times[i], y: d.new_water_km2, tip: `${short(times[i])}: ${num(d.new_water_km2)} ${t('unit.km2')}` })),
+      }],
+    }
+  }, [dates, rain, times, date, num, t])
+  const barLabels = useCallback((p: { y: number | null; color?: string }) => (p.y == null || p.color ? null : num(p.y)), [num])
+  const onSelect = useCallback((x: number) => { const i = times.indexOf(x); if (i >= 0) pick.current(dates[i].date) }, [times, dates])
+  const xDomain = useMemo<[number, number]>(() => [start, end], [start, end])
+
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    const sel = times[b]
+    el.querySelectorAll<SVGRectElement>('rect[data-x]').forEach((r) => {
+      const on = Number(r.dataset.x) === sel
+      r.style.fillOpacity = on ? '1' : '.7'
+      r.style.stroke = on ? 'var(--ink)' : 'none'
+      r.style.strokeWidth = on ? '1.5' : '0'
+    })
+    el.querySelectorAll<SVGTextElement>('text[data-x]').forEach((x) => x.classList.toggle('sel', Number(x.dataset.x) === sel))
+  }, [b, times, series])
+
   const labels = story.dateLabels ?? {}
-  const summaryText = t('timeline.value', { date: `${short(times[b])}, ${labels[dates[b].date] ?? ''}`, km2: `${num(dates[b].new_water_km2)} ${t('unit.km2')}` })
-  // rain is drawn faintly behind the bars, scaled to sit in the lower part of the same small chart
-  const maxWater = Math.max(1, ...dates.map((d) => d.new_water_km2))
-  const maxRain = rain ? Math.max(1, ...rain.mean_mm) : 1
-  const rainScale = (maxWater * 0.4) / maxRain
-  const rainSeries = rain ? [{
-    id: 'rain', kind: 'bar' as const, color: 'rgba(86, 180, 233, .55)', barUnit: 0.8 * DAY,
-    points: rain.dates.map((d, i) => ({ x: t0(d), y: rain.mean_mm[i] * rainScale, color: 'rgba(86, 180, 233, .55)', tip: `${short(t0(d))}: ${num(rain.mean_mm[i], 1)} mm` })),
-  }] : []
+  const shortSel = date(times[b], { month: 'short', day: 'numeric', year: undefined })
+  const summaryText = t('timeline.value', { date: `${shortSel}, ${labels[dates[b].date] ?? ''}`, km2: `${num(dates[b].new_water_km2)} ${t('unit.km2')}` })
   return (
     <div className="ftl-row">
       <div className="ftl-keys">
         <span className="ftl-key"><i className="k-water" />{t('timeline.water')}</span>
         <span className="ftl-key"><i className="k-rain" />{t('timeline.rain')}</span>
       </div>
-      <div className="ftl-charts" role="group" aria-label={`${t('timeline.region')}: ${summaryText}`}>
-        <Chart label={t('timeline.water')} height={narrow ? 70 : 82} hideY left={0} xDomain={[start, end]} xPad={0}
-          xTicks={times.map((x) => ({ x, label: short(x) }))}
-          series={[...rainSeries, {
-            id: 'water', kind: 'bar', color: 'var(--d-water)', barUnit: 6 * DAY,
-            points: dates.map((d, i) => ({ x: times[i], y: d.new_water_km2, tip: `${short(times[i])}: ${num(d.new_water_km2)} ${t('unit.km2')}` })),
-          }]}
-          selectedX={times[b]} secondX={a !== b ? times[a] : undefined}
-          barLabels={(p) => (p.y == null || p.color ? null : num(p.y))}
-          onSelect={(x) => { const i = times.indexOf(x); if (i >= 0) onPick(dates[i].date) }} />
+      <div className="ftl-charts" ref={box} role="group" aria-label={`${t('timeline.region')}: ${summaryText}`}>
+        <Chart label={t('timeline.water')} height={narrow ? 70 : 82} hideY left={0} xDomain={xDomain} xPad={0}
+          xTicks={xTicks} series={series} secondX={a !== b ? times[a] : undefined}
+          barLabels={barLabels} onSelect={onSelect} />
       </div>
     </div>
   )

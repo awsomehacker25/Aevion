@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 /**
@@ -96,7 +96,10 @@ export function useWidth<T extends HTMLElement>() {
   return [ref, w] as const
 }
 
-export default function Chart(p: ChartProps) {
+/** Redraws only when its own props change (a chart whose props are stable is not redrawn by the page around it). */
+export default memo(Chart)
+
+function Chart(p: ChartProps) {
   const [box, W] = useWidth<HTMLDivElement>()
   const H = p.height ?? 130
   const L = p.left ?? (p.hideY ? 6 : 38)
@@ -179,12 +182,12 @@ export default function Chart(p: ChartProps) {
                 const lbl = p.barLabels?.(q)
                 return (
                   <g key={i}>
-                    <rect x={X(q.x) - bw / 2} y={top} width={bw} height={h} fill={q.color ?? s.color} fillOpacity={sel || p.selectedX == null ? 1 : 0.7}
+                    <rect data-x={q.x} x={X(q.x) - bw / 2} y={top} width={bw} height={h} fill={q.color ?? s.color} fillOpacity={sel || p.selectedX == null ? 1 : 0.7}
                       stroke={sel ? 'var(--ink)' : 'none'} strokeWidth={sel ? 1.5 : 0}
                       className={p.onSelect ? 'c-click' : undefined} onClick={p.onSelect ? () => p.onSelect!(q.x) : undefined}>
                       {q.tip && <title>{q.tip}</title>}
                     </rect>
-                    {lbl && <text x={X(q.x)} y={top - 4} textAnchor="middle" className={`c-blabel ${sel ? 'sel' : ''}`}>{lbl}</text>}
+                    {lbl && <text x={X(q.x)} y={top - 4} textAnchor="middle" data-x={q.x} className={`c-blabel ${sel ? 'sel' : ''}`}>{lbl}</text>}
                   </g>
                 )
               })}

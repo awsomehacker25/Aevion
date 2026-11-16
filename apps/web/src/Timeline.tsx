@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { BUILD_SECONDS, PLAY_SECONDS } from './config'
 import { fmtDate, fmtTick, ms } from './lib/data'
@@ -20,6 +20,11 @@ interface Props {
   /** Called when an eruption dot is clicked, with the moment it refers to. */
   onEpisode?: (e: EventMark, t: number) => void
 }
+
+/** One satellite pass on the timeline. Memoised, so when the highlighted pass changes only the dots whose look changed are redrawn. */
+const PassDot = memo(function PassDot({ t, left, flagship, title, label, onPick }: { t: number; left: string; flagship: boolean; title: string; label: string; onPick: (t: number) => void }) {
+  return <button className={`pass ${flagship ? 'flag' : ''}`} style={{ left }} title={title} aria-label={label} onClick={() => onPick(t)} />
+})
 
 interface Pass { t: number; track: number; dir: string; flagship: boolean }
 
@@ -73,11 +78,19 @@ export default function Timeline({ data, cursor, setCursor, headExtra, extraRow,
 
   useEffect(() => { cursorRef.current = cursor }, [cursor])
 
+  // Playing owns the date. If something else moves it (a period picked from the menu, a pass or an eruption tapped), playback
+  // stops there; otherwise the next tick would put the date straight back.
+  // (Dates the player itself committed are remembered, because a slow render can show an older one after a newer one was sent.)
+  const own = useRef(new Set<number>())
+  const ownCommit = { set current(v: number) { own.current.add(v); if (own.current.size > 60) own.current.delete(own.current.values().next().value as number) } }
+  useEffect(() => { if (playing && !own.current.has(cursor)) setPlaying(false) }, [cursor, playing])
 
-  // The cursor line is positioned imperatively. When not playing it follows React state;
-  // while playing the animation loop owns it, so React commits can never make it snap back.
+
+  // The cursor line sits in a lane as wide as the track and is moved with a transform (a percentage of the lane).
+  // When not playing it follows React state; while playing a compositor animation owns it (see below), so neither
+  // React commits nor a busy main thread (a new pass being drawn) can make it hitch or snap back.
   useLayoutEffect(() => {
-    if (!playing && lineRef.current) lineRef.current.style.left = pct(cursor)
+    if (!playing && lineRef.current) lineRef.current.style.transform = `translateX(${pctNum(cursor)}%)`
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor, playing, start, span])
 
@@ -89,20 +102,31 @@ export default function Timeline({ data, cursor, setCursor, headExtra, extraRow,
     const s0 = clock.toPlay(from) // seconds of playback at the starting position
     latestRef.current = from
     playhead.active = true
+    // The line itself is animated by the browser's compositor, from here to the end, sampled from the same clock.
+    // It keeps gliding at an even pace even while the page is busy, and its own clock is what the loop below reads.
+    const sEnd = clock.toPlay(end)
+    const N = 240
+    const frames = Array.from({ length: N + 1 }, (_, i) => ({ transform: `translateX(${((clock.toTime(s0 + ((sEnd - s0) * i) / N) - start) / span) * 100}%)` }))
+    const anim = lineRef.current && sEnd > s0 ? lineRef.current.animate(frames, { duration: (sEnd - s0) * 1000, easing: 'linear', fill: 'forwards' }) : null
     const t0 = performance.now()
     let id = 0
     let lastCommit = t0
     const step = (now: number) => {
-      const t = Math.min(end, clock.toTime(s0 + (now - t0) / 1000))
+      const el = anim?.currentTime != null ? Number(anim.currentTime) / 1000 : (now - t0) / 1000
+      const t = Math.min(end, clock.toTime(s0 + el))
       latestRef.current = t
       playhead.emit(t) // smooth visuals on the map follow this every frame
-      if (lineRef.current) lineRef.current.style.left = `${((t - start) / span) * 100}%`
-      if (t >= end) { setCursor(end); setPlaying(false); return }
-      if (now - lastCommit >= COMMIT_MS) { lastCommit = now; setCursor(t) }
+      if (t >= end) { ownCommit.current = end; setCursor(end); setPlaying(false); return }
+      if (now - lastCommit >= COMMIT_MS) { lastCommit = now; ownCommit.current = t; startTransition(() => setCursor(t)) } // a transition: a heavy redraw (a new pass) never holds up the animation
       id = requestAnimationFrame(step)
     }
     id = requestAnimationFrame(step)
-    return () => { cancelAnimationFrame(id); playhead.active = false }
+    return () => {
+      cancelAnimationFrame(id)
+      playhead.active = false
+      // hand the line back to React at exactly where the animation had got to
+      if (anim && lineRef.current) { lineRef.current.style.transform = `translateX(${((latestRef.current - start) / span) * 100}%)`; anim.cancel() }
+    }
   }, [playing, span, start, end, setCursor, clock])
 
   // Real NISAR acquisition times from the catalog: every pair contributes its two passes.
@@ -153,14 +177,15 @@ export default function Timeline({ data, cursor, setCursor, headExtra, extraRow,
   const hasEpisodes = (story.episodes?.length ?? 0) > 0
   const extraRows = (quakes.features.length > 0 ? 1 : 0) + (hasEpisodes ? 1 : 0)
 
+  const pickPass = useCallback((t: number) => { setPlaying(false); setCursor(t) }, [setCursor])
   const marks = useMemo(() => (
     <>
       {passes.length > 0 && <div className="tl-row tl-passes">
         <span className="tl-label">{tr('s.tl.passes')}</span>
         {passes.map((p, i) => (
-          <button key={i} className={`pass ${p.flagship ? 'flag' : ''}`} style={{ left: pct(p.t) }}
+          <PassDot key={i} t={p.t} left={pct(p.t)} flagship={p.flagship}
             title={`${fmtDate(p.t, true)} · track ${p.track} ${p.dir === 'A' ? 'ascending' : 'descending'}${p.flagship ? ' · used in this story' : ''}`}
-            onClick={() => { setPlaying(false); setCursor(p.t) }} aria-label={`${sensor} pass ${fmtDate(p.t)}`} />
+            label={`${sensor} pass ${fmtDate(p.t)}`} onPick={pickPass} />
         ))}
       </div>}
       {quakes.features.length > 0 && <div className="tl-row tl-quakes">
@@ -190,7 +215,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, extraRow,
       {story.event && <div className="tl-event" style={{ left: pct(ms(story.event.datetime)) }}><span>{story.event.shortLabel}</span></div>}
     </>
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [passes, quakes, episodes, hasEpisodes, story, ticks, start, span, setCursor, onEpisode])
+  ), [passes, quakes, episodes, hasEpisodes, story, ticks, start, span, setCursor, onEpisode, pickPass])
 
   const sec = ms(story.flagshipPair.secondary + 'T00:00:00Z')
   const ref = ms(story.flagshipPair.reference + 'T00:00:00Z')
@@ -206,7 +231,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, extraRow,
       <div className="tl-head">
         <button className="btn" onClick={() => {
           if (playing) { setCursor(latestRef.current); setPlaying(false); return } // keep the exact paused time
-          if (cursorRef.current >= end) setCursor(start)
+          if (cursorRef.current >= end) { ownCommit.current = start; setCursor(start) } else ownCommit.current = cursorRef.current
           setPlaying(true)
         }} aria-label={playing ? tr('controls.pause') : tr('s.tl.play')}>
           {playing ? <><PauseIcon /> {tr('controls.pause')}</> : <><PlayIcon /> {tr('s.tl.play')}</>}
@@ -218,7 +243,7 @@ export default function Timeline({ data, cursor, setCursor, headExtra, extraRow,
 
       <div className={`tl-track rows-${extraRows}`}>
         {marks}
-        <div className="tl-cursor" ref={lineRef} />
+        <div className="tl-cursor-lane" ref={lineRef}><div className="tl-cursor" /></div>
         <input className="tl-range" type="range" min={start} max={end} step={HOUR_MS} value={cursor}
           onChange={(e) => { setPlaying(false); setCursor(Number(e.target.value)) }} aria-label={tr('s.tl.date')} />
       </div>

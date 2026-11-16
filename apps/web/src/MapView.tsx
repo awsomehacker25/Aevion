@@ -118,40 +118,50 @@ export default function MapView(p: Props) {
   const lastUrl = useRef<string | null>(null)
   const bbox = p.story.aoi.bbox
 
-  // Second image layer for the cross-fade: it holds the NEXT period and fades in as the timeline moves toward the next pass.
-  const bShows = useRef<Grid | null>(null) // the grid the second layer currently shows
-  const holdB = useRef(false) // after the period changes, the second layer stays at full strength until the main layer shows the same picture
+  // Two picture layers take turns. One shows the CURRENT period; the other holds the NEXT period and fades in as the timeline moves
+  // toward the next pass. When the timeline passes that pass the two just swap jobs: the picture that was fading in is already loaded
+  // and already on screen, so the map never has to replace a picture that is visible (doing that mid-playback is what flickered).
+  type Held = { grid: Grid; sig: string }
+  type LayerId = 'overlay' | 'overlay2'
+  const otherOf = (l: LayerId): LayerId => (l === 'overlay' ? 'overlay2' : 'overlay')
+  const curLayer = useRef<LayerId>('overlay') // the layer that shows the current period
+  const held = useRef<Record<LayerId, Held | null>>({ overlay: null, overlay2: null }) // the picture each layer has been given
+  const curPaint = useRef<Held | null>(null) // what the current layer is being asked to show
   const paintSeqB = useRef(0)
   const lastUrlB = useRef<string | null>(null)
-  const renderBRef = useRef<() => void>(() => {})
-  const releaseRef = useRef<() => void>(() => {})
-  const bState = useRef<{ next?: Props['next']; swipe: boolean; mode: ViewMode; replay: boolean; cursor: number }>(
-    { swipe: false, mode: 'los', replay: false, cursor: 0 })
+  const applyRef = useRef<() => void>(() => {}) // sets both layers' opacity for the latest date
+  const bState = useRef<{ next?: Props['next']; swipe: boolean; mode: ViewMode; replay: boolean; cursor: number; sig: string }>(
+    { swipe: false, mode: 'los', replay: false, cursor: 0, sig: '' })
   // The next period's picture for the view on screen (the HV picture in HV mode), or nothing when it has none.
   const nextPicture = (n: NonNullable<Props['next']>, mode: ViewMode) =>
     mode === 'hh' ? n.radarHH : mode === 'hv' ? n.radarHV : mode === 'mix' ? undefined : n.displacement
+  // true once the idle layer really holds the next period's picture, drawn with the settings now in use
+  const nextReady = () => {
+    const s = bState.current
+    const h = held.current[otherOf(curLayer.current)]
+    return !!s.next && !s.swipe && !s.replay && !!h && h.sig === s.sig && h.grid === nextPicture(s.next, s.mode)?.grid
+  }
+  const setOps = (map: maplibregl.Map, cur: number, next: number) => {
+    map.setPaintProperty(curLayer.current, 'raster-opacity', cur)
+    map.setPaintProperty(otherOf(curLayer.current), 'raster-opacity', next)
+  }
 
   // The current period's own layer fades out over the last part of the cross-fade, so that where the next picture is
   // transparent (little change there) the old one does not show through at the end, which would pop when the period changes.
   const aFactor0 = useCallback((t: number) => {
-    const s = bState.current
-    const n = s.next
-    if (holdB.current) return 0
-    if (!n || s.swipe || s.replay || bShows.current !== nextPicture(n, s.mode)?.grid || t <= n.from) return 1
+    const n = bState.current.next
+    if (!n || !nextReady() || t <= n.from) return 1
     const x = Math.min(1, (t - n.from) / (n.to - n.from))
     const y = Math.max(0, (x - 0.6) / 0.4)
     return 1 - y * y * (3 - 2 * y)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const bOpacity0 = useCallback((t: number) => {
-    const s = bState.current
-    const n = s.next
-    if (holdB.current) return 0.95
-    if (!n || s.swipe || s.replay || bShows.current !== nextPicture(n, s.mode)?.grid) return 0
-    if (t <= n.from) return 0
+    const n = bState.current.next
+    if (!n || !nextReady() || t <= n.from) return 0
     if (t >= n.to) return 0.95
     const x = (t - n.from) / (n.to - n.from)
     return 0.95 * x * x * (3 - 2 * x)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   // The picture is revealed by the radar-pass sweep after the flight: until then everything the layers show is multiplied by revealRef (0 to 1).
   const revealRef = useRef(0)
   const gateRef = useRef(1) // 0 while a whole-map context picture replaces the radar picture
@@ -164,8 +174,10 @@ export default function MapView(p: Props) {
   const paintDirty = useRef(false)
   const dragging = useRef(false) // while the divider is being dragged the picture is drawn smaller, then sharp again on release
   const paintRef = useRef<() => void>(() => {})
+  const rebuildFull = useRef<(() => void) | null>(null) // draws the full-size picture when it was skipped (see the period change below)
   const paintOverlay = useCallback(() => {
     const map = mapRef.current
+    if (!fullRef.current && rebuildFull.current) rebuildFull.current()
     const full = fullRef.current
     if (!map || !full) return
     if (paintBusy.current) { paintDirty.current = true; return }
@@ -183,27 +195,30 @@ export default function MapView(p: Props) {
     if (cmp && sx > 0 && swipeOn.current) ctx.drawImage(cmp, 0, 0, Math.min(sx, cmp.width), cmp.height, 0, 0, dx, H)
     if (sx < full.width) ctx.drawImage(full, sx, 0, full.width - sx, full.height, dx, 0, W - dx, H)
     const seq = ++paintSeq.current
+    const target = curLayer.current
+    const shown = curPaint.current
+    const apply = (url: string) => {
+      ;(map.getSource(target) as ImageSource | undefined)?.updateImage({ url, coordinates: corners(bbox) })
+      held.current[target] = shown
+      applyRef.current() // the layer's picture changed, which can change which layer has which job
+    }
     if (view.width <= 400) {
       // the small replay frames encode instantly, so skip the asynchronous encoder, which can lag behind a fast replay
       appliedSeq.current = seq
-      ;(map.getSource('overlay') as ImageSource | undefined)?.updateImage({ url: view.toDataURL('image/png'), coordinates: corners(bbox) })
-      if (holdB.current) setTimeout(() => releaseRef.current(), 150)
+      apply(view.toDataURL('image/png'))
       return
     }
     paintBusy.current = true
     view.toBlob((blob) => {
       paintBusy.current = false
-      if (blob && seq > appliedSeq.current && mapRef.current === map) {
+      // (if the layers swapped jobs while this was encoding, this picture is no longer wanted)
+      if (blob && seq > appliedSeq.current && mapRef.current === map && target === curLayer.current) {
         appliedSeq.current = seq
         const url = URL.createObjectURL(blob)
         const old = lastUrl.current
         lastUrl.current = url
-        ;(map.getSource('overlay') as ImageSource | undefined)?.updateImage({ url, coordinates: corners(bbox) })
+        apply(url)
         if (old) setTimeout(() => URL.revokeObjectURL(old), 3000) // the map has long since loaded the previous image
-        if (holdB.current) {
-          // the main layer now shows what the second layer was showing: give the map a moment to draw it, then let the second layer move on
-          setTimeout(() => releaseRef.current(), 150)
-        }
       }
       if (paintDirty.current) { paintDirty.current = false; paintRef.current() }
     }, dragging.current ? 'image/webp' : 'image/png', dragging.current ? 0.75 : undefined)
@@ -426,8 +441,7 @@ export default function MapView(p: Props) {
       const applyOpacity = () => {
         const q = latest.current
         if (q.replayScale != null) return
-        map.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(q.progress, q.mode) * aFactor(q.cursor))
-        map.setPaintProperty('overlay2', 'raster-opacity', bOpacity(q.cursor))
+        setOps(map, overlayOpacity(q.progress, q.mode) * aFactor(q.cursor), bOpacity(q.cursor))
       }
       const sweep = addSweep(map, aoi.bbox)
       // The sweep runs during the last stretch of the descent, while the whole ring is still in view, so the line is a chord of the ring
@@ -487,8 +501,6 @@ export default function MapView(p: Props) {
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    // if the period just moved on to the picture the second layer already shows, keep that layer in place until the main one has it
-    holdB.current = bShows.current === ((p.mode === 'hh' ? p.radarHH : p.mode === 'hv' ? p.radarHV : undefined)?.grid ?? p.displacement.grid)
     // radar brightness views draw their own layer with the same diverging colors; the interferometric coherence mask does not apply to them
     const draw = (src: { displacement: { layer: LayerDef; grid: Grid }; coherence: { layer: LayerDef; grid: Grid }; radarHH?: { layer: LayerDef; grid: Grid }; radarHV?: { layer: LayerDef; grid: Grid }; mix?: MixOpts }) => {
       const radar = p.mode === 'hh' ? src.radarHH : p.mode === 'hv' ? src.radarHV : undefined
@@ -501,10 +513,34 @@ export default function MapView(p: Props) {
         colormap: (radar ?? src.displacement).layer.colormap,
       })
     }
-    fullRef.current = draw(p)
-    cmpRef.current = p.compare && p.replayScale == null ? draw(p.compare) : null
+    const build = () => {
+      fullRef.current = draw(p)
+      // the compare picture is only ever shown while swiping
+      cmpRef.current = p.compare && p.replayScale == null && p.swipe ? draw(p.compare) : null
+    }
+    const curGrid = p.mode === 'mix' && p.mix ? p.mix.hh : (p.mode === 'hh' ? p.radarHH : p.mode === 'hv' ? p.radarHV : undefined)?.grid ?? p.displacement.grid
+    const sig = `${p.mode}|${p.fadeLow}|${p.threshold}|${p.swipe ? 1 : 0}`
+    curPaint.current = { grid: curGrid, sig }
+    const idle = held.current[otherOf(curLayer.current)]
+    // The timeline moved on to the period whose picture the other layer was already fading in: it simply becomes the current layer.
+    // Nothing visible is replaced. (The full-size copy, needed only for swiping, is drawn a moment later, off the critical path.)
+    if (!p.swipe && p.replayScale == null && !dragging.current && idle && idle.grid === curGrid && idle.sig === sig) {
+      curLayer.current = otherOf(curLayer.current)
+      fullRef.current = null
+      cmpRef.current = null
+      rebuildFull.current = () => { rebuildFull.current = null; build() }
+      applyRef.current() // (the full-size copy is drawn only if it is asked for)
+      return
+    }
+    rebuildFull.current = null
+    build()
     paintOverlay()
-  }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mix, p.compare, p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale])
+    // The compare and mix objects are rebuilt on every render of the page (which happens many times a second while the timeline plays),
+    // so this effect depends on the pictures inside them, not on the objects: otherwise the whole overlay is redrawn and re-sent each time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, paintOverlay, p.displacement, p.coherence, p.radarHH, p.radarHV, p.mix?.kind, p.mix?.hh, p.mix?.hv, p.mix?.rHH, p.mix?.rHV,
+    p.compare?.displacement.grid, p.compare?.coherence.grid, p.compare?.radarHH?.grid, p.compare?.radarHV?.grid, p.compare?.mix?.hh, p.compare?.mix?.hv,
+    p.mode, p.fadeLow, p.threshold, p.story.aoi.bbox, p.replayScale, p.swipe])
 
   // before/after swipe: a draggable handle on a line; the overlay is shown only east of the line
   useEffect(() => {
@@ -551,12 +587,11 @@ export default function MapView(p: Props) {
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    if (p.replayScale != null) { map.setPaintProperty('overlay', 'raster-opacity', 0.95); map.setPaintProperty('overlay2', 'raster-opacity', 0); return }
+    if (p.replayScale != null) { setOps(map, 0.95, 0); return }
     gateRef.current = p.extras?.hideData ? 0 : 1
     if (playhead.active) return // while playing, the per-frame subscriber below owns the fade
     // The overlay is drawn once at full strength; the build-up only fades it, so nothing is redrawn as time moves.
-    map.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(p.progress, p.mode) * aFactor(p.cursor))
-    map.setPaintProperty('overlay2', 'raster-opacity', bOpacity(p.cursor))
+    setOps(map, overlayOpacity(p.progress, p.mode) * aFactor(p.cursor), bOpacity(p.cursor))
   }, [ready, p.progress, p.mode, p.replayScale, p.cursor, p.next, p.swipe, p.extras?.hideData, bOpacity, aFactor])
 
   // show or hide the extra layers, and load a context picture the first time it is switched on (or when its picture changes, like people by date)
@@ -584,17 +619,20 @@ export default function MapView(p: Props) {
     const map = mapRef.current
     if (!ready || !map || p.replayScale != null) return
     return playhead.subscribe((t) => {
-      map.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(changeProgress(p.story, t, p.secondaryIso), p.mode) * aFactor(t))
-      map.setPaintProperty('overlay2', 'raster-opacity', bOpacity(t))
+      setOps(map, overlayOpacity(changeProgress(p.story, t, p.secondaryIso), p.mode) * aFactor(t), bOpacity(t))
     })
   }, [ready, p.replayScale, p.story, p.mode, p.secondaryIso, bOpacity, aFactor])
 
-  // The second layer: draw the NEXT period's picture, ready to cross-fade in.
+  // The idle layer: draw the NEXT period's picture into it, ready to cross-fade in.
   const renderB = useCallback(() => {
     const map = mapRef.current
     const n = p.next
     const pic = n ? nextPicture(n, p.mode) : undefined
     if (!ready || !map || !n || !pic || p.swipe) return
+    const target = otherOf(curLayer.current)
+    const sig = `${p.mode}|${p.fadeLow}|${p.threshold}|0`
+    const have = held.current[target]
+    if (have && have.grid === pic.grid && have.sig === sig) return // already there
     const radar = p.mode === 'hv' || p.mode === 'hh'
     const canvas = renderOverlay(pic.grid, n.coherence.grid, {
       mode: radar ? 'los' : p.mode, range: p.mode === 'coherence' ? p.coherence.layer.range : pic.layer.range,
@@ -602,33 +640,33 @@ export default function MapView(p: Props) {
     })
     const seq = ++paintSeqB.current
     canvas.toBlob((blob) => {
-      if (!blob || seq !== paintSeqB.current || mapRef.current !== map) return
+      // dropped if a newer picture was asked for, or if the layers swapped jobs while this was encoding
+      if (!blob || seq !== paintSeqB.current || mapRef.current !== map || target !== otherOf(curLayer.current)) return
       const url = URL.createObjectURL(blob)
       const old = lastUrlB.current
       lastUrlB.current = url
-      ;(map.getSource('overlay2') as ImageSource | undefined)?.updateImage({ url, coordinates: corners(bbox) })
-      bShows.current = pic.grid
+      ;(map.getSource(target) as ImageSource | undefined)?.updateImage({ url, coordinates: corners(bbox) })
+      held.current[target] = { grid: pic.grid, sig }
       if (old) setTimeout(() => URL.revokeObjectURL(old), 3000)
-      map.setPaintProperty('overlay2', 'raster-opacity', bOpacity(bState.current.cursor))
+      applyRef.current()
     }, 'image/png')
-  }, [ready, p.next, p.swipe, p.mode, p.fadeLow, p.threshold, p.coherence.layer.range, bbox, bOpacity])
+  }, [ready, p.next, p.swipe, p.mode, p.fadeLow, p.threshold, p.coherence.layer.range, bbox])
   useLayoutEffect(() => {
-    bState.current = { next: p.next, swipe: p.swipe, mode: p.mode, replay: p.replayScale != null, cursor: p.cursor }
-    renderBRef.current = renderB
-    releaseRef.current = () => {
-      holdB.current = false
-      renderBRef.current()
+    bState.current = { next: p.next, swipe: p.swipe, mode: p.mode, replay: p.replayScale != null, cursor: p.cursor, sig: `${p.mode}|${p.fadeLow}|${p.threshold}|${p.swipe ? 1 : 0}` }
+    applyRef.current = () => {
       const m = mapRef.current
       if (!m) return
-      m.setPaintProperty('overlay', 'raster-opacity', overlayOpacity(changeProgress(p.story, bState.current.cursor, p.secondaryIso), bState.current.mode) * aFactor(bState.current.cursor))
-      m.setPaintProperty('overlay2', 'raster-opacity', bOpacity(bState.current.cursor))
+      if (p.replayScale != null) { setOps(m, 0.95, 0); return }
+      const c = bState.current.cursor
+      setOps(m, overlayOpacity(changeProgress(p.story, c, p.secondaryIso), p.mode) * aFactor(c), bOpacity(c))
     }
   })
   useEffect(() => {
     if (!ready) return
-    if (holdB.current) return // the main layer is catching up; it starts this again when it has
-    if (p.next) renderB()
-    else mapRef.current?.setPaintProperty('overlay2', 'raster-opacity', 0)
+    if (!p.next) { applyRef.current(); return }
+    // drawn a moment after a period change, not in the same frame: the new picture only starts to fade in slowly
+    const h = window.setTimeout(renderB, 100)
+    return () => window.clearTimeout(h)
   }, [ready, renderB, p.next])
 
   // quakes appear as the date cursor passes them (these are real, so time-filtering is fine)
@@ -674,7 +712,9 @@ export default function MapView(p: Props) {
     }
   }, [ready, evReached, p.overlays.mechanisms, p.context])
 
-  // labels pinned on the map (vent, strongest motion)
+  // labels pinned on the map (vent, strongest motion). A story that follows the timeline hands over a new but identical list at every
+  // satellite pass, so the markers are rebuilt only when what they say or where they sit actually changes (rebuilding made them blink).
+  const annotSig = (annotations ?? []).map((a) => `${a.lon},${a.lat},${a.kind ?? ''},${a.label}`).join('|')
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
@@ -688,12 +728,13 @@ export default function MapView(p: Props) {
       annotRef.current.push(new maplibregl.Marker({ element: el, anchor: 'left', offset: [-6, 0] }).setLngLat([a.lon, a.lat]).addTo(map))
     }
     return () => { annotRef.current.forEach((m) => m.remove()); annotRef.current = [] }
-  }, [ready, annotations])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, annotSig])
 
   // show or hide each label as the timeline moves (classes on the label, because the map manages the marker's own opacity)
   useEffect(() => {
     annotRef.current.forEach((m, i) => m.getElement().classList.toggle('off', annotKey[i] === '0'))
-  }, [ready, annotations, annotKey])
+  }, [ready, annotSig, annotKey])
 
   // ---- extra effects. They start only after the flight and the reveal, and each one stands down for the views it would clash with ----
   const losView = p.mode === 'los' && !p.swipe && p.replayScale == null && !p.profileMode
@@ -701,11 +742,13 @@ export default function MapView(p: Props) {
   // outlines of the strongest-moving regions
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map || !fxOn || !map.getSource('contour')) return
+    // (the outlines are only drawn in the motion view, so nothing is worked out for the other views)
+    if (!ready || !map || !fxOn || !losView || !map.getSource('contour')) return
     const lay = p.displacement.layer
     const level = Math.max(lay.quietBelow ?? 0, 0.3 * Math.max(Math.abs(lay.range[0]), Math.abs(lay.range[1])))
     ;(map.getSource('contour') as GeoJSONSource).setData(contours(p.displacement.grid, p.coherence.grid, p.fadeLow ? p.threshold : 0, level) as FeatureCollection)
-  }, [ready, fxOn, p.displacement, p.coherence, p.fadeLow, p.threshold])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, fxOn, losView, p.displacement, p.coherence, p.fadeLow, p.threshold])
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map || !map.getLayer('contour-line')) return
