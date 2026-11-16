@@ -293,17 +293,17 @@ export function SidePanel(p: SideProps) {
           <div className="legend-title">{legend.title} {(sci || active.synthetic) && <Badge kind={active.badge} synthetic={active.synthetic} />}</div>
           <div className="bar" style={{ background: (radarLayer ?? (p.mode === 'los' ? p.displacement : undefined))?.colormap === 'gray' ? GRAY_GRADIENT : LEGEND_GRADIENTS[p.mode] }} />
           <div className="ends"><span>{legend.left}</span><span>{legend.right}</span></div>
-        </div>
-
-        <details className="settings">
-          <summary>{sci ? 'About this layer and display settings' : t('s.colors')}</summary>
           {(keyItems || p.keyExtra) && (
             <ul className="key">
               {keyItems?.map((k) => <li key={k.text}><i style={{ background: k.color }} />{k.text}</li>)}
               {p.keyExtra}
             </ul>
           )}
-          <p className="hint">{legend.hint}</p>
+          {legend.hint && <p className="hint">{legend.hint}</p>}
+        </div>
+
+        <details className="settings">
+          <summary>{sci ? 'About this layer and display settings' : t('s.colors')}</summary>
           {!bs && <label className="check">
             <input type="checkbox" checked={p.fadeLow} onChange={(e) => p.setFadeLow(e.target.checked)} />
             <span>{sci ? `Mask cells below the ${(p.coherence.label ?? 'coherence').toLowerCase()} threshold` : t('s.fade')}</span>
