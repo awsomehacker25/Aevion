@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { GRAY_GRADIENT, LAMBDA, LEGEND_GRADIENTS } from './lib/render'
 import { sampleGrid } from './lib/data'
 import { Paras } from './lib/rich'
 import { EVENT, TEAM } from './config'
 import { useI18n } from './i18n'
+import { ChevronDown } from './Icons'
 import type { AcquisitionPair, Grid, LayerDef, Resource, Story, ViewMode } from './types'
 
 export type UiMode = 'story' | 'scientist'
@@ -39,6 +40,8 @@ interface SideProps {
   onTab?: (id: string) => void
   /** Ask the panel to open a tab (for example after a click on a map pin). Each new `nonce` opens it again. */
   tabRequest?: { id: string; nonce: number }
+  /** On phones, folds the sheet down to its peek (for example when a card opens on the map). Each new value folds it again. */
+  foldNonce?: number
   /** Extra rows for the colour key (for example the flood story's map layers that are switched on). */
   keyExtra?: ReactNode
   /** Content blocks the app supplies; the panel decides which tab each one lives in. */
@@ -146,6 +149,28 @@ export function SidePanel(p: SideProps) {
   const { tabRequest } = p
   useEffect(() => { if (tabRequest) { setTabs((s) => ({ ...s, [p.ui]: tabRequest.id })); setCollapsed(false) } }, [tabRequest]) // eslint-disable-line react-hooks/exhaustive-deps
   const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760)
+  const side = useRef<HTMLElement>(null)
+
+  // On phones the panel is a bottom sheet that starts as a peek; crossing the phone breakpoint resets it.
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 760px)')
+    const on = () => setCollapsed(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  const { foldNonce } = p
+  useEffect(() => { if (foldNonce && window.matchMedia('(max-width: 760px)').matches) setCollapsed(true) }, [foldNonce])
+
+  // Tell the page how tall the sheet is, so chips and the map credit sit right above it (phones only use this).
+  useLayoutEffect(() => {
+    const el = side.current
+    if (!el) return
+    const set = () => document.documentElement.style.setProperty('--sheet-h', `${Math.round(el.getBoundingClientRect().height)}px`)
+    set()
+    const ro = new ResizeObserver(set)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const credits = (
     <>
@@ -257,16 +282,16 @@ export function SidePanel(p: SideProps) {
   useEffect(() => { onTab?.(current.id) }, [current.id, onTab])
 
   return (
-    <aside className={`side ${sci ? 'sci' : ''} ${collapsed ? 'collapsed' : ''} ${all.length > 5 ? 'many' : ''}`}>
+    <aside ref={side} className={`side ${sci ? 'sci' : ''} ${collapsed ? 'collapsed' : ''} ${all.length > 5 ? 'many' : ''}`}>
       <div className="side-head">
         <div className="side-title">
           <h1>{sci && tech ? tech.title : p.story.title}</h1>
           <button className="collapse" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}
-            aria-label={collapsed ? t('panel.show') : t('panel.hide')} title={collapsed ? t('panel.show') : t('panel.hide')}>{collapsed ? '+' : '–'}</button>
+            aria-label={collapsed ? t('panel.show') : t('panel.hide')} title={collapsed ? t('panel.show') : t('panel.hide')}>
+            <span className="collapse-sign" aria-hidden="true">{collapsed ? '+' : '–'}</span><span className="collapse-chev"><ChevronDown /></span>
+          </button>
         </div>
         <p className="subtitle">{sci && tech?.subtitle ? tech.subtitle : p.story.subtitle}</p>
-        {!collapsed && <>
-
         <div className="views" role="group" aria-label={t('s.mapView')} data-n={nViews}>
           <ViewBtn on={p.mode === 'los'} onClick={() => p.setMode('los')}
             title={(p.story.copy?.mainView ?? [t('s.view.motion'), 'LOS displacement'])[sci ? 1 : 0]}
@@ -321,7 +346,6 @@ export function SidePanel(p: SideProps) {
               onClick={() => setTabs((s) => ({ ...s, [p.ui]: t.id }))}>{t.label}</button>
           ))}
         </div>
-        </>}
       </div>
 
       {!collapsed && <div className="side-body" role="tabpanel">{current.body}</div>}

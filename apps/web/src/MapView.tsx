@@ -750,7 +750,13 @@ export default function MapView(p: Props) {
   return (
     <>
       <div ref={el} className={`map ${p.profileMode ? 'picking' : ''}`} />
-      {intro && <div className="intro-hint" role="status">{intro === 'wait' ? 'Loading imagery…' : 'Press Esc to skip'}</div>}
+      {intro === 'wait' && <div className="intro-hint" role="status">Loading imagery…</div>}
+      {intro === 'fly' && (
+        // the same skip as the Esc key, for screens without a keyboard
+        <button type="button" className="intro-hint skip" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))}>
+          {window.matchMedia('(pointer: coarse)').matches ? 'Tap to skip' : 'Press Esc to skip'}
+        </button>
+      )}
       {away && !intro && (
         <button className="return-chip" onClick={() => returnRef.current()}>
           Return to the study area

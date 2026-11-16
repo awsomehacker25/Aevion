@@ -13,6 +13,8 @@ const en: Record<string, string> = {
   'top.story': 'Story',
   'top.scientist': 'Scientist',
   'dock.aria': 'Main navigation',
+  'dock.options': 'Options: language, theme and data status',
+  'dock.status': 'Data status',
   'top.coords': 'Coordinates of the point you clicked',
   'top.coords.hint': 'Click the map for coordinates',
   'top.theme': 'Theme',

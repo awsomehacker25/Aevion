@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import './Shell.css'
 import './Extras.css'
+import './Mobile.css'
 import { DEFAULT_COHERENCE_THRESHOLD } from './config'
 import { estimateOffset, sampleProfile } from './lib/analysis'
 import { loadIndex, loadStory, ms, sampleGrid } from './lib/data'
@@ -89,6 +90,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange, booting, on
   const [methods, setMethods] = useState(false)
   const [tabReq, setTabReq] = useState<{ id: string; nonce: number } | null>(null)
   const [panelTab, setPanelTab] = useState<string | null>(null) // the open side-panel tab, for the shared link
+  const [fold, setFold] = useState(0) // bumped to fold the phone sheet when a card opens on the map
   const [initialTab, setInitialTab] = useState<string | undefined>(undefined)
   const replayRaf = useRef(0)
   const prevMode = useRef<ViewMode>('los')
@@ -269,6 +271,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange, booting, on
     const steps = data?.story.tour
     if (!steps?.[index]) return
     setTour(index)
+    setFold((n) => n + 1)
     let view: ViewMode | undefined
     let date: string | undefined
     let camera: Camera | undefined
@@ -447,11 +450,11 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange, booting, on
   )
 
   return (
-    <div className="app">
+    <div className={`app ${!sci && tour != null ? 'touring' : ''}`}>
       <MapView story={story} quakes={data.quakes} context={context} displacement={view.displacement} coherence={view.coherence}
         radarHH={view.radar.hh} radarHV={view.radar.hv} mix={mixOpts} compare={compare} extras={extras} next={view.next}
         mode={shownMode} fadeLow={fadeLow} threshold={threshold} progress={progress} secondaryIso={viewPair?.secondary} swipe={swipe} cursor={cursor}
-        overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => setPicked([lon, lat])}
+        overlays={overlays} camera={cameraReq} picked={picked} onPick={(lon, lat) => { setPicked([lon, lat]); setFold((n) => n + 1) }}
         profile={profile} profileMode={picking}
         onProfilePoint={addProfilePoint}
         replayScale={replay} />
@@ -465,7 +468,7 @@ function Viewer({ id, stories, onSwitchStory, initialUi, onUiChange, booting, on
         threshold={threshold} setThreshold={setThreshold}
         displacement={view.displacement.layer} coherence={view.coherence.layer} flagship={viewPair}
         radar={{ hh: view.radar.hh?.layer, hv: view.radar.hv?.layer }} mix={mixKind} initialTab={initialTab} onTab={setPanelTab}
-        tabRequest={tabReq ?? undefined} keyExtra={fd ? <FloodLegendKey data={fd} layers={fl} /> : undefined}
+        tabRequest={tabReq ?? undefined} foldNonce={fold} keyExtra={fd ? <FloodLegendKey data={fd} layers={fl} /> : undefined}
         slots={sci ? {
           analysis: (
             <>

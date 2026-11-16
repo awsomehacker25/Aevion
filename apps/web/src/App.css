@@ -312,22 +312,6 @@
 .maplibregl-ctrl-group button + button { border-top: 1px solid var(--line) !important; }
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: var(--icon-filter); }
 
-@media (max-width: 760px) {
-  /* the whole panel scrolls as one sheet, so its text is never squeezed out by the pinned header */
-  .side { top: auto; bottom: calc(var(--stack-off) + var(--tl-h, 124px) + 24px); width: auto; right: 12px; max-height: 46vh; display: block; overflow-y: auto; overscroll-behavior: contain; }
-  .side.collapsed { max-height: none; width: auto; }
-  .side-body { overflow: visible; padding-top: 12px; }
-  .side-head { position: sticky; top: 0; z-index: 1; background: var(--surface); padding-bottom: 0; }
-  .inspector { bottom: calc(var(--stack-off) + var(--tl-h, 124px) + 24px); right: 12px; left: 12px; width: auto; }
-  .tl-track { margin-left: 84px; }
-  .tl-label { font-size: 10.5px; right: calc(100% + 8px); }
-  .tl-status { display: none; }
-  .tour { left: 50%; width: calc(100vw - 24px); bottom: calc(var(--stack-off) + var(--tl-h, 124px) + 24px); }
-  .replay-chip { left: 50%; white-space: normal; text-align: center; width: calc(100vw - 24px); top: 108px; }
-  .profile-card { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(var(--stack-off) + var(--tl-h, 124px) + 24px); }
-  .ps-label { max-width: 40vw; }
-  .recenter { top: 108px; }
-}
 /* touch screens: bigger targets */
 @media (pointer: coarse) {
   .view, .tabs button, .btn, .cta, .seg button, .prow { min-height: 40px; }
@@ -362,11 +346,6 @@
 /* bigger hit areas without bigger marks */
 .pass, .qdot, .edot { touch-action: manipulation; }
 .pass::after, .edot::after { content: ''; position: absolute; inset: -9px; }
-@media (max-width: 760px) {
-  .status .s-full { display: none; }
-  .status .s-short { display: inline; }
-  .side.collapsed { max-height: none; bottom: calc(var(--stack-off) + var(--tl-h, 124px) + 24px); }
-}
 @media (pointer: coarse) {
   .settings summary, .howto summary, .more summary, .res summary { min-height: 40px; display: flex; align-items: center; }
   .maplibregl-ctrl-group button { width: 40px !important; height: 40px !important; }
@@ -374,12 +353,6 @@
   .recenter { min-height: 40px; }
 }
 
-@media (max-width: 760px) {
-  .tl-head { flex-wrap: wrap; row-gap: 4px; }
-  .tl-head .btn { white-space: nowrap; }
-  .tl-date { flex-basis: 100%; order: 5; font-size: 12px; color: var(--muted); }
-  .recenter { top: 140px; }
-}
 
 /* view switcher: an even grid, never a lonely button on its own row */
 .views, .views.two, .views.radar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
@@ -422,7 +395,6 @@
 .ftl-row .ftl-key { display: inline-flex; align-items: center; gap: 6px; }
 .ftl-row .ftl-key i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 .ftl-row .ftl-charts { min-width: 0; }
-@media (max-width: 760px) { .ftl-row .ftl-keys { display: none; } }
 
 /* six tabs need a little more room than five */
 @media (min-width: 761px) { .side.many { width: 376px; } .side.many .tabs { gap: 12px; } }
